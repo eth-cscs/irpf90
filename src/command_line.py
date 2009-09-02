@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import getopt, sys
-from IRPPython import irp
 from version import version
 
 description = "IRPF90 Fortran preprocessor."
@@ -17,11 +16,9 @@ options['i'] = [ 'init'         , 'Initialize current directory', 0 ]
 class CommandLine(object):
 
   def __init__(self):
-    pass
+    self._opts = None
 
-  def executable_name(self):
-    return sys.argv[0]
-  executable_name = irp(executable_name,str)
+  executable_name = sys.argv[0]
 
   def usage(self):
     t = """
@@ -46,44 +43,51 @@ Options:
     print ""
 
   def opts(self):
-    optlist = ["",[]]
-    for o in options.keys():
-      b = [o]+options[o]
-      if b[3] == 1:
-        b[0] = b[0]+":"
-        b[1] = b[1]+"="
-      optlist[0] += b[0]
-      optlist[1] += [b[1]]
-  
-    try:
-      opts, args = getopt.getopt(sys.argv[1:], optlist[0], optlist[1])
-    except getopt.GetoptError, err:
-      # print help information and exit:
-      self.usage()
-      print str(err) # will print something like "option -a not recognized"
-      sys.exit(2)
-  
-    return opts
-  opts = irp(opts,list,tuple,str)
+    if self._opts is None:
+      optlist = ["",[]]
+      for o in options.keys():
+        b = [o]+options[o]
+        if b[3] == 1:
+          b[0] = b[0]+":"
+          b[1] = b[1]+"="
+        optlist[0] += b[0]
+        optlist[1] += [b[1]]
+    
+      try:
+        self._opts, args = getopt.getopt(sys.argv[1:], optlist[0], optlist[1])
+      except getopt.GetoptError, err:
+        # print help information and exit:
+        self.usage()
+        print str(err) # will print something like "option -a not recognized"
+        sys.exit(2)
+    
+    return self._opts
+  opts = property(fget=opts)
   
   t = """
 def do_$LONG(self):
-    result = False
-    for o,a in self.opts:
-      if o in ("-$SHORT", "--$LONG"):
-        result = True
-        break
-    return result
-do_$LONG = irp(do_$LONG,bool)
+    try:
+      x = self._do_$LONG
+    except AttributeError:
+      self._do_$LONG = False
+      for o,a in self.opts:
+        if o in ("-$SHORT", "--$LONG"):
+          self._do_$LONG = True
+          break
+    return self._do_$LONG
+do_$LONG = property(fget=do_$LONG)
 """
   for short in options.keys():
     long = options[short][0]
     exec t.replace("$LONG",long).replace("$SHORT",short)
 
   def do_run(self):
-   result = not (self.do_version or self.do_init)
-   return result
-  do_run = irp(do_run,bool)
+   try:
+     x = self._do_run
+   except AttributeError:
+     self._do_run = not (self.do_version or self.do_init)
+   return self._do_run
+  do_run = property(fget=do_run)
 
 
 command_line = CommandLine()
