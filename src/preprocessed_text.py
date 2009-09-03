@@ -496,6 +496,7 @@ def irp_simple_statements(text):
       
 ######################################################################
 def change_includes(text):
+  '''Deals with include files'''
   result = []
   for line in text:
     if (isinstance(line,Include)):
@@ -516,6 +517,80 @@ def change_includes(text):
   return result
 
 ######################################################################
+def process_old_style_do(text):
+  '''Changes old-style do loops to new style'''
+  return text
+
+######################################################################
+def check_end(text):
+  '''Checks x...endx consistence'''
+
+  def filter_line(line):
+    for type in [ Do, Enddo, If, Endif, Begin_provider, End_provider, \
+                  Subroutine, Function, End ]:
+      if isinstance(line,type):
+        return True
+    return False
+
+  text = filter(filter_line, text)
+
+  d = { 'do': Do,    'enddo': Enddo,
+        'if': If,    'endif': Endif}
+  assert isinstance(text,list)
+
+  def find_matching_end_ifdo(begin,x):
+    level = 1
+    for i in range(begin+1,len(text)):
+      line = text[i]
+      if isinstance(line,d[x]):
+        level += 1
+      elif isinstance(line,d["end%s"%(x,)]):
+        level -= 1
+        if level == 0:
+          return True
+      elif isinstance(line,End) or \
+           isinstance(line,End_provider):
+        break
+    error.fail(text[begin],"Missing 'end %s'"%(x,))
+
+
+  def find_matching_end_subfunpro(begin,x):
+    for i in range(begin+1,len(text)):
+      line = text[i]
+      if isinstance(line,x):
+        return
+      for t in [ Subroutine, Function, Begin_provider ]:
+        if isinstance(line,t):
+          error.fail(text[begin],"Subroutine/Function/Provider is not closed")
+    error.fail(text[begin],"Subroutine/Function/Provider is not closed")
+
+  
+  level = 0
+  for i,line in enumerate(text):
+    if isinstance(line,Do):
+      find_matching_end_ifdo(i,'do')
+    elif isinstance(line,If):
+      find_matching_end_ifdo(i,'if')
+    elif isinstance(line,Subroutine):
+      level += 1
+      find_matching_end_subfunpro(i,End)
+    elif isinstance(line,Function):
+      level += 1
+      find_matching_end_subfunpro(i,End)
+    elif isinstance(line,Begin_provider):
+      level += 1
+      find_matching_end_subfunpro(i,End_provider)
+    elif isinstance(line,End):
+      level -= 1
+    elif isinstance(line,End_provider):
+      level -= 1
+    if level < 0:
+      error.fail(line,"Beginning of block not matched")
+
+  return True
+
+
+######################################################################
 def preprocessed_text(filename):
   file = open(filename,"r")
   lines = file.readlines()
@@ -527,6 +602,8 @@ def preprocessed_text(filename):
   result = remove_continuation(result,fortran_form)
   result = irp_simple_statements(result)
   result = change_includes(result)
+  result = process_old_style_do(result)
+  check_end(result)
   return result
 
 if __name__ == '__main__': 
