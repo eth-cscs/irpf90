@@ -219,6 +219,8 @@ def form(text):
           if re2.match(test) is None and \
              re3.match(test) is not None:
             return Free_form
+          if line.text.strip()[-1] == '&':
+            return Free_form
   return Fixed_form 
 
 ######################################################################
@@ -318,7 +320,7 @@ def irp_simple_statements(text):
     result = [
        Simple_line(i,"!",f),
        Simple_line(i,"! >>> %s"%(txt,),f ),
-       Provide_all(i,"  call %ser_%s('%s')"%(rw,variable,num),f),
+       Provide_all(i,"      call %ser_%s('%s')"%(rw,variable,num),f),
        Simple_line(i,"! >>> END %s "%(txt,),f ),
        Simple_line(line.i,"!",f),
     ]
@@ -335,7 +337,7 @@ def irp_simple_statements(text):
   def process_return(line):
     assert isinstance(line,Return)
     if command_line.do_assert or command_line.do_debug:
-      newline = Simple_line(line.i,"  call irp_leave(irp_here)",line.filename)
+      newline = Simple_line(line.i,"      call irp_leave(irp_here)",line.filename)
       result = [newline, line]
     else:
       result = [ line ]
@@ -352,8 +354,8 @@ def irp_simple_statements(text):
       matches = [ match.group(1).strip(), match.group(3).strip() ]
       for m in matches:
         if not(m.isdigit() or ("'" in m) or (m == "")):
-          result.append ( Simple_line (line.i, "   print *, '%s = ', %s"%(m,m), line.filename) )
-      result.append ( Simple_line (line.i, "   print *, ''", line.filename) )
+          result.append ( Simple_line (line.i, "       print *, '%s = ', %s"%(m,m), line.filename) )
+      result.append ( Simple_line (line.i, "       print *, ''", line.filename) )
     return result
    
   def process_assert(line):
@@ -369,14 +371,14 @@ def irp_simple_statements(text):
       result = [
        Simple_line(i, "!", f),
        Simple_line(i, "! >>> %s"%(txt,), f),
-       If         (i, "  if (.not.%s) then"%(condition,), f),
-       Simple_line(i, "   call irp_trace", f),
-       Simple_line(i, "   print *, irp_here//': Assert failed:'", f),
-       Simple_line(i, "   print *, ' file: %s, line: %d'"%(f,i), f),
-       Simple_line(i, "   print *, '%s'"%(condition_str,), f),
+       If         (i, "      if (.not.%s) then"%(condition,), f),
+       Simple_line(i, "       call irp_trace", f),
+       Simple_line(i, "       print *, irp_here//': Assert failed:'", f),
+       Simple_line(i, "       print *, ' file: %s, line: %d'"%(f,i), f),
+       Simple_line(i, "       print *, '%s'"%(condition_str,), f),
        ] + debug_conditions(line) + [
-       Simple_line(i, "   stop 1", f),
-       Endif      (i, "  endif", f),
+       Simple_line(i, "       stop 1", f),
+       Endif      (i, "      endif", f),
        Simple_line(i, "! <<< END %s"%(txt,), f),
        Simple_line(i, "!", f)
       ]
@@ -384,17 +386,13 @@ def irp_simple_statements(text):
       result = []
     return result
 
-  def process_end_provider(line,varname):
+  def process_end(line):
     '''Set irp_here variable in provider block'''
-    assert isinstance(line,End_provider)
-    length = len(varname)+4
     if command_line.do_assert or command_line.do_debug:
       i = line.i
       f = line.filename
       result = [
-          Declaration(i,"  character*(%d), parameter :: irp_here = 'bld_%s'"%(length,varname), f),
-          Declaration(i,"  call irp_enter(irp_here)", f),
-          Simple_line(i,"  call irp_leave(irp_here)", f),
+          Simple_line(i,"      call irp_leave(irp_here)", f),
           line
         ]
     else:
@@ -404,13 +402,85 @@ def irp_simple_statements(text):
 
   def process_begin_provider(line):
     assert isinstance(line,Begin_provider)
-    varname = 'XXX'
-    return [line], varname
+    buffer = line.text.replace('['," ")
+    buffer = buffer.replace(']',"")
+    buffer = buffer.split(',')
+    if len(buffer) < 2:
+      error.fail(line,"Error in Begin_provider statement")
+    varname = buffer[1].strip().lower()
+    length = len(varname)
+    i = line.i
+    f = line.filename
+    result = [ line,
+      Declaration(i,"      character*(%d), parameter :: irp_here = '%s'"%(length,varname), f) ]
+    if command_line.do_assert or command_line.do_debug:
+      result += [
+        Simple_line(i,"      call irp_enter(irp_here)", f),
+      ]
+    return result
 
-  d = { Irp_read     : process_irp_read,
-        Irp_write    : process_irp_write,
-        Return       : process_return,
-        Assert       : process_assert,
+  def process_subroutine(line):
+    assert isinstance(line,Subroutine)
+    buffer = line.text.split('(')
+    if len(buffer) > 1:
+      buffer = " ".join(buffer[:-1])
+    else:
+      buffer = buffer[0]
+    buffer = buffer.lower().split()
+    if len(buffer) != 2:
+      print buffer
+      error.fail(line,"Error in Subroutine statement")
+    subname = buffer[1]
+    length = len(subname)
+    i = line.i
+    f = line.filename
+    result = [ line,
+      Declaration(i,"      character*(%d), parameter :: irp_here = '%s'"%(length,subname), f) ]
+    if command_line.do_assert or command_line.do_debug:
+      result += [
+        Simple_line(i,"      call irp_enter(irp_here)", f),
+      ]
+    return result
+
+  def process_function(line):
+    assert isinstance(line,Function)
+    buffer = line.text.split('(')
+    if (len(buffer) < 2):
+      error.fail(line,"Error in Function statement")
+    buffer = " ".join(buffer[:-1])
+    buffer = buffer.lower().split()
+    if len(buffer) < 2:
+      error.fail(line,"Error in Function statement")
+    subname = buffer[-1]
+    length = len(subname)
+    i = line.i
+    f = line.filename
+    result = [ line,
+      Declaration(i,"      character*(%d), parameter :: irp_here = '%s'"%(length,subname), f) ]
+    if command_line.do_assert or command_line.do_debug:
+      result += [
+        Simple_line(i,"      call irp_enter(irp_here)", f),
+      ]
+    return result
+
+
+  def process_program(line):
+    assert isinstance(line,Program)
+    program_name = line.text.split()[1].lower()
+    result = [ Program(0,"",program_name) ] + \
+       process_subroutine( Subroutine(line.i,"subroutine %s"%(program_name,),line.filename) )
+    return result
+
+  d = { Irp_read       : process_irp_read,
+        Irp_write      : process_irp_write,
+        Return         : process_return,
+        Assert         : process_assert,
+        End            : process_end,
+        Begin_provider : process_begin_provider,
+        End_provider   : process_end,
+        Subroutine     : process_subroutine,
+        Function       : process_function,
+        Program        : process_program,
       }
 
   result = []
@@ -420,14 +490,31 @@ def irp_simple_statements(text):
       if isinstance(line,t):
         buffer = d[t](line)
         break
-    if isinstance(line,Begin_provider):
-      buffer, varname = process_begin_provider(line)
-    elif isinstance(line,End_provider):
-      buffer = process_end_provider(line,varname)
     result += buffer
   return result
     
       
+######################################################################
+def change_includes(text):
+  result = []
+  for line in text:
+    if (isinstance(line,Include)):
+     txt = line.text.replace('"',"'").split("'")
+     if len(txt) != 3:
+       print txt
+       error.fail(line,"Error in include statement")
+     filename = txt[1].strip()
+     try:
+       file = open(filename,'r')
+       file.close()
+       result += preprocessed_text(filename)
+      #result += get_text(file.readlines(), filename)
+     except IOError:
+       result.append(line)
+    else:
+     result.append(line)
+  return result
+
 ######################################################################
 def preprocessed_text(filename):
   file = open(filename,"r")
@@ -439,6 +526,7 @@ def preprocessed_text(filename):
   result = remove_comments(result,fortran_form)
   result = remove_continuation(result,fortran_form)
   result = irp_simple_statements(result)
+  result = change_includes(result)
   return result
 
 if __name__ == '__main__': 

@@ -10,9 +10,8 @@ def fail(line,message):
 Error:
 -----
 """
-  if line.i > 0:
-    print "file %s, line %d:\n%s"%(line.filename,line.i,line.text)
   print message, '\n'
+  print "file %s ; line %d :\n %s"%(line.filename,line.i,line.text)
   sys.exit(1)
 
 
@@ -24,7 +23,7 @@ Warning:
 -------
 """
   if line.i > 0:
-    print "file %s, line %d:\n%s"%(line.filename,line.i,line.text)
+    print "file %s, line %d:\n %s"%(line.filename,line.i,line.text)
   print message, '\n'
 
 
