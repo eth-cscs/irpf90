@@ -560,8 +560,42 @@ if (test) then
 endif'''
 
   assert isinstance(text,list)
-  # TODO
-  return text
+  result = []
+  for line in text:
+    if isinstance(line,If):
+      if line.text.endswith("then"):
+        result.append(line)
+      else:
+        buffer = line.text
+        begin = buffer.find('(')
+        if begin < 0:
+          error.fail(line,"Error in if statement")
+        level = 0
+        instring = False
+        for i,c in enumerate(buffer[begin:]):
+          if c == "'":
+            instring = not instring
+          if instring:
+            pass
+          elif c == '(':
+            level +=1
+          elif c == ')':
+            level -= 1
+          if level == 0:
+            end = begin+i+1
+            break
+        if level != 0:
+          error.fail(line,"Error in if statement")
+        test = buffer[:end]
+        code = buffer[end:]
+        i = line.i
+        f = line.filename
+        result.append( If(i,"%s then"%(test,),f) )
+        result += get_type(i,f,code,False)[0]
+        result.append( Endif(i,"      endif",f) )
+    else:
+      result.append(line)
+  return result
 
 ######################################################################
 def check_begin_end(text):
