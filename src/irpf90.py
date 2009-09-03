@@ -3,6 +3,9 @@
 def main():
   from command_line import command_line
 
+  if command_line.do_help:
+    command_line.usage()
+
   if command_line.do_version:
     from version import version
     print version
@@ -18,4 +21,4 @@ def main():
   import irp_stack
   irp_stack.create()
 
-main()
+

@@ -143,7 +143,6 @@ def get_text(lines,filename):
   for i,line in enumerate(lines):
     line, is_doc = get_type(i+1,filename,line,is_doc)
     result += line
-  assert not is_doc
   return result
 
 ######################################################################
@@ -603,15 +602,16 @@ def check_begin_end(text):
 
   def filter_line(line):
     for type in [ Do, Enddo, If, Endif, Begin_provider, End_provider, \
-                  Subroutine, Function, End ]:
+                  Subroutine, Function, End, Begin_doc, End_doc ]:
       if isinstance(line,type):
         return True
     return False
 
   text = filter(filter_line, text)
 
-  d = { 'do': Do,    'enddo': Enddo,
-        'if': If,    'endif': Endif}
+  d = { 'do' : Do,         'enddo': Enddo,
+        'if' : If,         'endif': Endif,
+        '_doc': Begin_doc, 'end_doc': End_doc}
   assert isinstance(text,list)
 
   def find_matching_end_ifdo(begin,x):
@@ -627,7 +627,7 @@ def check_begin_end(text):
       elif isinstance(line,End) or \
            isinstance(line,End_provider):
         break
-    error.fail(text[begin],"Missing 'end %s'"%(x,))
+    error.fail(text[begin],"Missing 'end%s'"%(x,))
 
   def find_matching_end_subfunpro(begin,x):
     for i in range(begin+1,len(text)):
@@ -641,6 +641,9 @@ def check_begin_end(text):
 
   
   level = 0
+  for i,line in enumerate(text):
+    if isinstance(line,Begin_doc):
+      find_matching_end_ifdo(i,'_doc')
   for i,line in enumerate(text):
     if isinstance(line,Do):
       find_matching_end_ifdo(i,'do')
@@ -666,8 +669,21 @@ def check_begin_end(text):
 
 ######################################################################
 def remove_ifdefs(text):
-  # TODO
-  return text
+  assert isinstance(text,list)
+  result = []
+  do_print = True
+  for line in text:
+    if isinstance(line,Irp_If):
+      var = line.text.split()[1]
+      do_print = var in command_line.defined
+    elif isinstance(line,Irp_Else):
+      do_print = not do_print
+    elif isinstance(line,Irp_Endif):
+      do_print = True
+    else:
+      if do_print:
+        result.append(line)
+  return result
 
 ######################################################################
 def move_to_top(text,t):

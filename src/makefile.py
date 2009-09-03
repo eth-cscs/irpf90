@@ -11,7 +11,7 @@ def create():
   has_makefile = True
   try:
     file = open(FILENAME,"r")
-  except OSError:
+  except IOError:
     has_makefile = False
   if has_makefile:
     return

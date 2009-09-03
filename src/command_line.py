@@ -12,13 +12,26 @@ options['h'] = [ 'help'         , 'Print this help', 0 ]
 options['o'] = [ 'openmp'       , 'Activate openMP', 0 ]
 options['c'] = [ 'check_cycles' , 'Check cycles in dependencies', 0 ]
 options['i'] = [ 'init'         , 'Initialize current directory', 0 ]
+options['D'] = [ 'define'       , 'Define variable', 1 ]
 
 class CommandLine(object):
 
   def __init__(self):
+    global options
     self._opts = None
+    self.argv = list(sys.argv)
+    self.executable_name = self.argv[0]
 
-  executable_name = sys.argv[0]
+  def defined(self):
+    try:
+      d = self._defined
+    except AttributeError:
+      self._defined = []
+      for o,a in self.opts:
+        if o in [ "-D", options['D'][0] ]:
+          self._defined.append(a)
+    return self._defined
+  defined = property(fget=defined)
 
   def usage(self):
     t = """
@@ -54,7 +67,7 @@ Options:
         optlist[1] += [b[1]]
     
       try:
-        self._opts, args = getopt.getopt(sys.argv[1:], optlist[0], optlist[1])
+        self._opts, args = getopt.getopt(self.argv[1:], optlist[0], optlist[1])
       except getopt.GetoptError, err:
         # print help information and exit:
         self.usage()

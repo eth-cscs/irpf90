@@ -103,9 +103,10 @@ subroutine irp_trace
 end subroutine
 """
 
+  txt = txt.splitlines()
   if not util.same_file(FILENAME, txt):
     file = open(FILENAME,'w')
-    file.write(txt)
+    file.writelines(txt)
     file.close()
 
 
