@@ -219,7 +219,7 @@ def form(text):
           if re2.match(test) is None and \
              re3.match(test) is not None:
             return Free_form
-          if line.text.strip()[-1] == '&':
+          if line.text.rstrip()[-1] == '&':
             return Free_form
   return Fixed_form 
 
@@ -269,16 +269,20 @@ def remove_continuation(text,form):
   result = []
   buffer = ""
   number = 0
+  t = None
   if form == Free_form:
     for line in text:
       if line.text[-1] == '&':
         buffer = "%s%s "%(buffer,line.text[:-1].lstrip())
         if number == 0:
+          t = type(line)
           number = line.i
       else:
         if number != 0:
-          line.text = "%s%s"%(buffer,line.text.lstrip())
-          line.i = number
+          newline = t(number, \
+            "%s%s"%(buffer,line.text.lstrip()), \
+            line.filename)
+          line = newline
           number = 0
           buffer = ""
         result.append(line)
@@ -519,10 +523,48 @@ def change_includes(text):
 ######################################################################
 def process_old_style_do(text):
   '''Changes old-style do loops to new style'''
+  assert isinstance(text,list)
+
+  def change_matching_enddo(begin,number):
+    for i in range(begin+1,len(text)):
+      line = text[i]
+      if isinstance(line,Continue) or \
+         isinstance(line,Enddo):
+        buffer = line.text.split()
+        if buffer[0] == number:
+          text[i] = Enddo(line.i,"      enddo",line.filename)
+          return
+    error.fail(text[begin],"Old-style do loops should end with 'continue' or 'end do'")
+      
+  result = []
+  for i in range(len(text)):
+    line = text[i]
+    if isinstance(line,Do):
+      buffer = line.text.split()
+      if buffer[1].isdigit():
+        number = buffer.pop(1)
+        change_matching_enddo(i,number)
+        line.text = "      "+" ".join(buffer)
+    result.append(line)
+  return result
+
+######################################################################
+def change_single_line_ifs(text):
+  '''Changes:
+if (test) result 
+
+to
+
+if (test) then
+  result
+endif'''
+
+  assert isinstance(text,list)
+  # TODO
   return text
 
 ######################################################################
-def check_end(text):
+def check_begin_end(text):
   '''Checks x...endx consistence'''
 
   def filter_line(line):
@@ -552,7 +594,6 @@ def check_end(text):
            isinstance(line,End_provider):
         break
     error.fail(text[begin],"Missing 'end %s'"%(x,))
-
 
   def find_matching_end_subfunpro(begin,x):
     for i in range(begin+1,len(text)):
@@ -589,6 +630,29 @@ def check_end(text):
 
   return True
 
+######################################################################
+def remove_ifdefs(text):
+  # TODO
+  return text
+
+######################################################################
+def move_to_top(text,t):
+  assert isinstance(text,list)
+  assert t in [ Declaration, Implicit, Use ]
+
+  begin = -1
+  for i in range(len(text)):
+    line = text[i]
+    if isinstance(line,Begin_provider) or \
+       isinstance(line,Subroutine)     or \
+       isinstance(line,Function):
+      begin = i
+    elif isinstance(line,t):
+      text.pop(i)
+      begin += 1
+      text.insert(begin,line)
+
+  return text
 
 ######################################################################
 def preprocessed_text(filename):
@@ -598,19 +662,25 @@ def preprocessed_text(filename):
   result = get_text(lines,filename)
   result = execute_shell(result)
   fortran_form = form(result)
+  result = remove_ifdefs(result)
   result = remove_comments(result,fortran_form)
   result = remove_continuation(result,fortran_form)
-  result = irp_simple_statements(result)
   result = change_includes(result)
+  result = change_single_line_ifs(result)
   result = process_old_style_do(result)
-  check_end(result)
+  result = irp_simple_statements(result)
+  result = move_to_top(result,Declaration)
+  result = move_to_top(result,Implicit)
+  result = move_to_top(result,Use)
   return result
 
 if __name__ == '__main__': 
   txt = preprocessed_text('testfile.irp.f')
+  check_begin_end(txt)
   for line in txt:
     print line
   txt = preprocessed_text('testfile_fixed.irp.f')
+  check_begin_end(txt)
   for line in txt:
     print line
 
