@@ -42,8 +42,15 @@ class Sub(object):
   ############################################################
   def touches(self):
     if '_touches' not in self.__dict__:
-      self._touches = filter(lambda x: isinstance(x,Touch),self.text) != []
+      from subroutines import subroutines
+      self._touches = []
+      for line in filter(lambda x: isinstance(x,Touch),self.text):
+        self._touches += line.text.split()[1:]
+      for sub in self.calls:
+        self._touches += subroutines[sub].touches
+      self._touches = make_single(self._touches)
     return self._touches
+  touches = property(touches)
 
   ############################################################
   def regexp(self):
@@ -62,6 +69,7 @@ class Sub(object):
       for line in buffer:
         sub = line.text.split('(',1)[0].split()[1]
         self._calls.append(sub)
+      self._calls = make_single(self._calls)
     return self._calls
   calls = property(calls)
 
@@ -69,4 +77,4 @@ class Sub(object):
 if __name__ == '__main__':
   from preprocessed_text import preprocessed_text
   from subroutines import subroutines
-  print subroutines['invert'].calls
+  print subroutines['brownian_step'].touches

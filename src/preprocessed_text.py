@@ -440,8 +440,6 @@ def irp_simple_statements(text):
   def process_function(line):
     assert isinstance(line,Function)
     buffer = line.text.split('(')
-    if (len(buffer) < 2):
-      error.fail(line,"Syntax error")
     subname = find_subname(line)
     length = len(subname)
     i = line.i

@@ -165,4 +165,5 @@ class Variable(object):
 if __name__ == '__main__':
   from preprocessed_text import preprocessed_text
   from variables import variables
-  print variables['elec_fitcusp_lapl'].doc
+  for v in variables.keys():
+    print v

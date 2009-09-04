@@ -38,6 +38,12 @@ def find_subname(line):
     error.fail(line,"Syntax Error")
   return buffer[-1]
 
+def make_single(l):
+  d = {}
+  for x in l:
+   d[x] = True
+  return d.keys()
+
 
 if __name__ == '__main__':
   print build_dim([])
