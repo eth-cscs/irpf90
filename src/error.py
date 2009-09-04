@@ -11,20 +11,23 @@ Error:
 -----
 """
   print message, '\n'
-  print "file %s ; line %d :\n %s"%(line.filename,line.i,line.text)
+  if line is not None:
+    print "file %s ; line %d :\n %s"%(line.filename,line.i,line.text)
   sys.exit(1)
 
 
 ######################################################################
 def warn(line,message):
   assert isinstance(line,Line)
-  print """
+  if line is not None:
+    print """
 Warning:
 -------
 """
-  if line.i > 0:
+    print message, '\n'
     print "file %s, line %d:\n %s"%(line.filename,line.i,line.text)
-  print message, '\n'
+  else:
+    print "Warning: %s"%(message)
 
 
 ######################################################################

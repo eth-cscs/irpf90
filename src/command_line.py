@@ -23,9 +23,7 @@ class CommandLine(object):
     self.executable_name = self.argv[0]
 
   def defined(self):
-    try:
-      d = self._defined
-    except AttributeError:
+    if '_defined' not in self.__dict__:
       self._defined = []
       for o,a in self.opts:
         if o in [ "-D", options['D'][0] ]:
@@ -79,9 +77,7 @@ Options:
   
   t = """
 def do_$LONG(self):
-    try:
-      x = self._do_$LONG
-    except AttributeError:
+    if '_do_$LONG' not in self.__dict__:
       self._do_$LONG = False
       for o,a in self.opts:
         if o in ("-$SHORT", "--$LONG"):
@@ -95,9 +91,7 @@ do_$LONG = property(fget=do_$LONG)
     exec t.replace("$LONG",long).replace("$SHORT",short)
 
   def do_run(self):
-   try:
-     x = self._do_run
-   except AttributeError:
+   if '_do_run' not in self.__dict__:
      self._do_run = not (self.do_version or self.do_init)
    return self._do_run
   do_run = property(fget=do_run)

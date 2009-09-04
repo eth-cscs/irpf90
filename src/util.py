@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+def strip(x):
+  return x.strip()
+
 def same_file(filename,txt):
   assert isinstance(filename,str)
   assert isinstance(txt,list)
@@ -17,8 +20,13 @@ def same_file(filename,txt):
       return False
   return True
 
+def build_dim(dim):
+  if len(dim) == 0:
+    return ""
+  else:
+    return "(%s)"%( ",".join(dim) )
+
 if __name__ == '__main__':
-  txt = open('/etc/passwd','r').readlines()
-  print same_file('/etc/passwd',txt)
-  print same_file('/etc/group',txt)
-  print same_file('/etc/passwd-',txt)
+  print build_dim([])
+  print build_dim(['a'])
+  print build_dim(['a','b'])

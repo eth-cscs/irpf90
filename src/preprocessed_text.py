@@ -323,7 +323,7 @@ def irp_simple_statements(text):
     result = [
        Simple_line(i,"!",f),
        Simple_line(i,"! >>> %s"%(txt,),f ),
-       Provide_all(i,"      call %ser_%s('%s')"%(rw,variable,num),f),
+       Provide_all(i,"   call %ser_%s('%s')"%(rw,variable,num),f),
        Simple_line(i,"! >>> END %s "%(txt,),f ),
        Simple_line(line.i,"!",f),
     ]
@@ -340,7 +340,7 @@ def irp_simple_statements(text):
   def process_return(line):
     assert isinstance(line,Return)
     if command_line.do_assert or command_line.do_debug:
-      newline = Simple_line(line.i,"      call irp_leave(irp_here)",line.filename)
+      newline = Simple_line(line.i," call irp_leave(irp_here)",line.filename)
       result = [newline, line]
     else:
       result = [ line ]
@@ -357,8 +357,8 @@ def irp_simple_statements(text):
       matches = [ match.group(1).strip(), match.group(3).strip() ]
       for m in matches:
         if not(m.isdigit() or ("'" in m) or (m == "")):
-          result.append ( Simple_line (line.i, "       print *, '%s = ', %s"%(m,m), line.filename) )
-      result.append ( Simple_line (line.i, "       print *, ''", line.filename) )
+          result.append ( Simple_line (line.i, " print *, '%s = ', %s"%(m,m), line.filename) )
+      result.append ( Simple_line (line.i, " print *, ''", line.filename) )
     return result
    
   def process_assert(line):
@@ -374,14 +374,14 @@ def irp_simple_statements(text):
       result = [
        Simple_line(i, "!", f),
        Simple_line(i, "! >>> %s"%(txt,), f),
-       If         (i, "      if (.not.%s) then"%(condition,), f),
-       Simple_line(i, "       call irp_trace", f),
-       Simple_line(i, "       print *, irp_here//': Assert failed:'", f),
-       Simple_line(i, "       print *, ' file: %s, line: %d'"%(f,i), f),
-       Simple_line(i, "       print *, '%s'"%(condition_str,), f),
+       If         (i, "  if (.not.%s) then"%(condition,), f),
+       Simple_line(i, "   call irp_trace", f),
+       Simple_line(i, "   print *, irp_here//': Assert failed:'", f),
+       Simple_line(i, "   print *, ' file: %s, line: %d'"%(f,i), f),
+       Simple_line(i, "   print *, '%s'"%(condition_str,), f),
        ] + debug_conditions(line) + [
-       Simple_line(i, "       stop 1", f),
-       Endif      (i, "      endif", f),
+       Simple_line(i, "   stop 1", f),
+       Endif      (i, "  endif", f),
        Simple_line(i, "! <<< END %s"%(txt,), f),
        Simple_line(i, "!", f)
       ]
@@ -395,7 +395,7 @@ def irp_simple_statements(text):
       i = line.i
       f = line.filename
       result = [
-          Simple_line(i,"      call irp_leave(irp_here)", f),
+          Simple_line(i," call irp_leave(irp_here)", f),
           line
         ]
     else:
@@ -415,10 +415,10 @@ def irp_simple_statements(text):
     i = line.i
     f = line.filename
     result = [ line,
-      Declaration(i,"      character*(%d), parameter :: irp_here = '%s'"%(length,varname), f) ]
+      Declaration(i,"  character*(%d), parameter :: irp_here = '%s'"%(length,varname), f) ]
     if command_line.do_assert or command_line.do_debug:
       result += [
-        Simple_line(i,"      call irp_enter(irp_here)", f),
+        Simple_line(i,"  call irp_enter(irp_here)", f),
       ]
     return result
 
@@ -438,10 +438,10 @@ def irp_simple_statements(text):
     i = line.i
     f = line.filename
     result = [ line,
-      Declaration(i,"      character*(%d), parameter :: irp_here = '%s'"%(length,subname), f) ]
+      Declaration(i,"  character*(%d), parameter :: irp_here = '%s'"%(length,subname), f) ]
     if command_line.do_assert or command_line.do_debug:
       result += [
-        Simple_line(i,"      call irp_enter(irp_here)", f),
+        Simple_line(i,"  call irp_enter(irp_here)", f),
       ]
     return result
 
@@ -459,10 +459,10 @@ def irp_simple_statements(text):
     i = line.i
     f = line.filename
     result = [ line,
-      Declaration(i,"      character*(%d), parameter :: irp_here = '%s'"%(length,subname), f) ]
+      Declaration(i,"  character*(%d), parameter :: irp_here = '%s'"%(length,subname), f) ]
     if command_line.do_assert or command_line.do_debug:
       result += [
-        Simple_line(i,"      call irp_enter(irp_here)", f),
+        Simple_line(i,"  call irp_enter(irp_here)", f),
       ]
     return result
 
@@ -511,7 +511,7 @@ def change_includes(text):
      try:
        file = open(filename,'r')
        file.close()
-       result += preprocessed_text(filename)
+       result += create_preprocessed_text(filename)
       #result += get_text(file.readlines(), filename)
      except IOError:
        result.append(line)
@@ -531,7 +531,7 @@ def process_old_style_do(text):
          isinstance(line,Enddo):
         buffer = line.text.split()
         if buffer[0] == number:
-          text[i] = Enddo(line.i,"      enddo",line.filename)
+          text[i] = Enddo(line.i,"  enddo",line.filename)
           return
     error.fail(text[begin],"Old-style do loops should end with 'continue' or 'end do'")
       
@@ -543,7 +543,7 @@ def process_old_style_do(text):
       if buffer[1].isdigit():
         number = buffer.pop(1)
         change_matching_enddo(i,number)
-        line.text = "      "+" ".join(buffer)
+        line.text = " ".join(buffer)
     result.append(line)
   return result
 
@@ -591,7 +591,7 @@ endif'''
         f = line.filename
         result.append( If(i,"%s then"%(test,),f) )
         result += get_type(i,f,code,False)[0]
-        result.append( Endif(i,"      endif",f) )
+        result.append( Endif(i,"  endif",f) )
     else:
       result.append(line)
   return result
@@ -705,7 +705,7 @@ def move_to_top(text,t):
   return text
 
 ######################################################################
-def preprocessed_text(filename):
+def create_preprocessed_text(filename):
   file = open(filename,"r")
   lines = file.readlines()
   file.close()
@@ -724,13 +724,21 @@ def preprocessed_text(filename):
   result = move_to_top(result,Use)
   return result
 
+######################################################################
+preprocessed_text = []
+for filename in irpf90_files:
+   result = create_preprocessed_text(filename)
+   check_begin_end(result)
+   preprocessed_text.append( (filename, result) )
+
+######################################################################
+def debug():
+  for filename, txt in preprocessed_text:
+    print "=== "+filename+" ==="
+    for line in txt:
+      print line
+  print irpf90_files
+
 if __name__ == '__main__': 
-  txt = preprocessed_text('testfile.irp.f')
-  check_begin_end(txt)
-  for line in txt:
-    print line
-  txt = preprocessed_text('testfile_fixed.irp.f')
-  check_begin_end(txt)
-  for line in txt:
-    print line
+  debug()
 
