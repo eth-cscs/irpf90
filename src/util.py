@@ -26,6 +26,19 @@ def build_dim(dim):
   else:
     return "(%s)"%( ",".join(dim) )
 
+
+def find_subname(line):
+  buffer = line.text.split('(')
+  if len(buffer) > 1:
+    buffer = " ".join(buffer[:-1])
+  else:
+    buffer = buffer[0]
+  buffer = buffer.lower().split()
+  if len(buffer) < 2:
+    error.fail(line,"Syntax Error")
+  return buffer[-1]
+
+
 if __name__ == '__main__':
   print build_dim([])
   print build_dim(['a'])

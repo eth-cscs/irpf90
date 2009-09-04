@@ -4,6 +4,7 @@ from irpf90_t import *
 from regexps import *
 import error
 from command_line import command_line
+from util import *
 
 # Local regular expressions
 re_endif = re.compile("end\s+if")
@@ -424,16 +425,7 @@ def irp_simple_statements(text):
 
   def process_subroutine(line):
     assert isinstance(line,Subroutine)
-    buffer = line.text.split('(')
-    if len(buffer) > 1:
-      buffer = " ".join(buffer[:-1])
-    else:
-      buffer = buffer[0]
-    buffer = buffer.lower().split()
-    if len(buffer) != 2:
-      print buffer
-      error.fail(line,"Error in Subroutine statement")
-    subname = buffer[1]
+    subname = find_subname(line)
     length = len(subname)
     i = line.i
     f = line.filename
@@ -449,12 +441,8 @@ def irp_simple_statements(text):
     assert isinstance(line,Function)
     buffer = line.text.split('(')
     if (len(buffer) < 2):
-      error.fail(line,"Error in Function statement")
-    buffer = " ".join(buffer[:-1])
-    buffer = buffer.lower().split()
-    if len(buffer) < 2:
-      error.fail(line,"Error in Function statement")
-    subname = buffer[-1]
+      error.fail(line,"Syntax error")
+    subname = find_subname(line)
     length = len(subname)
     i = line.i
     f = line.filename

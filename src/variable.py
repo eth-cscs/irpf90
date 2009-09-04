@@ -10,7 +10,7 @@ class Variable(object):
   def __init__(self,text,name = None):
     assert isinstance(text,list)
     assert len(text) > 0
-    assert isinstance(text[0],Line)
+    assert isinstance(text[0],Begin_provider)
     self.text = text
     if name is not None:
       self._name = name.lower()
