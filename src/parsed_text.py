@@ -56,6 +56,7 @@ def get_parsed_text():
         varlist += l
         temp_result.append( (l,line) )
     result.append( (filename, temp_result) )
+  return result
 
 parsed_text = get_parsed_text()
 
