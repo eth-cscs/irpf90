@@ -663,7 +663,7 @@ def remove_ifdefs(text):
 ######################################################################
 def move_to_top(text,t):
   assert isinstance(text,list)
-  assert t in [ Declaration, Implicit, Use ]
+  assert t in [ Declaration, Implicit, Use, Cont_provider ]
 
   begin = -1
   for i in range(len(text)):
@@ -695,6 +695,7 @@ def create_preprocessed_text(filename):
   result = move_to_top(result,Declaration)
   result = move_to_top(result,Implicit)
   result = move_to_top(result,Use)
+  result = move_to_top(result,Cont_provider)
   return result
 
 ######################################################################

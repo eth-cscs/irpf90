@@ -20,25 +20,20 @@ def find_variables_in_line(line):
 
 def find_subroutine_in_line(line):
   assert isinstance(line,Call)
-  buffer = regexps.re_string.sub('',line.text)
-  result = None
-  for v in subroutines.keys():
-    sub = subroutines[v]
-    if sub.regexp.search(buffer) is not None:
-      result = sub.name
-      break
-  assert result is not None
-  return result
+  buffer = line.text.split('(')[0]
+  buffer = buffer.split()[1]
+  return buffer
 
-def check_touch(vars,main_vars):
+def check_touch(line,vars,main_vars):
   def fun(main_var):
     if main_var not in variables:
       error.fail(line,"Variable %s unknown"%(main_var,))
     x = variables[main_var]
     return [main_var]+x.others
-  all_others = flatten( map(fun,main_vars) )
+  all_others = make_single(flatten( map(fun,main_vars) ))
   all_others.sort()
   if len(all_others) == len(vars):
+    vars.sort()
     for x,y in zip(vars,all_others):
       if x != y:
         message = "The following entities should be touched:\n"
@@ -46,9 +41,9 @@ def check_touch(vars,main_vars):
         error.fail(line,message)
 
 def get_parsed_text():
-  result = []
+  main_result = []
   for filename, text in preprocessed_text:
-    temp_result = []
+    result = []
     varlist = []
     for line in filter(
       lambda x: type(x) not in [ Doc, Begin_doc, End_doc ],
@@ -70,21 +65,24 @@ def get_parsed_text():
         Function,
         End,
       ]: 
-        temp_result.append( ([],line) )
+        result.append( ([],line) )
       elif type(line) in [End, End_provider]:
-        temp_result.append( ([],line) )
+        result.append( ([],line) )
         varlist = []
       elif isinstance(line,Provide):
         l = line.text.split()[1:]
         varlist += l
-        temp_result.append( (l,Simple_line(line.i,"!%s"%(line.text),line.filename)) )
+        result.append( (l,Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif isinstance(line,Call):
         sub = find_subroutine_in_line(line)
-        if subroutines[sub].touches == []:
+        if sub not in subroutines:
           t = Simple_line
         else:
-          t = Provide_all
-        temp_result.append( ([],t(line.i,line.text,line.filename)) )
+          if subroutines[sub].touches == []:
+            t = Simple_line
+          else:
+            t = Provide_all
+        result.append( ([],t(line.i,line.text,line.filename)) )
       elif isinstance(line,Free):
         vars = line.text.split()
         if len(vars) < 2:
@@ -92,13 +90,13 @@ def get_parsed_text():
         vars = vars[1:]
         result.append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
         for var in vars:
-          temp_result.append( ([],Simple_line(line.i,"  call free_%s"%var,
+          result.append( ([],Simple_line(line.i,"  call free_%s"%var,
             line.filename)) )
       elif isinstance(line,Touch):
         vars = line.text.split()
         if len(vars) < 2:
           error.fail(line,"Syntax error")
-        vars = vars[1:]
+        vars = map(lower,vars[1:])
         def fun(x):
           if x not in variables:
             error.fail(line,"Variable %s unknown"%(x,))
@@ -107,31 +105,31 @@ def get_parsed_text():
             main = x
           return main
         main_vars = make_single( map(fun, vars) )
-        check_touch(vars,main_vars)
+        check_touch(line,vars,main_vars)
         txt = " ".join(vars)
-        result =  [ ([],Simple_line(line.i,"!",line.filename)),
+        result +=  [ ([],Simple_line(line.i,"!",line.filename)),
                     ([],Simple_line(line.i,"! >>> TOUCH %s"%(txt,),line.filename)) ]
         def fun(x):
           if x not in variables:
             error.fail(line,"Variable %s unknown"%(x,))
           return [ ([],Simple_line(line.i," call touch_%s"%(x,),line.filename)),
                    ([],Simple_line(line.i," %s_is_built = .True."%(x,),line.filename)) ]
-        result += map( fun, main_vars )
+        result += flatten(map( fun, main_vars ))
         def fun(x):
           if x not in variables:
             error.fail(line,"Variable %s unknown"%(x,))
-          return [ ([],Simple_line(line.i," %s_is_built = .True."%(x,),line.filename)) ]
-        result += map( fun, main_vars )
+          return ([],Simple_line(line.i," %s_is_built = .True."%(x,),line.filename))
+        result += map( fun, main_vars[:-1] )
         result += [ ([],Provide_all(line.i,"! <<< END TOUCH",line.filename)) ]
       else:
         l = find_variables_in_line(line)
         varlist += l
-        temp_result.append( (l,line) )
-    result.append( (filename, temp_result) )
-  return result
+        result.append( (l,line) )
+    main_result.append( (filename, result) )
+  return main_result
 
 parsed_text = get_parsed_text()
 
 if __name__ == '__main__':
-   for line in parsed_text[0][1]:
-     print line
+   for line in parsed_text[12][1]:
+     print line[1],'!',line[0]

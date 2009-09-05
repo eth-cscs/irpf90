@@ -3,6 +3,9 @@
 def strip(x):
   return x.strip()
 
+def lower(x):
+  return x.lower()
+
 def same_file(filename,txt):
   assert isinstance(filename,str)
   assert isinstance(txt,list)

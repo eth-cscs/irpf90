@@ -47,7 +47,8 @@ class Sub(object):
       for line in filter(lambda x: isinstance(x,Touch),self.text):
         self._touches += line.text.split()[1:]
       for sub in self.calls:
-        self._touches += subroutines[sub].touches
+        if sub in subroutines:
+          self._touches += subroutines[sub].touches
       self._touches = make_single(self._touches)
     return self._touches
   touches = property(touches)
