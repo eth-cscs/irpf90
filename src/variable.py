@@ -46,8 +46,7 @@ class Variable(object):
   def others(self):
     if '_others' not in self.__dict__:
       result = []
-      def f(l):
-        return isinstance(l,Begin_provider) or isinstance(l,Cont_provider)
+      f = lambda  l: type(l) in [Begin_provider, Cont_provider]
       lines = filter(f, self.text)
       for line in lines:
         buffer = line.text.replace(']',',').split(',')
@@ -128,8 +127,7 @@ class Variable(object):
   ############################################################
   def line(self):
     if '_line' not in self.__dict__:
-      def f(l):
-        return isinstance(l,Begin_provider) or isinstance(l,Cont_provider)
+      f = lambda l: type(l) in [Begin_provider, Cont_provider]
       lines = filter(f, self.text)
       for line in lines:
         buffer = line.text.replace(']',',').split(',')

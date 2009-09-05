@@ -206,9 +206,7 @@ def form(text):
   re2 = re.compile(r"^\s*[!#]")
   re3 = re.compile(r"^\s*[^ 0-9]+")
   for line in text:
-    if isinstance(line,Empty_line) or \
-       isinstance(line,Doc)        or \
-       isinstance(line,Openmp):
+    if type(line) in [ Empty_line, Doc, Openmp ]:
       pass
     else:
       if len(line.text) > 5:
@@ -237,8 +235,7 @@ def remove_comments(text,form):
       
   if form == Free_form:
     for line in text:
-      if isinstance(line,Openmp) or \
-         isinstance(line,Doc):
+      if type(line) in [ Openmp, Doc] :
          result.append(line)
       elif isinstance(line,Empty_line):
          pass
@@ -252,8 +249,7 @@ def remove_comments(text,form):
     return result
   else:
     for line in text:
-      if isinstance(line,Openmp) or \
-         isinstance(line,Doc):
+      if type(line) in [ Openmp, Doc ]:
          result.append(line)
       elif isinstance(line,Empty_line):
          pass
@@ -513,8 +509,7 @@ def process_old_style_do(text):
   def change_matching_enddo(begin,number):
     for i in range(begin+1,len(text)):
       line = text[i]
-      if isinstance(line,Continue) or \
-         isinstance(line,Enddo):
+      if type(line) in [Continue,Enddo]:
         buffer = line.text.split()
         if buffer[0] == number:
           text[i] = Enddo(line.i,"  enddo",line.filename)
@@ -586,13 +581,9 @@ endif'''
 def check_begin_end(text):
   '''Checks x...endx consistence'''
 
-  def filter_line(line):
-    for type in [ Do, Enddo, If, Endif, Begin_provider, End_provider, \
-                  Subroutine, Function, End, Begin_doc, End_doc ]:
-      if isinstance(line,type):
-        return True
-    return False
-
+  filter_line = lambda line: type(line) in [ Do, Enddo, If, Endif, \
+         Begin_provider, End_provider, \
+         Subroutine, Function, End, Begin_doc, End_doc ]
   text = filter(filter_line, text)
 
   d = { 'do' : Do,         'enddo': Enddo,
@@ -610,8 +601,7 @@ def check_begin_end(text):
         level -= 1
         if level == 0:
           return True
-      elif isinstance(line,End) or \
-           isinstance(line,End_provider):
+      elif type(line) in [End, End_provider]:
         break
     error.fail(text[begin],"Missing 'end%s'"%(x,))
 
@@ -620,9 +610,8 @@ def check_begin_end(text):
       line = text[i]
       if isinstance(line,x):
         return
-      for t in [ Subroutine, Function, Begin_provider ]:
-        if isinstance(line,t):
-          error.fail(text[begin],"Subroutine/Function/Provider is not closed")
+      if type(line) in [ Subroutine, Function, Begin_provider ]:
+        error.fail(text[begin],"Subroutine/Function/Provider is not closed")
     error.fail(text[begin],"Subroutine/Function/Provider is not closed")
 
   
@@ -679,9 +668,7 @@ def move_to_top(text,t):
   begin = -1
   for i in range(len(text)):
     line = text[i]
-    if isinstance(line,Begin_provider) or \
-       isinstance(line,Subroutine)     or \
-       isinstance(line,Function):
+    if type(line) in [ Begin_provider, Subroutine, Function ]:
       begin = i
     elif isinstance(line,t):
       text.pop(i)

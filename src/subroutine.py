@@ -10,7 +10,7 @@ class Sub(object):
   def __init__(self,text):
     assert isinstance(text,list)
     assert len(text) > 0
-    assert isinstance(text[0],Subroutine) or isinstance(text[0],Function)
+    assert type(text[0]) in [Subroutine, Function]
     self.text = text
 
   ############################################################

@@ -44,8 +44,22 @@ def make_single(l):
    d[x] = True
   return d.keys()
 
+def flatten(l):
+  if isinstance(l,list):
+    result = []
+    for i in range(len(l)):
+      elem = l[i]
+      result += flatten(elem)
+    return result
+  else:
+    return [l]
 
 if __name__ == '__main__':
-  print build_dim([])
-  print build_dim(['a'])
-  print build_dim(['a','b'])
+  a = 0
+  print flatten(a)
+  a = []
+  print flatten(a)
+  a = [1,2,3,4]
+  print flatten(a)
+  a = [1,2,3,[4,5,6,[7,8,9],10,],11,12,[13,14],15,16]
+  print flatten(a)
