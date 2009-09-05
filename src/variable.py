@@ -144,9 +144,16 @@ class Variable(object):
   ############################################################
   def needs(self):
     if '_needs' not in self.__dict__:
-      self._needs = None
+      self._needs = []
     return self._needs
   needs = property(needs)
+
+  ############################################################
+  def needed_by(self):
+    if '_needed_by' not in self.__dict__:
+      self._needed_by = []
+    return self._needed_by
+  needed_by = property(needed_by)
 
   ############################################################
   def header(self):

@@ -44,7 +44,6 @@ def get_parsed_text():
   main_result = []
   for filename, text in preprocessed_text:
     result = []
-    varlist = []
     for line in filter(
       lambda x: type(x) not in [ Doc, Begin_doc, End_doc ],
       text):
@@ -64,14 +63,11 @@ def get_parsed_text():
         Subroutine,
         Function,
         End,
+        End_provider,
       ]: 
         result.append( ([],line) )
-      elif type(line) in [End, End_provider]:
-        result.append( ([],line) )
-        varlist = []
       elif isinstance(line,Provide):
         l = line.text.split()[1:]
-        varlist += l
         result.append( (l,Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif isinstance(line,Call):
         sub = find_subroutine_in_line(line)
@@ -121,9 +117,15 @@ def get_parsed_text():
           return ([],Simple_line(line.i," %s_is_built = .True."%(x,),line.filename))
         result += map( fun, main_vars[:-1] )
         result += [ ([],Provide_all(line.i,"! <<< END TOUCH",line.filename)) ]
+      elif type(line) in [ Begin_provider, Cont_provider ]:
+        buffer = map(strip,line.text.replace(']','').split(','))
+        assert len(buffer) > 1
+        v = buffer[1].lower()
+        variable_list = find_variables_in_line(line)
+        variable_list.remove(v)
+        result.append( (variable_list,line) )
       else:
         l = find_variables_in_line(line)
-        varlist += l
         result.append( (l,line) )
     main_result.append( (filename, result) )
   return main_result
