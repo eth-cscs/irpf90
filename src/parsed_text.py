@@ -42,6 +42,7 @@ def check_touch(line,vars,main_vars):
 
 def get_parsed_text():
   main_result = []
+  varlist = []
   for filename, text in preprocessed_text:
     result = []
     for line in filter(
@@ -63,11 +64,14 @@ def get_parsed_text():
         Subroutine,
         Function,
         End,
-        End_provider,
       ]: 
         result.append( ([],line) )
+      elif isinstance(line,End_provider):
+        varlist = []
+        result.append( ([],line) )
       elif isinstance(line,Provide):
-        l = line.text.split()[1:]
+        l = line.text.lower().split()[1:]
+        l = filter(lambda x: x not in varlist, l)
         result.append( (l,Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif isinstance(line,Call):
         sub = find_subroutine_in_line(line)
@@ -104,7 +108,7 @@ def get_parsed_text():
         check_touch(line,vars,main_vars)
         txt = " ".join(vars)
         result +=  [ ([],Simple_line(line.i,"!",line.filename)),
-                    ([],Simple_line(line.i,"! >>> TOUCH %s"%(txt,),line.filename)) ]
+                     ([],Simple_line(line.i,"! >>> TOUCH %s"%(txt,),line.filename)) ]
         def fun(x):
           if x not in variables:
             error.fail(line,"Variable %s unknown"%(x,))
@@ -118,20 +122,104 @@ def get_parsed_text():
         result += map( fun, main_vars[:-1] )
         result += [ ([],Provide_all(line.i,"! <<< END TOUCH",line.filename)) ]
       elif type(line) in [ Begin_provider, Cont_provider ]:
+        if isinstance(line,Begin_provider):
+          varlist = []
         buffer = map(strip,line.text.replace(']','').split(','))
         assert len(buffer) > 1
         v = buffer[1].lower()
+        varlist.append(v)
         variable_list = find_variables_in_line(line)
         variable_list.remove(v)
         result.append( (variable_list,line) )
       else:
         l = find_variables_in_line(line)
+        l = filter(lambda x: x not in varlist, l)
         result.append( (l,line) )
     main_result.append( (filename, result) )
   return main_result
 
 parsed_text = get_parsed_text()
+######################################################################
+def move_variables():
+
+  main_result = []
+  for filename, text in parsed_text:
+    result = []
+    varlist = []
+    # 1st pass
+    revtext = list(text)
+    revtext.reverse()
+    old_varlist = []
+    for vars,line in revtext:
+      if type(line) in [ End_provider,End ]:
+        varlist = []
+        result.append( ([],line) )
+      elif type(line) in [ Endif, End_select ]:
+        old_varlist.append(varlist)
+        varlist = []
+        result.append( ([],line) )
+      elif type(line) in [ Else, Elseif, Case ]:
+        result.append( (varlist,line) )
+        if vars != []:
+          varlist = old_varlist.pop()
+          varlist += vars
+          old_varlist.append(varlist)
+        varlist = []
+      elif type(line) in [ If, Select ]:
+        result.append( (varlist,line) )
+        varlist = old_varlist.pop()
+        varlist += vars
+      elif type(line) in [ Begin_provider, Subroutine, Function ]:
+        varlist += vars
+        result.append( (varlist,line) )
+        assert old_varlist == []
+        varlist = []
+      else:
+        varlist += vars
+        result.append( ([],line) )
+    result.reverse()
+    # 2nd pass
+    text = result
+    result = []
+    old_varlist = []
+    varlist = []
+    for vars,line in text:
+      if vars != []:
+        vars = make_single(vars)
+      if type(line) in [ Begin_provider, Subroutine, Function ]:
+        varlist = list(vars)
+      elif type(line) in [ If, Select ]:
+        old_varlist.append(varlist)
+        vars = filter(lambda x: x not in varlist,vars)
+        varlist = make_single(varlist + vars)
+        assert old_varlist is not varlist
+      elif type(line) in [ Elseif, Else, Case ]:
+        varlist = old_varlist.pop()
+        old_varlist.append(varlist)
+        vars = filter(lambda x: x not in varlist,vars)
+        varlist = make_single(varlist + vars)
+        assert old_varlist is not varlist
+      elif type(line) in [ Endif, End_select ]:
+        varlist = old_varlist.pop()
+      elif type(line) == Provide_all:
+        vars = varlist
+      elif type(line) in [ End_provider, End ]:
+        assert old_varlist == []
+        varlist = []
+      result.append( (vars,line) )
+
+    main_result.append( (filename, result) )
+  return main_result
+
+parsed_text = move_variables()
+
+######################################################################
+def build_needs():
+ pass  
 
 if __name__ == '__main__':
-   for line in parsed_text[12][1]:
-     print line[1],'!',line[0]
+ for i in range(len(parsed_text)):
+   print '!-------- %s -----------'%(parsed_text[i][0])
+   for line in parsed_text[i][1]:
+     print line[1]
+     print line[0]
