@@ -145,20 +145,35 @@ def move_variables():
   main_result = []
   for filename, text in parsed_text:
     result = []
-    varlist = []
     # 1st pass
+    varlist = []
+    ifvars = []
+    elsevars = []
+    old_varlist = []
+    old_ifvars = []
+    old_elsevars = []
     revtext = list(text)
     revtext.reverse()
-    old_varlist = []
     for vars,line in revtext:
       if type(line) in [ End_provider,End ]:
         varlist = []
         result.append( ([],line) )
       elif type(line) in [ Endif, End_select ]:
+        old_ifvars.append(ifvars)
+        old_elsevars.append(elsevars)
         old_varlist.append(varlist)
         varlist = []
         result.append( ([],line) )
-      elif type(line) in [ Else, Elseif, Case ]:
+      elif type(line) == Else:
+        result.append( (varlist,line) )
+        elsevars = list(varlist)
+        if vars != []:
+          varlist = old_varlist.pop()
+          varlist += vars
+          old_varlist.append(varlist)
+        varlist = []
+      elif type(line) in [ Elseif, Case ]:
+        ifvars += varlist
         result.append( (varlist,line) )
         if vars != []:
           varlist = old_varlist.pop()
@@ -166,13 +181,19 @@ def move_variables():
           old_varlist.append(varlist)
         varlist = []
       elif type(line) in [ If, Select ]:
+        ifvars += varlist
         result.append( (varlist,line) )
+        vars += filter(lambda x: x in elsevars, ifvars)
+        ifvars = old_ifvars.pop()
+        elsevars = old_elsevars.pop()
         varlist = old_varlist.pop()
         varlist += vars
       elif type(line) in [ Begin_provider, Subroutine, Function ]:
         varlist += vars
         result.append( (varlist,line) )
         assert old_varlist == []
+        assert old_ifvars == []
+        assert old_elsevars == []
         varlist = []
       else:
         varlist += vars
@@ -183,7 +204,11 @@ def move_variables():
     result = []
     old_varlist = []
     varlist = []
+    if len(text) > 0:
+      lenmax = 80 - len(text[0][1].filename)
+      format = "%"+str(lenmax)+"s ! %s:%4s"
     for vars,line in text:
+      line.text = format%(line.text.ljust(lenmax),line.filename,str(line.i))
       if vars != []:
         vars = make_single(vars)
       if type(line) in [ Begin_provider, Subroutine, Function ]:
