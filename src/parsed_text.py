@@ -101,8 +101,6 @@ def get_parsed_text():
           if x not in variables:
             error.fail(line,"Variable %s unknown"%(x,))
           main = variables[x].same_as
-          if main is None:
-            main = x
           return main
         main_vars = make_single( map(fun, vars) )
         check_touch(line,vars,main_vars)
@@ -204,11 +202,7 @@ def move_variables():
     result = []
     old_varlist = []
     varlist = []
-    if len(text) > 0:
-      lenmax = 80 - len(text[0][1].filename)
-      format = "%"+str(lenmax)+"s ! %s:%4s"
     for vars,line in text:
-      line.text = format%(line.text.ljust(lenmax),line.filename,str(line.i))
       if vars != []:
         vars = make_single(vars)
       if type(line) in [ Begin_provider, Subroutine, Function ]:
@@ -240,11 +234,58 @@ parsed_text = move_variables()
 
 ######################################################################
 def build_needs():
- pass  
+  # Needs
+  for filename, text in parsed_text:
+    for vars,line in text:
+      if isinstance(line,Begin_provider):
+        buffer = map(strip,line.text.replace(']',',').split(','))
+        var = variables[buffer[1].lower()]
+        var.needs = []
+        var.to_provide = vars
+      elif isinstance(line,End_provider):
+        var.needs = make_single(var.needs)
+        var.to_provide = make_single(var.to_provide)
+        var = None
+      if var is not None:
+        var.needs += vars
+  for v in variables.keys():
+    main = variables[v].same_as 
+    if main != v:
+      variables[v].needs = variables[main].needs
+      variables[v].to_provide = variables[main].to_provide
 
+  # Needed_by
+  for v in variables.keys():
+    variables[v].needed_by = []
+  for v in variables.keys():
+    main = variables[v].same_as 
+    if main != v:
+      variables[v].needed_by = variables[main].needed_by
+  for v in variables.keys():
+    var = variables[v]
+    for x in var.needs:
+      variables[x].needed_by.append(var.same_as)
+  for v in variables.keys():
+    var = variables[v]
+    var.needed_by = make_single(var.needed_by)
+
+
+build_needs()
+
+######################################################################
+def put_info():
+  for filename, text in parsed_text:
+    if len(text) > 0:
+      lenmax = 80 - len(text[0][1].filename)
+      format = "%"+str(lenmax)+"s ! %s:%4s"
+    for vars,line in text:
+      line.text = format%(line.text.ljust(lenmax),line.filename,str(line.i))
+
+######################################################################
 if __name__ == '__main__':
  for i in range(len(parsed_text)):
    print '!-------- %s -----------'%(parsed_text[i][0])
    for line in parsed_text[i][1]:
      print line[1]
      print line[0]
+

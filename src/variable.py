@@ -3,6 +3,7 @@
 from irpf90_t import *
 from util import *
 import error
+from command_line import command_line
 
 class Variable(object):
 
@@ -63,7 +64,7 @@ class Variable(object):
   def same_as(self):
     if '_same_as' not in self.__dict__:
       if isinstance(self.line,Begin_provider):
-        result = None
+        result = self.name
       else:
         buffer = self.text[0].text.replace(']',',').split(',')
         if len(buffer) < 3:
@@ -142,20 +143,6 @@ class Variable(object):
   line = property(line)
 
   ############################################################
-  def needs(self):
-    if '_needs' not in self.__dict__:
-      self._needs = []
-    return self._needs
-  needs = property(needs)
-
-  ############################################################
-  def needed_by(self):
-    if '_needed_by' not in self.__dict__:
-      self._needed_by = []
-    return self._needed_by
-  needed_by = property(needed_by)
-
-  ############################################################
   def header(self):
     if '_header' not in self.__dict__:
       name = self.name
@@ -166,9 +153,37 @@ class Variable(object):
     return self._header
   header = property(header)
 
+  ############################################################
+  def toucher(self):
+    if '_toucher' not in self.__dict__:
+      if self.same_as != self.name:
+        self._toucher = ""
+      else:
+        if '_needed_by' not in self.__dict__:
+          import parsed_text
+        name = self.name
+        result =    [ "subroutine touch_%s"%(name) ,
+                      "  use %s"%(self.fmodule),
+                      "  implicit none" ]
+        if command_line.do_debug:
+          length = str(len("touch_%s"%(name)))
+          result += [ "  character*(%s), parameter :: irp_here = 'touch_%s'"%(length,name),
+                      "  call irp_enter(irp_here)" ]
+        result += [   "  %s_is_built = .False."%(name) ] 
+        result += map( lambda x: "!DEC$ ATTRIBUTES FORCEINLINE :: touch_%s"%(x), self.needed_by )
+        result += map( lambda x: "  call touch_%s"%(x), self.needed_by )
+        if command_line.do_debug:
+          result += [ "  call irp_leave(irp_here)" ]
+        result += [   "end subroutine touch_%s"%(name) , "" ]
+        self._toucher = result
+    return self._toucher
+  toucher = property(toucher)
+
 ######################################################################
 if __name__ == '__main__':
   from preprocessed_text import preprocessed_text
   from variables import variables
   for v in variables.keys():
     print v
+  for line in variables['elec_coord'].toucher:
+    print line

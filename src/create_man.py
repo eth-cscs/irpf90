@@ -33,8 +33,7 @@ def process_deps(file,l):
 ######################################################################
 def process_types(file,var):
   assert isinstance(var,Variable)
-  vars = var.others
-  vars.insert(0,var.name)
+  vars = [var.name] + var.others
   for var in vars:
     name = var
     var = variables[var]
@@ -49,7 +48,7 @@ def do_print(var):
   name = var.name
   file = open("%s%s.l"%(mandir,var.name), "w")
   print >>file, '.TH "IRPF90 entities" l %s "IRPF90 entities" %s'%(name,name)
-  if var.same_as is not None:
+  if var.same_as != var.name:
     var = variables[var.same_as]
   print >>file, ".SH Declaration"
   print >>file, ".nf"
@@ -71,6 +70,7 @@ def do_print(var):
 
 ######################################################################
 def run():
+  import parsed_text
   file = open("irpf90_entities","w")
   for v in variables.keys():
     do_print_short(file,variables[v])
