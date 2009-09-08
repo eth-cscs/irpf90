@@ -87,16 +87,26 @@ def get_parsed_text():
         vars = line.text.split()
         if len(vars) < 2:
           error.fail(line,"Syntax error")
-        vars = vars[1:]
+        vars = map(lower,vars[1:])
+        for v in vars:
+          variables[v].is_freed = True
         result.append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
         for var in vars:
           result.append( ([],Simple_line(line.i,"  call free_%s"%var,
             line.filename)) )
+      elif isinstance(line,Irp_read):
+        variables[line.filename].is_read = True
+        result.append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
+      elif isinstance(line,Irp_write):
+        variables[line.filename].is_written = True
+        result.append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif isinstance(line,Touch):
         vars = line.text.split()
         if len(vars) < 2:
           error.fail(line,"Syntax error")
         vars = map(lower,vars[1:])
+        for v in vars:
+          variables[v].is_touched = True
         def fun(x):
           if x not in variables:
             error.fail(line,"Variable %s unknown"%(x,))
@@ -271,15 +281,6 @@ def build_needs():
 
 
 build_needs()
-
-######################################################################
-def put_info():
-  for filename, text in parsed_text:
-    if len(text) > 0:
-      lenmax = 80 - len(text[0][1].filename)
-      format = "%"+str(lenmax)+"s ! %s:%4s"
-    for vars,line in text:
-      line.text = format%(line.text.ljust(lenmax),line.filename,str(line.i))
 
 ######################################################################
 if __name__ == '__main__':

@@ -319,7 +319,7 @@ def irp_simple_statements(text):
     txt = line.text.lstrip()
     result = [
        Simple_line(i,"!",f),
-       Simple_line(i,"! >>> %s"%(txt,),f ),
+       t(i,"! >>> %s"%(txt,),variable ),
        Provide_all(i,"   call %ser_%s('%s')"%(rw,variable,num),f),
        Simple_line(i,"! >>> END %s "%(txt,),f ),
        Simple_line(line.i,"!",f),
@@ -665,15 +665,19 @@ def move_to_top(text,t):
   assert isinstance(text,list)
   assert t in [ Declaration, Implicit, Use, Cont_provider ]
 
-  begin = -1
+  inside = False
   for i in range(len(text)):
     line = text[i]
     if type(line) in [ Begin_provider, Subroutine, Function ]:
       begin = i
+      inside = True
+    elif type(line) in [ End_provider, End ]:
+      inside = False
     elif isinstance(line,t):
-      text.pop(i)
-      begin += 1
-      text.insert(begin,line)
+      if inside:
+        text.pop(i)
+        begin += 1
+        text.insert(begin,line)
 
   return text
 

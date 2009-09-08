@@ -15,6 +15,10 @@ class Variable(object):
     self.text = text
     if name is not None:
       self._name = name.lower()
+    self.is_freed   = False
+    self.is_read    = False
+    self.is_written = False
+    self.is_touched = False
 
   ############################################################
   def name(self):
@@ -380,11 +384,33 @@ class Variable(object):
     return self._provider
   provider = property(provider)
 
+  ##########################################################
+  def builder(self):
+    if '_builder' not in self.__dict__:
+      if '_needs' not in self.__dict__:
+        import parsed_text
+      from variables import build_use
+      name = self.name
+      for line in filter(lambda x: type(x) not in [ Begin_doc, End_doc, Doc], self.text):
+        if type(line) == Begin_provider:
+          result = [ "subroutine bld_%s"%(name) ]
+          result += build_use([name]+self.needs)
+        elif type(line) == Cont_provider:
+          pass
+        elif type(line) == End_provider:
+          result.append( "end subroutine bld_%s"%(name) )
+          break
+        else:
+          result.append(line.text)
+      self._builder = result
+    return self._builder
+  builder = property(builder)
+
 ######################################################################
 if __name__ == '__main__':
   from preprocessed_text import preprocessed_text
   from variables import variables
  #for v in variables.keys():
  #  print v
-  for line in variables['grid_eplf_aa'].provider:
+  for line in variables['grid_eplf_aa'].builder:
     print line
