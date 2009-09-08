@@ -98,7 +98,7 @@ class Variable(object):
   ############################################################
   def dim(self):
     if '_dim' not in self.__dict__:
-      line = self.line.text
+      line = self.line.text.split('!')[0]
       buffer = line.replace(']','').split(',',2)
       if len(buffer) == 2:
         self._dim = []

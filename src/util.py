@@ -78,6 +78,19 @@ def dimsize(x):
         size = "%s - %s + 1"%(b1,b0)
     return size
 
+def put_info(text,filename):
+  assert isinstance(text,list)
+  if len(text) > 0:
+    assert isinstance(text[0],tuple)
+    from irpf90_t import Line
+    assert isinstance(text[0][0],list)
+    assert isinstance(text[0][1],Line)
+    lenmax = 80 - len(filename)
+    format = "%"+str(lenmax)+"s ! %s:%4s"
+    for vars,line in text:
+      line.text = format%(line.text.ljust(lenmax),line.filename,str(line.i))
+  return text
+
 if __name__ == '__main__':
   print "10",dimsize("10") #-> "10"
   print "0:10",dimsize("0:10") # -> "11"

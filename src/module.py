@@ -4,20 +4,13 @@ from irpf90_t import *
 from variable import *
 from variables import variables
 import preprocessed_text
+from util import *
 
 class Fmodule(object):
 
   def __init__(self,text,filename):
-    self.text = text
+    self.text = put_info(text,filename)
     self.name = "%s_mod"%(filename[:-6].lower())
-
-  def put_info(text):
-    if len(text) > 0:
-      lenmax = 80 - len(filename)
-      format = "%"+str(lenmax)+"s ! %s:%4s"
-      for vars,line in text:
-        line.text = format%(line.text.ljust(lenmax),line.filename,str(line.i))
-    return text
 
   def is_main(self):
     if '_is_main' not in self.__dict__:
@@ -45,9 +38,17 @@ class Fmodule(object):
 
   def head(self):
     if '_head' not in self.__dict__:
-      result = [ "module %s"%(self.name) ]
+      result = [ "! -*- F90 -*-",
+       "!",
+       "!-----------------------------------------------!",
+       "! This file was generated with the irpf90 tool. !",
+       "!                                               !",
+       "!           DO NOT MODIFY IT BY HAND            !",
+       "!-----------------------------------------------!",
+       "", "module %s"%(self.name) ]
       result += self.use
       result += self.dec
+      result += flatten( map(lambda x: variables[x].header,self.variables) )
       result.append( "end module %s"%(self.name) )
       self._head = result
     return self._head
@@ -97,6 +98,7 @@ class Fmodule(object):
 
       def modify_functions(text):
         result = []
+        variable_list = []
         for vars,line in text:
           if type(line) in [ Subroutine, Function ]:
             variable_list = list(vars)
@@ -128,12 +130,14 @@ class Fmodule(object):
 
       result = remove_providers(self.text)
       result = modify_functions(result)
-      result = preprocessed_text.move_to_top(result,Declaration)
-      result = preprocessed_text.move_to_top(result,Use)
       use,dec,result = extract_use_dec_text(result)
       self._use = make_single(map(lambda x: " "+x[1].text, use))
       self._dec = make_single(map(lambda x: " "+x[1].text, dec))
-      result    = map(lambda x: " "+x[1].text, result)
+      result    = map(lambda x: x[1], result)
+      result = preprocessed_text.move_to_top(result,Declaration)
+      result = preprocessed_text.move_to_top(result,Implicit)
+      result = preprocessed_text.move_to_top(result,Use)
+      result    = map(lambda x: x.text, result)
       if self.is_main:
         result = [ \
         "program irp_program",
@@ -159,17 +163,20 @@ class Fmodule(object):
   def needed_modules(self):
     if '_needed_modules' not in self.__dict__:
       buffer = filter(lambda x: isinstance(x,Use), self.generated_text)
+      buffer += filter(lambda x: isinstance(x,Use), self.head)
+      buffer += filter(lambda x: isinstance(x,Use), self.residual_text)
       buffer = map(lambda x: x.text.split()[1].lower(), buffer)
       self._needed_modules = make_single(buffer)
     return self._needed_modules
   needed_modules = property(needed_modules)
 
+######################################################################
 if __name__ == '__main__':
   from parsed_text import parsed_text
   for filename, text in parsed_text:
     if filename == 'random.irp.f':
      x = Fmodule(text,filename)
      break
-  for line in x.residual_text:
+  for line in x.head:
     print line
 

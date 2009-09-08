@@ -21,4 +21,16 @@ def main():
   import irp_stack
   irp_stack.create()
 
+  import makefile
+  makefile.create()
 
+  from modules import modules, write_module
+  for m in modules.keys():
+    write_module(modules[m])
+
+  makefile.run()
+
+  import create_man
+  create_man.run()
+
+main()
