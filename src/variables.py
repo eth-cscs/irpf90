@@ -2,7 +2,9 @@
 
 from variable import *
 from irpf90_t import *
+from util import *
 
+######################################################################
 def create_variables():
   from preprocessed_text import preprocessed_text
   result = {}
@@ -25,6 +27,24 @@ def create_variables():
 
 variables = create_variables()
 
+######################################################################
+def build_use(vars):
+  result = map(lambda x: "  use %s"%(variables[x].fmodule), vars)
+  result = make_single(result)
+  return result
+
+######################################################################
+def call_provides(vars):
+  vars = make_single( map(lambda x: variables[x].same_as, vars) )
+  vars = map(lambda x: variables[x].name,vars)
+  def fun(x):
+    return [ \
+    "  if (.not.%s_is_built) then"%(x),
+    "    call provide_%s"%(x),
+    "  endif" ]
+  return flatten ( map (fun, vars) )
+
+######################################################################
 if __name__ == '__main__':
   for v in variables.keys():
     print v

@@ -44,6 +44,13 @@ class Variable(object):
   doc = property(doc)
 
   ############################################################
+  def documented(self):
+    if '_documented' not in self.__dict__:
+      self._documented = (self.doc != [])
+    return self._documented
+  documented = property(documented)
+
+  ############################################################
   def others(self):
     if '_others' not in self.__dict__:
       result = []
@@ -112,7 +119,7 @@ class Variable(object):
   ############################################################
   def fmodule(self):
     if '_fmodule' not in self.__dict__:
-      self._fmodule = self.line.filename.replace('.irp.f','_mod')
+      self._fmodule = self.line.filename.split('.irp.f')[0]+'_mod'
     return self._fmodule
   fmodule = property(fmodule)
 
@@ -173,17 +180,211 @@ class Variable(object):
         result += map( lambda x: "!DEC$ ATTRIBUTES FORCEINLINE :: touch_%s"%(x), self.needed_by )
         result += map( lambda x: "  call touch_%s"%(x), self.needed_by )
         if command_line.do_debug:
-          result += [ "  call irp_leave(irp_here)" ]
-        result += [   "end subroutine touch_%s"%(name) , "" ]
+          result.append("  call irp_leave(irp_here)")
+        result.append("end subroutine touch_%s"%(name))
+        result.append("")
         self._toucher = result
     return self._toucher
   toucher = property(toucher)
+
+  ##########################################################
+  def reader(self):
+    if '_reader' not in self.__dict__:
+      if '_needs' not in self.__dict__:
+        import parsed_text
+      name = self.name
+      result = [ \
+      "subroutine reader_%s(irp_num)"%(name),
+      "  use %s"%(self.fmodule),
+      "  implicit none",
+      "  character*(*), intent(in) :: irp_num",
+      "  logical                   :: irp_is_open",
+      "  integer                   :: irp_iunit" ]
+      if command_line.do_debug:
+        length = len("reader_%s"%(self.name))
+        result += [\
+        "  character*(%d), parameter :: irp_here = 'reader_%s'"%(length,name),
+        "  call irp_enter(irp_here)" ]
+      result += map(lambda x: "  call reader_%s(irp_num)"%(x),self.needs) 
+      result += [ \
+      "  irp_is_open = .True.",
+      "  irp_iunit = 9",
+      "  do while (irp_is_open)",
+      "   irp_iunit = irp_iunit+1", 
+      "   inquire(unit=irp_iunit,opened=irp_is_open)",
+      "  enddo",
+      "  open(unit=irp_iunit,file='irpf90_%s_'//trim(irp_num),form='FORMATTED',status='OLD',action='READ')"%(name),
+      "  read(irp_iunit,*) %s%s"%(name,build_dim(self.dim)),
+      "  close(irp_iunit)",
+      "  call touch_%s"%(self.same_as),
+      "  %s_is_built = .True."%(self.same_as) ]
+      if command_line.do_debug:
+        result.append("  call irp_leave(irp_here)")
+      result.append("end subroutine reader_%s"%(name))
+      result.append("")
+      self._reader = result
+    return self._reader
+  reader = property(reader)
+
+  ##########################################################
+  def writer(self):
+    if '_writer' not in self.__dict__:
+      if '_needs' not in self.__dict__:
+        import parsed_text
+      name = self.name
+      result = [ \
+      "subroutine writer_%s(irp_num)"%(name),
+      "  use %s"%(self.fmodule),
+      "  implicit none",
+      "  character*(*), intent(in) :: irp_num",
+      "  logical                   :: irp_is_open",
+      "  integer                   :: irp_iunit" ]
+      if command_line.do_debug:
+        length = len("writer_%s"%(self.name))
+        result += [\
+        "  character*(%d), parameter :: irp_here = 'writer_%s'"%(length,name),
+        "  call irp_enter(irp_here)" ]
+      result += [ \
+      "  if (.not.%s_is_built) then"%(self.same_as),
+      "    call provide_%s"%(self.same_as),
+      "  endif" ]
+      result += map(lambda x: "  call writer_%s(irp_num)"%(x),self.needs) 
+      result += [ \
+      "  irp_is_open = .True.",
+      "  irp_iunit = 9",
+      "  do while (irp_is_open)",
+      "   irp_iunit = irp_iunit+1", 
+      "   inquire(unit=irp_iunit,opened=irp_is_open)",
+      "  enddo",
+      "  open(unit=irp_iunit,file='irpf90_%s_'//trim(irp_num),form='FORMATTED',status='UNKNOWN',action='WRITE')"%(name),
+      "  write(irp_iunit,*) %s%s"%(name,build_dim(self.dim)),
+      "  close(irp_iunit)" ]
+      result += map(lambda x: "  call writer_%s(irp_num)"%(x),self.others) 
+      if command_line.do_debug:
+        result.append("  call irp_leave(irp_here)")
+      result.append("end subroutine writer_%s"%(name))
+      result.append("")
+      self._writer = result
+    return self._writer
+  writer = property(writer)
+
+  ##########################################################
+  def free(self):
+    if '_free' not in self.__dict__:
+      name = self.name
+      result = [ \
+      "subroutine free_%s"%(name),
+      "  use %s"%(self.fmodule),
+      "  implicit none" ] 
+      if command_line.do_debug:
+        length = len("free_%s"%(self.name))
+        result += [\
+        "  character*(%d), parameter :: irp_here = 'free_%s'"%(length,name),
+        "  %s_is_built = .False."%(self.same_as) ] 
+      if self.dim != []:
+        result += [ \
+        "  if (allocated(%s)) then"%(name),
+        "    deallocate (%s)"%(name),
+        "  endif" ]
+      if command_line.do_debug:
+        result.append("  call irp_leave(irp_here)")
+      result.append("end subroutine free_%s"%(name))
+      result.append("")
+      self._free = result
+    return self._free
+  free = property(free)
+
+  ##########################################################
+  def provider(self):
+    if '_provider' not in self.__dict__:
+      if '_to_provide' not in self.__dict__:
+        import parsed_text
+      from variables import variables, build_use, call_provides
+      name = self.name
+      same_as = self.same_as
+
+      def build_alloc(name):
+        self = variables[name]
+        if self.dim == []:
+           return []
+
+        def do_size():
+           result = "     print *, ' size: ("
+           result += ','.join(self.dim)
+           return result+")'"
+
+        def check_dimensions():
+          result = map(lambda x: "(%s>0)"%(dimsize(x)), self.dim)
+          result = ".and.".join(result)
+          result = "   if (%s) then"%(result)
+          return result
+ 
+        def dimensions_OK():
+          result = [ "  irp_dimensions_OK = .True." ]
+          for i,k in enumerate(self.dim):
+              result.append("  irp_dimensions_OK = irp_dimensions_OK.AND.(SIZE(%s,%d)==(%s))"%(name,i+1,dimsize(k)))
+          return result
+
+        def do_allocate():
+          result = "    allocate(%s(%s),stat=irp_err)"
+          result = result%(name,','.join(self.dim))
+          return result
+
+        result = [ " if (allocated (%s) ) then"%(name) ]
+        result += dimensions_OK()
+        result += [\
+          "  if (.not.irp_dimensions_OK) then",
+          "   deallocate(%s)"%(name) ]
+        result.append(check_dimensions())
+        result.append(do_allocate())
+        result += [\
+          "    if (irp_err /= 0) then",
+          "     print *, irp_here//': Allocation failed: %s'"%(name),
+          do_size(),
+          "    endif",
+          "   endif",
+          "  endif",
+          " else" ]
+        result.append(check_dimensions())
+        result.append(do_allocate())
+        result += [\
+          "    if (irp_err /= 0) then",
+          "     print *, irp_here//': Allocation failed: %s'"%(name),
+          do_size(),
+          "    endif",
+          "   endif",
+          " endif" ]
+        return result
+
+      result = [ "subroutine provide_%s"%(name) ] 
+      result += build_use( [same_as]+self.to_provide )
+      result.append("  implicit none")
+      length = len("provide_%s"%(name))
+      result += [\
+      "  character*(%d), parameter :: irp_here = 'provide_%s'"%(length,name),
+      "  integer                   :: irp_err ",
+      "  logical                   :: irp_dimensions_OK" ] 
+      if command_line.do_assert or command_line.do_debug:
+        result.append("  call irp_enter(irp_here)")
+      result += call_provides(self.to_provide)
+      result += flatten( map(build_alloc,[self.same_as]+self.others) )
+      result += [\
+      "  call bld_%s"%(same_as),
+      "  %s_is_built = .True."%(same_as),
+      "" ]
+      if command_line.do_assert or command_line.do_debug:
+        result.append("  call irp_leave(irp_here)")
+      result.append("end subroutine provide_%s"%(name) )
+      result.append("")
+      self._provider = result
+    return self._provider
+  provider = property(provider)
 
 ######################################################################
 if __name__ == '__main__':
   from preprocessed_text import preprocessed_text
   from variables import variables
-  for v in variables.keys():
-    print v
-  for line in variables['elec_coord'].toucher:
+ #for v in variables.keys():
+ #  print v
+  for line in variables['grid_eplf_aa'].provider:
     print line

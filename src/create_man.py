@@ -3,10 +3,8 @@
 from variable  import Variable
 from variables import variables
 from irpf90_t  import *
+from util import *
 
-def do_size(l):
-  if l == []: return ""
-  else:       return "(%s)"%(",".join(l))
 
 def do_print_short(file,var):
   assert isinstance(var,Variable)
@@ -14,7 +12,7 @@ def do_print_short(file,var):
    var.line.filename,
    var.type,
    var.name,
-   do_size(var.dim) )
+   build_dim(var.dim) )
 
 ######################################################################
 def process_doc(file,line):
@@ -38,7 +36,7 @@ def process_types(file,var):
     name = var
     var = variables[var]
     type = var.type
-    dim = do_size(var.dim)
+    dim = build_dim(var.dim)
     print >>file, "%s\t:: %s\t%s"%(type,name,dim)
 
 ######################################################################
