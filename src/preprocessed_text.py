@@ -466,6 +466,7 @@ def irp_simple_statements(text):
         Subroutine     : process_subroutine,
         Function       : process_function,
         Program        : process_program,
+        Provide        : process_provide,
       }
 
   result = []

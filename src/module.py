@@ -162,11 +162,12 @@ class Fmodule(object):
 
   def needed_modules(self):
     if '_needed_modules' not in self.__dict__:
-      buffer = filter(lambda x: isinstance(x,Use), self.generated_text)
-      buffer += filter(lambda x: isinstance(x,Use), self.head)
-      buffer += filter(lambda x: isinstance(x,Use), self.residual_text)
-      buffer = map(lambda x: x.text.split()[1].lower(), buffer)
+      buffer = filter(lambda x: x.lstrip().startswith("use "), \
+        self.generated_text+self.head+self.residual_text)
+      buffer = map(lambda x: x.split()[1].lower(), buffer)
       self._needed_modules = make_single(buffer)
+      if self.name in self._needed_modules:
+        self._needed_modules.remove(self.name)
     return self._needed_modules
   needed_modules = property(needed_modules)
 
