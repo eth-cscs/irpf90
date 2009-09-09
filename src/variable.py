@@ -23,11 +23,11 @@ class Variable(object):
     '''Name is lowercase'''
     if '_is_touched' not in self.__dict__:
       from variables import variables
-      result = True # False
-     #for i in self.children:
-     #  if variables[i].is_touched:
-     #    result = True
-     #    break
+      result = False
+      for i in self.children:
+        if variables[i].is_touched:
+          result = True
+          break
       self._is_touched = result
     return self._is_touched
   is_touched = property(is_touched)
@@ -409,9 +409,8 @@ class Variable(object):
     if '_builder' not in self.__dict__:
       if not self.is_main:
         self._builder = []
-      if '_needs' not in self.__dict__:
-        import parsed_text
-      from variables import build_use
+      import parsed_text
+      from variables import build_use, call_provides
       for filename,buffer in parsed_text.parsed_text:
         if self.line.filename[0].startswith(filename):
           break
@@ -423,11 +422,16 @@ class Variable(object):
           if line.filename[1] == same_as:
             inside = True
         if inside:
-          text.append(line)
+          text.append( (vars,line) )
+          text += map( lambda x: ([],Simple_line(line.i,x,line.filename)), call_provides(vars) )
         if isinstance(line,End_provider):
           if inside:
             break
       name = self.name
+      text = parsed_text.move_to_top(text,Declaration)
+      text = parsed_text.move_to_top(text,Implicit)
+      text = parsed_text.move_to_top(text,Use)
+      text = map(lambda x: x[1], text)
       for line in filter(lambda x: type(x) not in [ Begin_doc, End_doc, Doc], text):
         if type(line) == Begin_provider:
           result = [ "subroutine bld_%s"%(name) ]

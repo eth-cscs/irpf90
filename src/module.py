@@ -81,7 +81,7 @@ class Fmodule(object):
 
   def residual_text(self):
     if '_residual_text' not in self.__dict__:
-      from variables import build_use
+      from variables import build_use, call_provides
       from parsed_text import move_to_top
       def remove_providers(text):
         result = []
@@ -131,7 +131,7 @@ class Fmodule(object):
         result = []
         for vars,line in text:
           result.append( ([],line) )
-          result += map(lambda x: ([],Simple_line(line.i,"  call provide_%s"%(x),line.filename)), vars)
+          result += map(lambda x: ([],Simple_line(line.i,x,line.filename)), call_provides(vars)) 
         return result
 
       result = remove_providers(self.text)
