@@ -421,6 +421,7 @@ class Variable(object):
         if isinstance(line,Begin_provider):
           if line.filename[1] == same_as:
             inside = True
+          vars = []
         if inside:
           text.append( (vars,line) )
           text += map( lambda x: ([],Simple_line(line.i,x,line.filename)), call_provides(vars) )

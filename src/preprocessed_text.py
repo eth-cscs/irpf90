@@ -507,9 +507,8 @@ def change_includes(text):
        file = open(filename,'r')
        file.close()
        result += create_preprocessed_text(filename)
-      #result += get_text(file.readlines(), filename)
      except IOError:
-       result.append(line)
+       result.append(Declaration(line.i,line.text,line.filename))
     else:
      result.append(line)
   return result
