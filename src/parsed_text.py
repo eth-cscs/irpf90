@@ -14,8 +14,9 @@ def find_variables_in_line(line):
   buffer = regexps.re_string.sub('',line.text)
   for v in variables.keys():
     var = variables[v]
-    if var.regexp.search(buffer) is not None:
-      result.append(var.name)
+    if var.name in buffer.lower():
+      if var.regexp.search(buffer) is not None:
+        result.append(var.same_as)
   return result
 
 def find_subroutine_in_line(line):
@@ -72,6 +73,9 @@ def get_parsed_text():
       elif isinstance(line,Provide):
         l = line.text.lower().split()[1:]
         l = filter(lambda x: x not in varlist, l)
+        for v in l:
+          if v not in variables.keys():
+            error.fail(line,"Variable %s is unknown"%(v))
         result.append( (l,Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif isinstance(line,Call):
         sub = find_subroutine_in_line(line)
@@ -82,7 +86,9 @@ def get_parsed_text():
             t = Simple_line
           else:
             t = Provide_all
-        result.append( ([],t(line.i,line.text,line.filename)) )
+        l = find_variables_in_line(line)
+        l = filter(lambda x: x not in varlist, l)
+        result.append( (l,t(line.i,line.text,line.filename)) )
       elif isinstance(line,Free):
         vars = line.text.split()
         if len(vars) < 2:
@@ -91,9 +97,12 @@ def get_parsed_text():
         for v in vars:
           variables[v].is_freed = True
         result.append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
+        use = map(lambda x: "  use %s"%(variables[x].fmodule),vars)
         for var in vars:
-          result.append( ([],Simple_line(line.i,"  call free_%s"%var,
-            line.filename)) )
+          result += map(lambda x: ([],Use(line.i,x,line.filename)),
+            make_single(use))
+          result += map(lambda x: ([],Simple_line(line.i,x,line.filename)),
+            variables[var].free)
       elif isinstance(line,Irp_read):
         variables[line.filename].is_read = True
         result.append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
@@ -106,7 +115,7 @@ def get_parsed_text():
           error.fail(line,"Syntax error")
         vars = map(lower,vars[1:])
         for v in vars:
-          variables[v].is_touched = True
+          variables[v]._is_touched = True
         def fun(x):
           if x not in variables:
             error.fail(line,"Variable %s unknown"%(x,))
@@ -121,7 +130,8 @@ def get_parsed_text():
           if x not in variables:
             error.fail(line,"Variable %s unknown"%(x,))
           return [ ([],Simple_line(line.i," call touch_%s"%(x,),line.filename)),
-                   ([],Simple_line(line.i," %s_is_built = .True."%(x,),line.filename)) ]
+                   ([],Simple_line(line.i," %s_is_built = .True."%(x,),line.filename)),
+                   ([],Use(line.i," use %s"%(variables[x].fmodule), line.filename)) ]
         result += flatten(map( fun, main_vars ))
         def fun(x):
           if x not in variables:
@@ -137,7 +147,7 @@ def get_parsed_text():
         v = buffer[1].lower()
         varlist.append(v)
         variable_list = find_variables_in_line(line)
-        variable_list.remove(v)
+        variable_list.remove(variables[v].same_as)
         result.append( (variable_list,line) )
       else:
         l = find_variables_in_line(line)
@@ -243,9 +253,32 @@ def move_variables():
 parsed_text = move_variables()
 
 ######################################################################
+def move_to_top(text,t):
+  assert isinstance(text,list)
+  assert t in [ Declaration, Implicit, Use, Cont_provider ]
+
+  inside = False
+  for i in range(len(text)):
+    vars, line = text[i]
+    if type(line) in [ Begin_provider, Subroutine, Function ]:
+      begin = i
+      inside = True
+    elif type(line) in [ End_provider, End ]:
+      inside = False
+    elif isinstance(line,t):
+      if inside:
+        text.pop(i)
+        begin += 1
+        text.insert(begin,(vars,line))
+
+  return text
+
+
+######################################################################
 def build_needs():
   # Needs
   for filename, text in parsed_text:
+    var = None
     for vars,line in text:
       if isinstance(line,Begin_provider):
         buffer = map(strip,line.text.replace(']',',').split(','))
@@ -273,8 +306,9 @@ def build_needs():
       variables[v].needed_by = variables[main].needed_by
   for v in variables.keys():
     var = variables[v]
-    for x in var.needs:
-      variables[x].needed_by.append(var.same_as)
+    if var.is_main:
+      for x in var.needs:
+        variables[x].needed_by.append(var.same_as)
   for v in variables.keys():
     var = variables[v]
     var.needed_by = make_single(var.needed_by)
@@ -282,11 +316,21 @@ def build_needs():
 
 build_needs()
 
+result = []
+for filename,text in parsed_text:
+  text = move_to_top(text,Declaration)
+  text = move_to_top(text,Implicit)
+  text = move_to_top(text,Use)
+  text = move_to_top(text,Cont_provider)
+  result.append ( (filename,text) )
+parsed_text = result
+
 ######################################################################
 if __name__ == '__main__':
  for i in range(len(parsed_text)):
+  if parsed_text[i][0] == 'mpi.irp.f':
    print '!-------- %s -----------'%(parsed_text[i][0])
    for line in parsed_text[i][1]:
      print line[1]
-     print line[0]
+     print line[0], line[1].filename
 

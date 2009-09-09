@@ -111,7 +111,7 @@ def get_type (i, filename, line, is_doc):
 
     if firstword[0] == '#':
       result = [ Simple_line(i,line,filename) ]
-      error.warn ( result , 
+      error.warn ( result[0] , 
 """irpf90 may not work with preprocessor directives. You can use
  Irp_if ... Irp_else ... Irp_endif
 instead of
@@ -361,7 +361,7 @@ def irp_simple_statements(text):
   def process_assert(line):
     assert isinstance(line,Assert)
     if command_line.do_assert:
-      condition = line.text.split(None,1)[1]
+      condition = "(%s"%(line.text.split('(',1)[1])
       if condition == "":
         error.fail(line,"Error in Assert statement")
       condition_str = condition.replace("'","''")
@@ -411,13 +411,25 @@ def irp_simple_statements(text):
     length = len(varname)
     i = line.i
     f = line.filename
-    result = [ line,
-      Declaration(i,"  character*(%d), parameter :: irp_here = '%s'"%(length,varname), f) ]
+    result = [ Begin_provider(i,line.text, (f,varname)),
+      Declaration(i,"  character*(%d), parameter :: irp_here = '%s'"%(length,varname), filename) ]
     if command_line.do_assert or command_line.do_debug:
       result += [
         Simple_line(i,"  call irp_enter(irp_here)", f),
       ]
     return result
+
+  def process_cont_provider(line):
+    assert isinstance(line,Cont_provider)
+    buffer = line.text.replace('['," ")
+    buffer = buffer.replace(']',"")
+    buffer = buffer.split(',')
+    if len(buffer) < 2:
+      error.fail(line,"Error in Cont_provider statement")
+    varname = buffer[1].strip().lower()
+    i = line.i
+    f = line.filename
+    return [ Cont_provider(i,line.text,(f,varname)) ]
 
   def process_subroutine(line):
     assert isinstance(line,Subroutine)
@@ -462,11 +474,11 @@ def irp_simple_statements(text):
         Assert         : process_assert,
         End            : process_end,
         Begin_provider : process_begin_provider,
+        Cont_provider  : process_cont_provider,
         End_provider   : process_end,
         Subroutine     : process_subroutine,
         Function       : process_function,
         Program        : process_program,
-        Provide        : process_provide,
       }
 
   result = []
@@ -662,27 +674,6 @@ def remove_ifdefs(text):
   return result
 
 ######################################################################
-def move_to_top(text,t):
-  assert isinstance(text,list)
-  assert t in [ Declaration, Implicit, Use, Cont_provider ]
-
-  inside = False
-  for i in range(len(text)):
-    line = text[i]
-    if type(line) in [ Begin_provider, Subroutine, Function ]:
-      begin = i
-      inside = True
-    elif type(line) in [ End_provider, End ]:
-      inside = False
-    elif isinstance(line,t):
-      if inside:
-        text.pop(i)
-        begin += 1
-        text.insert(begin,line)
-
-  return text
-
-######################################################################
 def create_preprocessed_text(filename):
   file = open(filename,"r")
   lines = file.readlines()
@@ -697,10 +688,6 @@ def create_preprocessed_text(filename):
   result = change_single_line_ifs(result)
   result = process_old_style_do(result)
   result = irp_simple_statements(result)
-  result = move_to_top(result,Declaration)
-  result = move_to_top(result,Implicit)
-  result = move_to_top(result,Use)
-  result = move_to_top(result,Cont_provider)
   return result
 
 ######################################################################

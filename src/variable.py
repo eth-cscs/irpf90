@@ -15,10 +15,30 @@ class Variable(object):
     self.text = text
     if name is not None:
       self._name = name.lower()
-    self.is_freed   = False
     self.is_read    = False
     self.is_written = False
-    self.is_touched = False
+
+  ############################################################
+  def is_touched(self):
+    '''Name is lowercase'''
+    if '_is_touched' not in self.__dict__:
+      from variables import variables
+      result = True # False
+     #for i in self.children:
+     #  if variables[i].is_touched:
+     #    result = True
+     #    break
+      self._is_touched = result
+    return self._is_touched
+  is_touched = property(is_touched)
+
+  ############################################################
+  def is_main(self):
+    '''Name is lowercase'''
+    if '_is_main' not in self.__dict__:
+      self._is_main = (self.name == self.same_as)
+    return self._is_main
+  is_main = property(is_main)
 
   ############################################################
   def name(self):
@@ -27,12 +47,8 @@ class Variable(object):
       buffer = None
       for line in self.text:
         if isinstance(line,Begin_provider):
-          buffer = line.text.replace(']',',').split(',')
+          self._name = line.filename[1]
           break
-      assert buffer is not None
-      if len(buffer) < 3:
-        error.fail(line, "Error in Begin_provider line")
-      self._name = buffer[1].strip().lower()
     return self._name
   name = property(name)
 
@@ -61,11 +77,7 @@ class Variable(object):
       f = lambda  l: type(l) in [Begin_provider, Cont_provider]
       lines = filter(f, self.text)
       for line in lines:
-        buffer = line.text.replace(']',',').split(',')
-        if len(buffer) < 3:
-          error.fail(line,"Syntax Error") 
-        buffer = buffer[1].strip().lower()
-        result.append(buffer)
+        result.append(line.filename[1])
       result.remove(self.name)
       self._others = result
     return self._others
@@ -77,10 +89,7 @@ class Variable(object):
       if isinstance(self.line,Begin_provider):
         result = self.name
       else:
-        buffer = self.text[0].text.replace(']',',').split(',')
-        if len(buffer) < 3:
-          error.fail(line,"Syntax Error")
-        result = buffer[1].strip().lower()
+        result = self.text[0].filename[1]
       self._same_as = result
     return self._same_as
   same_as = property(same_as)
@@ -88,10 +97,13 @@ class Variable(object):
   ############################################################
   def allocate(self):
     if '_allocate' not in self.__dict__:
-      from variables import variables
-      def f(var):
-        return variables[var].dim != []
-      self._allocate = filter ( f, self.others + [self.name] )
+      if not self.is_main:
+        self._allocate = []
+      else:
+        from variables import variables
+        def f(var):
+          return variables[var].dim != []
+        self._allocate = filter ( f, self.others + [self.name] )
     return self._allocate
   allocate = property(allocate)
 
@@ -114,7 +126,7 @@ class Variable(object):
       line = self.line.text
       buffer = line.split(',')[0]
       buffer = buffer.split('[')[1].strip()
-      if self.dim != '':
+      if self.dim != []:
         buffer = "%s, allocatable"%(buffer)
       self._type = buffer
     return self._type
@@ -123,7 +135,7 @@ class Variable(object):
   ############################################################
   def fmodule(self):
     if '_fmodule' not in self.__dict__:
-      self._fmodule = self.line.filename.split('.irp.f')[0]+'_mod'
+      self._fmodule = self.line.filename[0].split('.irp.f')[0]+'_mod'
     return self._fmodule
   fmodule = property(fmodule)
 
@@ -132,7 +144,8 @@ class Variable(object):
     if '_regexp' not in self.__dict__:
       import re
       self._regexp = re.compile( \
-        r"^.*[^a-z0-9'\"_]+%s([^a-z0-9_]|$)"%(self.name),re.I)
+       #r"^.*[^a-z0-9'\"_]+%s([^a-z0-9_]|$)"%(self.name),re.I)
+        r"([^a-z0-9'\"_]|^)%s([^a-z0-9_]|$)"%(self.name),re.I)
     return self._regexp
   regexp = property(regexp)
 
@@ -142,11 +155,8 @@ class Variable(object):
       f = lambda l: type(l) in [Begin_provider, Cont_provider]
       lines = filter(f, self.text)
       for line in lines:
-        buffer = line.text.replace(']',',').split(',')
-        if len(buffer) < 3:
-          error.fail(line,"Syntax Error") 
-        buffer = buffer[1].strip().lower()
-        if self.name == buffer:
+        buffer = line.filename[1]
+        if self._name == buffer:
           self._line = line
           break
     assert '_line' in self.__dict__
@@ -157,18 +167,23 @@ class Variable(object):
   def header(self):
     if '_header' not in self.__dict__:
       name = self.name
-      self._header = [
-        "  %s :: %s %s"%(self.type, name, build_dim(self.dim) ),
-        "  logical :: %s_is_built = .False."%(name),
-      ]
+      def build_dim(d):
+        if d == []:
+          return ""
+        else:
+          x = map(lambda x: ":", self.dim)
+          return "(%s)"%(','.join(x))
+      self._header = [ "  %s :: %s %s"%(self.type, name, build_dim(self.dim) ) ]
+      if self.is_main:
+       self._header += [ "  logical :: %s_is_built = .False."%(name) ]
     return self._header
   header = property(header)
 
   ############################################################
   def toucher(self):
     if '_toucher' not in self.__dict__:
-      if self.same_as != self.name:
-        self._toucher = ""
+      if not self.is_main:
+        self._toucher = []
       else:
         if '_needed_by' not in self.__dict__:
           import parsed_text
@@ -194,81 +209,93 @@ class Variable(object):
   ##########################################################
   def reader(self):
     if '_reader' not in self.__dict__:
-      if '_needs' not in self.__dict__:
-        import parsed_text
-      name = self.name
-      result = [ \
-      "subroutine reader_%s(irp_num)"%(name),
-      "  use %s"%(self.fmodule),
-      "  implicit none",
-      "  character*(*), intent(in) :: irp_num",
-      "  logical                   :: irp_is_open",
-      "  integer                   :: irp_iunit" ]
-      if command_line.do_debug:
-        length = len("reader_%s"%(self.name))
-        result += [\
-        "  character*(%d), parameter :: irp_here = 'reader_%s'"%(length,name),
-        "  call irp_enter(irp_here)" ]
-      result += map(lambda x: "  call reader_%s(irp_num)"%(x),self.needs) 
-      result += [ \
-      "  irp_is_open = .True.",
-      "  irp_iunit = 9",
-      "  do while (irp_is_open)",
-      "   irp_iunit = irp_iunit+1", 
-      "   inquire(unit=irp_iunit,opened=irp_is_open)",
-      "  enddo",
-      "  open(unit=irp_iunit,file='irpf90_%s_'//trim(irp_num),form='FORMATTED',status='OLD',action='READ')"%(name),
-      "  read(irp_iunit,*) %s%s"%(name,build_dim(self.dim)),
-      "  close(irp_iunit)",
-      "  call touch_%s"%(self.same_as),
-      "  %s_is_built = .True."%(self.same_as) ]
-      if command_line.do_debug:
-        result.append("  call irp_leave(irp_here)")
-      result.append("end subroutine reader_%s"%(name))
-      result.append("")
-      self._reader = result
+      if not self.is_main:
+        self._reader = []
+      else:
+        if '_needs' not in self.__dict__:
+          import parsed_text
+        from variables import variables
+        name = self.name
+        result = [ \
+        "subroutine reader_%s(irp_num)"%(name),
+        "  use %s"%(self.fmodule),
+        "  implicit none",
+        "  character*(*), intent(in) :: irp_num",
+        "  logical                   :: irp_is_open",
+        "  integer                   :: irp_iunit" ]
+        if command_line.do_debug:
+          length = len("reader_%s"%(self.name))
+          result += [\
+          "  character*(%d), parameter :: irp_here = 'reader_%s'"%(length,name),
+          "  call irp_enter(irp_here)" ]
+        result += map(lambda x: "  call reader_%s(irp_num)"%(x),self.needs) 
+        result += [ \
+        "  irp_is_open = .True.",
+        "  irp_iunit = 9",
+        "  do while (irp_is_open)",
+        "   irp_iunit = irp_iunit+1", 
+        "   inquire(unit=irp_iunit,opened=irp_is_open)",
+        "  enddo"]
+        for n in [ name ]+self.others:
+          result += [\
+          "  open(unit=irp_iunit,file='irpf90_%s_'//trim(irp_num),form='FORMATTED',status='OLD',action='READ')"%(n),
+          "  read(irp_iunit,*) %s%s"%(n,build_dim(variables[n].dim)),
+          "  close(irp_iunit)" ]
+        rsult += [ \
+        "  call touch_%s"%(name),
+        "  %s_is_built = .True."%(name) ]
+        if command_line.do_debug:
+          result.append("  call irp_leave(irp_here)")
+        result.append("end subroutine reader_%s"%(name))
+        result.append("")
+        self._reader = result
     return self._reader
   reader = property(reader)
 
   ##########################################################
   def writer(self):
     if '_writer' not in self.__dict__:
-      if '_needs' not in self.__dict__:
-        import parsed_text
-      name = self.name
-      result = [ \
-      "subroutine writer_%s(irp_num)"%(name),
-      "  use %s"%(self.fmodule),
-      "  implicit none",
-      "  character*(*), intent(in) :: irp_num",
-      "  logical                   :: irp_is_open",
-      "  integer                   :: irp_iunit" ]
-      if command_line.do_debug:
-        length = len("writer_%s"%(self.name))
-        result += [\
-        "  character*(%d), parameter :: irp_here = 'writer_%s'"%(length,name),
-        "  call irp_enter(irp_here)" ]
-      result += [ \
-      "  if (.not.%s_is_built) then"%(self.same_as),
-      "    call provide_%s"%(self.same_as),
-      "  endif" ]
-      result += map(lambda x: "  call writer_%s(irp_num)"%(x),self.needs) 
-      result += [ \
-      "  irp_is_open = .True.",
-      "  irp_iunit = 9",
-      "  do while (irp_is_open)",
-      "   irp_iunit = irp_iunit+1", 
-      "   inquire(unit=irp_iunit,opened=irp_is_open)",
-      "  enddo",
-      "  open(unit=irp_iunit,file='irpf90_%s_'//trim(irp_num),form='FORMATTED',status='UNKNOWN',action='WRITE')"%(name),
-      "  write(irp_iunit,*) %s%s"%(name,build_dim(self.dim)),
-      "  close(irp_iunit)" ]
-      result += map(lambda x: "  call writer_%s(irp_num)"%(x),self.others) 
-      if command_line.do_debug:
-        result.append("  call irp_leave(irp_here)")
-      result.append("end subroutine writer_%s"%(name))
-      result.append("")
-      self._writer = result
+      if not self.is_main:
+        self._writer = []
+      else:
+        from variables import variables
+        if '_needs' not in self.__dict__:
+          import parsed_text
+        name = self.name
+        result = [ \
+        "subroutine writer_%s(irp_num)"%(name),
+        "  use %s"%(self.fmodule),
+        "  implicit none",
+        "  character*(*), intent(in) :: irp_num",
+        "  logical                   :: irp_is_open",
+        "  integer                   :: irp_iunit" ]
+        if command_line.do_debug:
+          length = len("writer_%s"%(self.name))
+          result += [\
+          "  character*(%d), parameter :: irp_here = 'writer_%s'"%(length,name),
+          "  call irp_enter(irp_here)" ]
+        result += [ \
+        "  if (.not.%s_is_built) then"%(self.same_as),
+        "    call provide_%s"%(self.same_as),
+        "  endif" ]
+        result += map(lambda x: "  call writer_%s(irp_num)"%(x),self.needs) 
+        result += [ \
+        "  irp_is_open = .True.",
+        "  irp_iunit = 9",
+        "  do while (irp_is_open)",
+        "   irp_iunit = irp_iunit+1", 
+        "   inquire(unit=irp_iunit,opened=irp_is_open)",
+        "  enddo" ]
+        for n in [ name ] + self.others:
+          result += [\
+          "  open(unit=irp_iunit,file='irpf90_%s_'//trim(irp_num),form='FORMATTED',status='UNKNOWN',action='WRITE')"%(n),
+          "  write(irp_iunit,*) %s%s"%(n,build_dim(variables[n].dim)),
+          "  close(irp_iunit)" ]
+        if command_line.do_debug:
+          result.append("  call irp_leave(irp_here)")
+        result.append("end subroutine writer_%s"%(name))
+        result.append("")
+        self._writer = result
     return self._writer
   writer = property(writer)
 
@@ -276,24 +303,14 @@ class Variable(object):
   def free(self):
     if '_free' not in self.__dict__:
       name = self.name
-      result = [ \
-      "subroutine free_%s"%(name),
-      "  use %s"%(self.fmodule),
-      "  implicit none" ] 
-      if command_line.do_debug:
-        length = len("free_%s"%(self.name))
-        result += [\
-        "  character*(%d), parameter :: irp_here = 'free_%s'"%(length,name),
+      result = [ "!","! >>> FREE %s"%(self.name),
         "  %s_is_built = .False."%(self.same_as) ] 
       if self.dim != []:
         result += [ \
         "  if (allocated(%s)) then"%(name),
         "    deallocate (%s)"%(name),
         "  endif" ]
-      if command_line.do_debug:
-        result.append("  call irp_leave(irp_here)")
-      result.append("end subroutine free_%s"%(name))
-      result.append("")
+      result.append("! <<< END FREE")
       self._free = result
     return self._free
   free = property(free)
@@ -301,6 +318,9 @@ class Variable(object):
   ##########################################################
   def provider(self):
     if '_provider' not in self.__dict__:
+     if not self.is_main:
+       self._provider = []
+     else:
       if '_to_provide' not in self.__dict__:
         import parsed_text
       from variables import variables, build_use, call_provides
@@ -387,11 +407,28 @@ class Variable(object):
   ##########################################################
   def builder(self):
     if '_builder' not in self.__dict__:
+      if not self.is_main:
+        self._builder = []
       if '_needs' not in self.__dict__:
         import parsed_text
       from variables import build_use
+      for filename,buffer in parsed_text.parsed_text:
+        if self.line.filename[0].startswith(filename):
+          break
+      text = []
+      same_as = self.same_as
+      inside = False
+      for vars,line in buffer:
+        if isinstance(line,Begin_provider):
+          if line.filename[1] == same_as:
+            inside = True
+        if inside:
+          text.append(line)
+        if isinstance(line,End_provider):
+          if inside:
+            break
       name = self.name
-      for line in filter(lambda x: type(x) not in [ Begin_doc, End_doc, Doc], self.text):
+      for line in filter(lambda x: type(x) not in [ Begin_doc, End_doc, Doc], text):
         if type(line) == Begin_provider:
           result = [ "subroutine bld_%s"%(name) ]
           result += build_use([name]+self.needs)
@@ -406,11 +443,54 @@ class Variable(object):
     return self._builder
   builder = property(builder)
 
+  ##########################################################
+  def children(self):
+    if '_children' not in self.__dict__:
+      if not self.is_main:
+        self._children = []
+      from variables import variables
+      if '_needs' not in self.__dict__:
+        import parsed_text
+      result = []
+      for x in self.needs:
+        result.append(x)
+        try:
+          result += variables[x].children
+        except RuntimeError:
+          pass # Exception will be checked after
+      self._children = make_single(result)
+      if self.name in result:
+        error.fail(self.line,"Cyclic dependencies:\n%s"%(str(self._children)))
+    return self._children
+  children = property(children)
+
+  ##########################################################
+  def parents(self):
+    if '_parents' not in self.__dict__:
+      if not self._is_main:
+        self._parents = []
+      else:
+        from variables import variables
+        if '_needed_by' not in self.__dict__:
+          import parsed_text
+        result = []
+        for x in self.needed_by:
+          result.append(x)
+          try:
+            result += variables[x].parents
+          except RuntimeError:
+            pass # Exception will be checked after
+        self._parents = make_single(result)
+        if self.name in result:
+          error.fail(self.line,"Cyclic dependencies:\n%s"%(str(self._parents)))
+    return self._parents
+  parents = property(parents)
+
 ######################################################################
 if __name__ == '__main__':
   from preprocessed_text import preprocessed_text
   from variables import variables
  #for v in variables.keys():
  #  print v
-  for line in variables['grid_eplf_aa'].builder:
+  for line in variables['e_loc'].parents:
     print line

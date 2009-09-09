@@ -24,14 +24,7 @@ re_decl    = re.compile( "".join( [ r"^\ *",
  r")[^=(]"
 ] ) )
 
-re_left  = re.compile(r"\[")
-re_right = re.compile(r"\]")
-
 re_test  = re.compile(r"\( *(.*)(\.[a-zA-Z]*\.|[<>]=?|[=/]=)([^=]*)\)")
 
-re_space = re.compile("\s")
-
 re_string = re.compile(r"'.*'")
-re_assert = re.compile(r"assert *",re.I)
-re_check = re.compile(r".*[() ].*")
 

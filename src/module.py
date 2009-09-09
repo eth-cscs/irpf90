@@ -10,7 +10,7 @@ class Fmodule(object):
 
   def __init__(self,text,filename):
     self.text = put_info(text,filename)
-    self.name = "%s_mod"%(filename[:-6].lower())
+    self.name = "%s_mod"%(filename[:-6])
 
   def is_main(self):
     if '_is_main' not in self.__dict__:
@@ -69,8 +69,6 @@ class Fmodule(object):
         var = variables[var]
         result += var.provider
         result += var.builder
-        if var.is_freed:
-          result += var.free
         if var.is_touched:
           result += var.toucher
         if var.is_read:
@@ -84,6 +82,7 @@ class Fmodule(object):
   def residual_text(self):
     if '_residual_text' not in self.__dict__:
       from variables import build_use
+      from parsed_text import move_to_top
       def remove_providers(text):
         result = []
         inside = False
@@ -128,21 +127,29 @@ class Fmodule(object):
             inside = False
         return use, dec, result
 
+      def provide_variables(text):
+        result = []
+        for vars,line in text:
+          result.append( ([],line) )
+          result += map(lambda x: ([],Simple_line(line.i,"  call provide_%s"%(x),line.filename)), vars)
+        return result
+
       result = remove_providers(self.text)
       result = modify_functions(result)
       use,dec,result = extract_use_dec_text(result)
       self._use = make_single(map(lambda x: " "+x[1].text, use))
       self._dec = make_single(map(lambda x: " "+x[1].text, dec))
+      result = provide_variables(result)
+      result = move_to_top(result,Declaration)
+      result = move_to_top(result,Implicit)
+      result = move_to_top(result,Use)
       result    = map(lambda x: x[1], result)
-      result = preprocessed_text.move_to_top(result,Declaration)
-      result = preprocessed_text.move_to_top(result,Implicit)
-      result = preprocessed_text.move_to_top(result,Use)
       result    = map(lambda x: x.text, result)
       if self.is_main:
         result = [ \
         "program irp_program",
         " call %s"%(self.prog_name),
-        "end irp_program",
+        "end program",
         ] + result
       self._residual_text = result
     return self._residual_text
