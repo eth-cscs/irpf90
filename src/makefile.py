@@ -42,6 +42,7 @@ def run():
   file = open('irpf90.make','w')
 
   result = "SRC += %sirp_stack.irp.F90"%(irpdir)
+  result += " %sirp_touches.irp.F90"%(irpdir)
   for m in mod:
     result += " %s%s.irp.F90"%(irpdir,m.name[:-4])
   print >>file, result
@@ -52,7 +53,7 @@ def run():
       result += " %s%s.irp.o"%(irpdir,m.name[:-4])
   print >>file, result
 
-  print >>file, "OBJ1 = $(patsubst %%, %s%%,$(notdir $(OBJ)))"%(irpdir)
+  print >>file, "OBJ1 = $(patsubst %%, %s%%,$(notdir $(OBJ))) %sirp_touches.irp.o"%(irpdir,irpdir)
 
   all = filter(lambda x: modules[x].is_main, modules)
   all = map(lambda x: x[:-6], all)
@@ -76,24 +77,30 @@ def run():
     print >>file, filename+" ".join(mds)
     if not m.is_main:
       buffer += "\t - @echo '"+filename+" ".join(mds)+"' >> %sdist_Makefile\n"%(irpdir)
+  print >>file, "%sirp_touches.irp.o:"%(irpdir),
+  mds = filter(lambda x: not x.is_main,mod)
+  mds = map(lambda x: " %s%s.irp.o"%(irpdir,x.name[:-4]),mds)
+  print >>file," ".join(mds)
+  
 
   print >>file, "%sdist_Makefile:"%(irpdir)
   print >>file, "\t- @echo FC=$(FC) > %sdist_Makefile"%(irpdir)
   print >>file, "\t- @echo FCFLAGS=$(FCFLAGS) >> %sdist_Makefile"%(irpdir)
   print >>file, "\t- @echo LIB=$(LIB) >> %sdist_Makefile"%(irpdir)
   print >>file, "\t- @echo .DEFAULT_GOAL: exe >> %sdist_Makefile"%(irpdir)
-  print >>file, "\t- @echo 'exe: $$(EXE).irp.F90 $(OBJ)'  >> %sdist_Makefile"%(irpdir)
-  print >>file, "\t- @echo '\t$$(FC) -o $$(EXE) $$(EXE).irp.F90 $(OBJ) $$(LIB)' >> %sdist_Makefile"%(irpdir)
+  print >>file, "\t- @echo 'exe: $$(EXE).irp.F90 $(OBJ) irp_touches.irp.o'  >> %sdist_Makefile"%(irpdir)
+  print >>file, "\t- @echo '\t$$(FC) -o $$(EXE) $$(EXE).irp.F90 $(OBJ) irp_touches.irp.o $$(LIB)' >> %sdist_Makefile"%(irpdir)
   print >>file, "\t- @echo '%%.o: %%.F90'  >> %sdist_Makefile"%(irpdir)
   print >>file, "\t- @echo '\t$$(FC) $$(FCFLAGS) -c $$*.F90 -o $$*.o' >> %sdist_Makefile"%(irpdir)
   print >>file, "\t- @echo 'clean:' >> %sdist_Makefile"%(irpdir)
   print >>file, "\t- @echo '\trm *.o *.mod $$(EXE) 2>/dev/null' >> %sdist_Makefile"%(irpdir)
   print >>file, buffer
+  print >>file, "\t- @echo '\tirp_touches.irp.o: irp_touches.irp.F90 $(OBJ) >> %sdist_Makefile"%(irpdir)
 
   print >>file, "%%.dist: %sdist_Makefile"%(irpdir)
   print >>file, "\t- @mkdir -p dist/$*| DO_NOTHING="
   print >>file, "\t- @cp %s* dist/$*/| DO_NOTHING="%(irpdir)
-  print >>file, "\t- @for i in $(ALL) $(OBJ) $(ALL_OBJ); do rm dist/$*/$$i ; done| DO_NOTHING="
+  print >>file, "\t- @for i in $(ALL) $(OBJ) irp_touches.irp.o $(ALL_OBJ); do rm dist/$*/$$i ; done| DO_NOTHING="
   print >>file, "\t- @for i in $(ALL) ; do rm dist/$*/$$i.irp.F90 ; done| DO_NOTHING="
   print >>file, "\t- @rm dist/$*/{*.irp.f,*.mod,irpf90_entities}| DO_NOTHING="
   print >>file, "\t- @rm dist/$*/*.mod 2>/dev/null| DO_NOTHING="

@@ -69,8 +69,6 @@ class Fmodule(object):
         var = variables[var]
         result += var.provider
         result += var.builder
-        if var.is_touched:
-          result += var.toucher
         if var.is_read:
           result += var.reader
         if var.is_written:

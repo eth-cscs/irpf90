@@ -185,19 +185,24 @@ class Variable(object):
       if not self.is_main:
         self._toucher = []
       else:
+        from modules import modules
+        from variables import variables
         if '_needed_by' not in self.__dict__:
           import parsed_text
+        parents = self.parents
+        parents.sort()
+        mods = map(lambda x: variables[x].fmodule, parents)
+        mods = make_single(mods)+[self.fmodule]
         name = self.name
-        result =    [ "subroutine touch_%s"%(name) ,
-                      "  use %s"%(self.fmodule),
-                      "  implicit none" ]
+        result = [ "subroutine touch_%s"%(name) ]
+        result += map(lambda x: "  Use %s"%(x),mods)
+        result.append("  implicit none")
         if command_line.do_debug:
           length = str(len("touch_%s"%(name)))
           result += [ "  character*(%s), parameter :: irp_here = 'touch_%s'"%(length,name),
                       "  call irp_enter(irp_here)" ]
-        result += [   "  %s_is_built = .False."%(name) ] 
-        result += map( lambda x: "!DEC$ ATTRIBUTES FORCEINLINE :: touch_%s"%(x), self.needed_by )
-        result += map( lambda x: "  call touch_%s"%(x), self.needed_by )
+        result += map( lambda x: "  %s_is_built = .False."%(x), parents)
+        result.append("  %s_is_built = .True."%(name))
         if command_line.do_debug:
           result.append("  call irp_leave(irp_here)")
         result.append("end subroutine touch_%s"%(name))

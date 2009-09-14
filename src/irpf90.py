@@ -30,6 +30,9 @@ def main():
 
   makefile.run()
 
+  import touches
+  touches.create()
+
   import create_man
   create_man.run()
 

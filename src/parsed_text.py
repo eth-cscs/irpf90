@@ -130,7 +130,6 @@ def get_parsed_text():
           if x not in variables:
             error.fail(line,"Variable %s unknown"%(x,))
           return [ ([],Simple_line(line.i," call touch_%s"%(x,),line.filename)),
-                   ([],Simple_line(line.i," %s_is_built = .True."%(x,),line.filename)),
                    ([],Use(line.i," use %s"%(variables[x].fmodule), line.filename)) ]
         result += flatten(map( fun, main_vars ))
         def fun(x):
