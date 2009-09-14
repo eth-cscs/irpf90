@@ -125,7 +125,7 @@ def get_parsed_text():
         check_touch(line,vars,main_vars)
         txt = " ".join(vars)
         result +=  [ ([],Simple_line(line.i,"!",line.filename)),
-                     ([],Simple_line(line.i,"! >>> TOUCH %s"%(txt,),line.filename)) ]
+                     (vars,Simple_line(line.i,"! >>> TOUCH %s"%(txt,),line.filename)) ]
         def fun(x):
           if x not in variables:
             error.fail(line,"Variable %s unknown"%(x,))
@@ -328,7 +328,7 @@ parsed_text = result
 ######################################################################
 if __name__ == '__main__':
  for i in range(len(parsed_text)):
-  if parsed_text[i][0] == 'mpi.irp.f':
+  if parsed_text[i][0] == 'vmc_step.irp.f':
    print '!-------- %s -----------'%(parsed_text[i][0])
    for line in parsed_text[i][1]:
      print line[1]

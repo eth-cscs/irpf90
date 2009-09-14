@@ -34,9 +34,11 @@ def build_use(vars):
   return result
 
 ######################################################################
-def call_provides(vars):
+def call_provides(vars,opt=False):
   vars = make_single( map(lambda x: variables[x].same_as, vars) )
-  vars = map(lambda x: variables[x].name,vars)
+  if opt:
+    all_children = flatten( map(lambda x: variables[x].children, vars ))
+    vars = filter(lambda x: x not in all_children,vars)
   def fun(x):
     return [ \
     "  if (.not.%s_is_built) then"%(x),

@@ -241,7 +241,7 @@ class Variable(object):
           "  open(unit=irp_iunit,file='irpf90_%s_'//trim(irp_num),form='FORMATTED',status='OLD',action='READ')"%(n),
           "  read(irp_iunit,*) %s%s"%(n,build_dim(variables[n].dim)),
           "  close(irp_iunit)" ]
-        rsult += [ \
+        result += [ \
         "  call touch_%s"%(name),
         "  %s_is_built = .True."%(name) ]
         if command_line.do_debug:
@@ -409,42 +409,43 @@ class Variable(object):
     if '_builder' not in self.__dict__:
       if not self.is_main:
         self._builder = []
-      import parsed_text
-      from variables import build_use, call_provides
-      for filename,buffer in parsed_text.parsed_text:
-        if self.line.filename[0].startswith(filename):
-          break
-      text = []
-      same_as = self.same_as
-      inside = False
-      for vars,line in buffer:
-        if isinstance(line,Begin_provider):
-          if line.filename[1] == same_as:
-            inside = True
-          vars = []
-        if inside:
-          text.append( (vars,line) )
-          text += map( lambda x: ([],Simple_line(line.i,x,line.filename)), call_provides(vars) )
-        if isinstance(line,End_provider):
-          if inside:
+      else:
+        import parsed_text
+        from variables import build_use, call_provides
+        for filename,buffer in parsed_text.parsed_text:
+          if self.line.filename[0].startswith(filename):
             break
-      name = self.name
-      text = parsed_text.move_to_top(text,Declaration)
-      text = parsed_text.move_to_top(text,Implicit)
-      text = parsed_text.move_to_top(text,Use)
-      text = map(lambda x: x[1], text)
-      for line in filter(lambda x: type(x) not in [ Begin_doc, End_doc, Doc], text):
-        if type(line) == Begin_provider:
-          result = [ "subroutine bld_%s"%(name) ]
-          result += build_use([name]+self.needs)
-        elif type(line) == Cont_provider:
-          pass
-        elif type(line) == End_provider:
-          result.append( "end subroutine bld_%s"%(name) )
-          break
-        else:
-          result.append(line.text)
-      self._builder = result
+        text = []
+        same_as = self.same_as
+        inside = False
+        for vars,line in buffer:
+          if isinstance(line,Begin_provider):
+            if line.filename[1] == same_as:
+              inside = True
+            vars = []
+          if inside:
+            text.append( (vars,line) )
+            text += map( lambda x: ([],Simple_line(line.i,x,line.filename)), call_provides(vars) )
+          if isinstance(line,End_provider):
+            if inside:
+              break
+        name = self.name
+        text = parsed_text.move_to_top(text,Declaration)
+        text = parsed_text.move_to_top(text,Implicit)
+        text = parsed_text.move_to_top(text,Use)
+        text = map(lambda x: x[1], text)
+        for line in filter(lambda x: type(x) not in [ Begin_doc, End_doc, Doc], text):
+          if type(line) == Begin_provider:
+            result = [ "subroutine bld_%s"%(name) ]
+            result += build_use([name]+self.needs)
+          elif type(line) == Cont_provider:
+            pass
+          elif type(line) == End_provider:
+            result.append( "end subroutine bld_%s"%(name) )
+            break
+          else:
+            result.append(line.text)
+        self._builder = result
     return self._builder
   builder = property(builder)
 
