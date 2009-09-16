@@ -13,6 +13,7 @@ options['o'] = [ 'openmp'       , 'Activate openMP', 0 ]
 options['c'] = [ 'check_cycles' , 'Check cycles in dependencies', 0 ]
 options['i'] = [ 'init'         , 'Initialize current directory', 0 ]
 options['D'] = [ 'define'       , 'Define variable', 1 ]
+options['p'] = [ 'preprocess'   , 'Preprocess file', 1 ]
 
 class CommandLine(object):
 
@@ -30,6 +31,15 @@ class CommandLine(object):
           self._defined.append(a)
     return self._defined
   defined = property(fget=defined)
+
+  def preprocessed(self):
+    if '_preprocessed' not in self.__dict__:
+      self._preprocessed = []
+      for o,a in self.opts:
+        if o in [ "-p", options['p'][0] ]:
+          self._preprocessed.append(a)
+    return self._preprocessed
+  preprocessed = property(fget=preprocessed)
 
   def usage(self):
     t = """

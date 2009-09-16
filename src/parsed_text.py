@@ -115,17 +115,17 @@ def get_parsed_text():
           error.fail(line,"Syntax error")
         vars = map(lower,vars[1:])
         for v in vars:
+          if v not in variables:
+            error.fail(line,"Variable %s unknown"%(v,))
           variables[v]._is_touched = True
         def fun(x):
-          if x not in variables:
-            error.fail(line,"Variable %s unknown"%(x,))
           main = variables[x].same_as
           return main
         main_vars = make_single( map(fun, vars) )
         check_touch(line,vars,main_vars)
         txt = " ".join(vars)
-        result +=  [ ([],Simple_line(line.i,"!",line.filename)),
-                     (vars,Simple_line(line.i,"! >>> TOUCH %s"%(txt,),line.filename)) ]
+        result +=  [ (vars,Simple_line(line.i,"!",line.filename)),
+                     ([],Simple_line(line.i,"! >>> TOUCH %s"%(txt,),line.filename)) ]
         def fun(x):
           if x not in variables:
             error.fail(line,"Variable %s unknown"%(x,))
@@ -212,6 +212,8 @@ def move_variables():
         assert old_ifvars == []
         assert old_elsevars == []
         varlist = []
+      elif isinstance(line,Provide_all):
+        result.append( (vars,line) )
       else:
         varlist += vars
         result.append( ([],line) )

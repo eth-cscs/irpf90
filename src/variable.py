@@ -199,7 +199,7 @@ class Variable(object):
         result.append("  implicit none")
         if command_line.do_debug:
           length = str(len("touch_%s"%(name)))
-          result += [ "  character*(%s), parameter :: irp_here = 'touch_%s'"%(length,name),
+          result += [ "  character*(%s) :: irp_here = 'touch_%s'"%(length,name),
                       "  call irp_enter(irp_here)" ]
         result += map( lambda x: "  %s_is_built = .False."%(x), parents)
         result.append("  %s_is_built = .True."%(name))
@@ -231,7 +231,7 @@ class Variable(object):
         if command_line.do_debug:
           length = len("reader_%s"%(self.name))
           result += [\
-          "  character*(%d), parameter :: irp_here = 'reader_%s'"%(length,name),
+          "  character*(%d) :: irp_here = 'reader_%s'"%(length,name),
           "  call irp_enter(irp_here)" ]
         result += map(lambda x: "  call reader_%s(irp_num)"%(x),self.needs) 
         result += [ \
@@ -277,7 +277,7 @@ class Variable(object):
         if command_line.do_debug:
           length = len("writer_%s"%(self.name))
           result += [\
-          "  character*(%d), parameter :: irp_here = 'writer_%s'"%(length,name),
+          "  character*(%d) :: irp_here = 'writer_%s'"%(length,name),
           "  call irp_enter(irp_here)" ]
         result += [ \
         "  if (.not.%s_is_built) then"%(self.same_as),
@@ -390,7 +390,7 @@ class Variable(object):
       result.append("  implicit none")
       length = len("provide_%s"%(name))
       result += [\
-      "  character*(%d), parameter :: irp_here = 'provide_%s'"%(length,name),
+      "  character*(%d) :: irp_here = 'provide_%s'"%(length,name),
       "  integer                   :: irp_err ",
       "  logical                   :: irp_dimensions_OK" ] 
       if command_line.do_assert or command_line.do_debug:

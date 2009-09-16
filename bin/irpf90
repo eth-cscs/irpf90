@@ -6,7 +6,5 @@ import sys
 wd = os.path.abspath(os.path.dirname(__file__))
 wd += "/../src/"
 sys.path.append(wd)
-for p in sys.path:
-  print p
 
 import irpf90

@@ -9,7 +9,7 @@ from util import *
 def do_print_short(file,var):
   assert isinstance(var,Variable)
   print >>file, "%s : %s :: %s %s"%( \
-   var.line.filename,
+   var.line.filename[0],
    var.type,
    var.name,
    build_dim(var.dim) )
@@ -42,7 +42,7 @@ def process_types(file,var):
 ######################################################################
 def do_print(var):
   assert isinstance(var,Variable)
-  filename = var.line.filename
+  filename = var.line.filename[0]
   name = var.name
   file = open("%s%s.l"%(mandir,var.name), "w")
   print >>file, '.TH "IRPF90 entities" l %s "IRPF90 entities" %s'%(name,name)
@@ -59,9 +59,11 @@ def do_print(var):
   print >>file, ".SH File\n.P"
   print >>file, filename
   if var.needs != []:
+    var.needs.sort()
     print >>file, ".SH Needs"
     process_deps(file,var.needs)
   if var.needed_by != []:
+    var.needed_by.sort()
     print >>file, ".SH Needed by"
     process_deps(file,var.needed_by)
   file.close()

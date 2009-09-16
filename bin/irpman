@@ -7,4 +7,11 @@ wd = os.path.abspath(os.path.dirname(__file__))
 wd += "/../src/"
 sys.path.append(wd)
 
-import irpman
+if len(sys.argv) != 2:
+  print "Usage:"
+  print sys.argv[0]+" <irp_variable>"
+  sys.exit(1)
+
+from irpf90_t import mandir
+os.system("man ./"+mandir+sys.argv[1].lower()+".l")
+

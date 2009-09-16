@@ -11,6 +11,14 @@ def main():
     print version
     return
 
+  if command_line.do_preprocess:
+    from preprocessed_text import preprocessed_text
+    for filename,text in preprocessed_text:
+      if filename in command_line.preprocessed:
+        for line in text:
+          print line.text
+    return
+
   from init import init
   if command_line.do_init:
     init()
