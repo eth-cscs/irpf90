@@ -1,0 +1,14 @@
+#!/usr/bin/python
+
+import os
+import sys
+
+wd = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0,(wd+"/../src/"))
+sys.path.insert(0,(wd+"/../share/irpf90/src/"))
+
+def main():
+  import irpf90
+import cProfile
+cProfile.run('main()')
+
