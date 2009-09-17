@@ -5,7 +5,6 @@ from command_line import command_line
 
 do_assert = command_line.do_assert
 do_debug = command_line.do_debug
-do_openmp = command_line.do_openmp
 
 import irpf90_t
 
