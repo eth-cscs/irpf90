@@ -11,10 +11,14 @@ import error
 def find_variables_in_line(line):
   assert isinstance(line,Line)
   result = []
-  buffer = regexps.re_string.sub('',line.text)
+  sub_done = False
+  buffer = line.text.lower()
   for v in variables.keys():
     var = variables[v]
-    if var.name in buffer.lower():
+    if var.name in buffer:
+      if not sub_done:
+        buffer = regexps.re_string.sub('',buffer)
+        sub_done = True
       if var.regexp.search(buffer) is not None:
         result.append(var.same_as)
   return result
