@@ -29,9 +29,12 @@ def build_dim(dim):
   else:
     return "(%s)"%( ",".join(dim) )
 
-
+import error
 def find_subname(line):
-  buffer = line.text.split('(')
+  buffer = line.text
+  if not buffer.endswith(')'):
+    buffer += "()"
+  buffer = buffer.split('(')
   if len(buffer) > 1:
     buffer = " ".join(buffer[:-1])
   else:

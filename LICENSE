@@ -1,0 +1,27 @@
+All IRPF90 requestors MUST agree to the following license agreement which
+covers all versions of IRPF90 (source code and binaries).
+
+With regard to the IRP Fortran90 preprocessor IRPF90, together with its
+associated utility programs, with which you have supplied me a
+copy, I agree to the following conditions:
+
+   1. I will not supply a copy of the code to anyone outside my institution or
+corporation for any reason whatsoever. Instead, I will refer any requests for
+copies of the program to Anthony Scemama at CNRS. This in no way limits my making of
+copies of the code for backup purposes, or for running on more than one
+computer system at my institution or home.
+
+   2. I understand that copyright or ownership rights to IRPF90 are retained by
+Anthony Scemama and CNRS to the IRPF90 package. I will not incorporate any part
+of IRPF90 into any other program system, either for sale or for non-profit
+distribution, without written permission from Anthony Scemama and CNRS,
+
+   3. I understand that no large program such as IRPF90 can be considered to be
+bug free, and accordingly Anthony Scemama and the CNRS supplies the IRPF90 software on an "as is"
+basis, with no additional responsibility or liability,
+
+   4. This license is considered a "Research Group" license. Thus anyone
+directly associated with your research group is covered by the license and may
+share your copy of IRPF90 on all of your group's computer resources.
+
+

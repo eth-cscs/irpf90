@@ -259,9 +259,13 @@ def remove_comments(text,form):
       elif isinstance(line,Empty_line):
          pass
       else:
-        line.text = remove_after_bang(line.text)
-        if line.text[0] in "#123456789 ":
-          result.append(line)
+        newline = line.text.lstrip()
+        if newline == "" or newline[0] == "!":
+          pass
+        else:
+          line.text = remove_after_bang(line.text)
+          if line.text[0] in "#123456789 ":
+            result.append(line)
     return result
 
 ######################################################################
