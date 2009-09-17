@@ -1,10 +1,7 @@
 #!/usr/bin/python
 
-import os
-import sys
-
+import sys, os
 wd = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0,(wd+"/../src/"))
-sys.path.insert(0,(wd+"/../share/irpf90/src/"))
-
-import irpf90
+from version import *
+print "VERSION=%s"%(version)

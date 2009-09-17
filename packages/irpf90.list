@@ -1,0 +1,57 @@
+# epm -f format irpf90 irpf90.list
+# format:
+# aix
+# bsd
+# depot or swinstall (HP-UX)
+# dpkg
+# inst or tardist (IRIX
+# native (native for the current platform)
+# osx
+# pkg (Solaris)
+# portable (default)
+# rpm
+# setld (Tru64)
+# slackware
+
+# Product information
+# -------------------
+
+%product irpf90
+%copyright 2009 A. Scemama, CNRS
+%vendor A. Scemama, CNRS
+%license ../LICENSE
+%readme ../README
+%description IRP-Fortran90 preprocessor
+%version $VERSION
+
+%format rpm
+%requires python
+%requires make
+
+%format all
+
+# Autoconfiguration variables
+# ---------------------------
+
+$prefix=/usr
+$exec_prefix=/usr
+$bindir=${exec_prefix}/bin
+$datadir=${exec_prefix}/share/irpf90/src
+$docdir=${datadir}/share/irpf90/doc
+$mandir=${datadir}/man
+$srcdir=..
+
+# Executables
+# -----------
+
+%system all
+%description IRP-Fortran90 preprocessor
+f 0444 root sys ${mandir}/man1/irpf90.1.gz ${srcdir}/man/man1/irpf90.1.gz
+f 0444 root sys ${mandir}/man1/irpman.1.gz ${srcdir}/man/man1/irpman.1.gz
+f 0555 root sys ${bindir}/irpf90 ${srcdir}/bin/irpf90
+f 0555 root sys ${bindir}/irpman ${srcdir}/bin/irpman
+f 0555 root sys ${datadir}/ ${srcdir}/src/*.py
+f 0444 root sys ${docdir}/README ${srcdir}/README
+f 0444 root sys ${docdir}/LICENSE ${srcdir}/LICENSE
+
+

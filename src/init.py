@@ -30,16 +30,20 @@ def init():
   # Copy current files in the irpdir
   for filename in os.listdir(os.getcwd()):
     if not filename[0].startswith(".") and not os.path.isdir(filename):
-      file  = open(filename,"r")
-      buffer = file.readlines()
-      file.close()
-      if not util.same_file(irpf90_t.irpdir+filename,buffer):
+      try:
         file  = open(filename,"r")
-        buffer = file.read()
+      except IOError:
+        print "Warning : Unable to read file %s."%(filename)
+      else:
+        buffer = file.readlines()
         file.close()
-        file = open(irpf90_t.irpdir+filename,"w")
-        file.write(buffer)
-        file.close()
+        if not util.same_file(irpf90_t.irpdir+filename,buffer):
+          file  = open(filename,"r")
+          buffer = file.read()
+          file.close()
+          file = open(irpf90_t.irpdir+filename,"w")
+          file.write(buffer)
+          file.close()
 
   initialized = True
 

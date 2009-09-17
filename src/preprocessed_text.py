@@ -159,6 +159,10 @@ def execute_shell(text):
       elif isinstance(line,End_shell):
         inside = False
         # Write script file
+        scriptname = "%s%s_shell_%d"%(irpdir,line.filename,line.i)
+        file = open(scriptname,'w')
+        file.writelines(script)
+        file.close()
         scriptname = "%s_shell_%d"%(line.filename,line.i)
         file = open(scriptname,'w')
         file.writelines(script)
@@ -169,6 +173,7 @@ def execute_shell(text):
         lines = pipe.readlines()
         pipe.close()
         result += get_text(lines,scriptname)
+        os.remove(scriptname)
       else:
         script.append(line.text+'\n')
     else:

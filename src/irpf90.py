@@ -9,19 +9,19 @@ def main():
   if command_line.do_version:
     from version import version
     print version
-    return
+
+  from init import init
+  if command_line.do_init:
+    init()
 
   if command_line.do_preprocess:
+    init()
     from preprocessed_text import preprocessed_text
     for filename,text in preprocessed_text:
       if filename in command_line.preprocessed:
         for line in text:
           print line.text
-    return
 
-  from init import init
-  if command_line.do_init:
-    init()
   if not command_line.do_run:
     return
 

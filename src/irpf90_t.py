@@ -263,10 +263,9 @@ def create_irpf90_files():
   result = []
   from command_line import command_line
   import os
-  if command_line.do_run:
-    def is_irpf90_file(filename):
-      return filename.endswith(".irp.f") #DEUBUG and filename.startswith("p")
-    result = filter ( is_irpf90_file, os.listdir(os.getcwd()) )
+  def is_irpf90_file(filename):
+    return filename.endswith(".irp.f")
+  result = filter ( is_irpf90_file, os.listdir(os.getcwd()) )
   return result
 irpf90_files = create_irpf90_files()
 

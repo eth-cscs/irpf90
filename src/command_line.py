@@ -9,8 +9,6 @@ options['d'] = [ 'debug'        , 'Activate debug', 0 ]
 options['v'] = [ 'version'      , 'Print version of irpf90', 0 ]
 options['a'] = [ 'assert'       , 'Activate assertions', 0 ]
 options['h'] = [ 'help'         , 'Print this help', 0 ]
-options['o'] = [ 'openmp'       , 'Activate openMP', 0 ]
-options['c'] = [ 'check_cycles' , 'Check cycles in dependencies', 0 ]
 options['i'] = [ 'init'         , 'Initialize current directory', 0 ]
 options['D'] = [ 'define'       , 'Define variable', 1 ]
 options['p'] = [ 'preprocess'   , 'Preprocess file', 1 ]
@@ -102,7 +100,11 @@ do_$LONG = property(fget=do_$LONG)
 
   def do_run(self):
    if '_do_run' not in self.__dict__:
-     self._do_run = not (self.do_version or self.do_init)
+     self._do_run = not ( \
+       self.do_version or \
+       self.do_help    or \
+       self.do_preprocess or \
+       self.do_init )
    return self._do_run
   do_run = property(fget=do_run)
 

@@ -4,8 +4,8 @@ import os
 import sys
 
 wd = os.path.abspath(os.path.dirname(__file__))
-wd += "/../src/"
-sys.path.append(wd)
+sys.path.insert(0,(wd+"/../src/"))
+sys.path.insert(0,(wd+"/../share/irpf90/src/"))
 
 if len(sys.argv) != 2:
   print "Usage:"
