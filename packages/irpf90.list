@@ -37,8 +37,8 @@ $prefix=/usr
 $exec_prefix=/usr
 $bindir=${exec_prefix}/bin
 $datadir=${exec_prefix}/share/irpf90/src
-$docdir=${datadir}/share/irpf90/doc
-$mandir=${datadir}/man
+$docdir=${prefix}/share/irpf90/doc
+$mandir=${prefix}/man
 $srcdir=..
 
 # Executables
