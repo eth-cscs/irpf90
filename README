@@ -24,7 +24,12 @@ irpf90 -init
 This command creates a new Makefile suitable for most irpf90 projects.
 Now you can start to program using irpf90.
 
+
+Web Site:
+http://sourceforge.net/apps/mediawiki/irpf90/
+
 Author:
-A. Scemama, LCPQ-IRSAMC, CNRS-Universite Paul Sabatier
+Anthony Scemama, LCPQ-IRSAMC, CNRS-Universite Paul Sabatier
 scemama@irsamc.ups-tlse.fr
+http://sourceforge.net/userapps/mediawiki/scemama
 

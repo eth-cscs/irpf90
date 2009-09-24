@@ -22,7 +22,7 @@
 #   Universite Paul Sabatier
 #   118, route de Narbonne      
 #   31062 Toulouse Cedex 4      
-#   scemama@irsamc.ups-tlse.fr 
+#   scemama@irsamc.ups-tlse.fr
 
 
 from variable  import Variable
