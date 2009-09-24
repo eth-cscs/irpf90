@@ -186,6 +186,36 @@ def get_parsed_text():
 
 parsed_text = get_parsed_text()
 ######################################################################
+def move_to_top(text,t):
+  assert isinstance(text,list)
+  assert t in [ Declaration, Implicit, Use, Cont_provider ]
+
+  inside = False
+  for i in range(len(text)):
+    vars, line = text[i]
+    if type(line) in [ Begin_provider, Subroutine, Function ]:
+      begin = i
+      inside = True
+    elif type(line) in [ End_provider, End ]:
+      inside = False
+    elif isinstance(line,t):
+      if inside:
+        text.pop(i)
+        begin += 1
+        text.insert(begin,(vars,line))
+
+  return text
+
+result = []
+for filename,text in parsed_text:
+  text = move_to_top(text,Declaration)
+  text = move_to_top(text,Implicit)
+  text = move_to_top(text,Use)
+  text = move_to_top(text,Cont_provider)
+  result.append ( (filename,text) )
+parsed_text = result
+
+######################################################################
 def move_variables():
 
   main_result = []
@@ -237,9 +267,10 @@ def move_variables():
       elif type(line) in [ Begin_provider, Subroutine, Function ]:
         varlist += vars
         result.append( (varlist,line) )
-        assert old_varlist == []
-        assert old_ifvars == []
-        assert old_elsevars == []
+        if old_varlist != [] \
+         or old_ifvars != [] \
+         or old_elsevars != []:
+          error.fail(line,"End if missing")
         varlist = []
       elif isinstance(line,Provide_all):
         result.append( (vars,line) )
@@ -281,28 +312,6 @@ def move_variables():
   return main_result
 
 parsed_text = move_variables()
-
-######################################################################
-def move_to_top(text,t):
-  assert isinstance(text,list)
-  assert t in [ Declaration, Implicit, Use, Cont_provider ]
-
-  inside = False
-  for i in range(len(text)):
-    vars, line = text[i]
-    if type(line) in [ Begin_provider, Subroutine, Function ]:
-      begin = i
-      inside = True
-    elif type(line) in [ End_provider, End ]:
-      inside = False
-    elif isinstance(line,t):
-      if inside:
-        text.pop(i)
-        begin += 1
-        text.insert(begin,(vars,line))
-
-  return text
-
 
 ######################################################################
 def build_needs():
