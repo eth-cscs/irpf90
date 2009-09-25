@@ -420,6 +420,7 @@ def irp_simple_statements(text):
 
   def process_end(line):
     '''Set irp_here variable in provider block'''
+    line.text = "end"
     if command_line.do_assert or command_line.do_debug:
       i = line.i
       f = line.filename
@@ -429,7 +430,6 @@ def irp_simple_statements(text):
         ]
     else:
       result = [ line ]
-
     return result
 
   def process_begin_provider(line):
