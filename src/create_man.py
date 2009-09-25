@@ -34,9 +34,9 @@ from util import *
 def do_print_short(file,var):
   assert isinstance(var,Variable)
   print >>file, "%s : %s :: %s %s"%( \
-   var.line.filename[0],
-   var.type,
-   var.name,
+   var.line.filename[0].ljust(25),
+   var.type.ljust(25),
+   var.name.ljust(25),
    build_dim(var.dim) )
 
 ######################################################################
@@ -97,10 +97,12 @@ def do_print(var):
 def run():
   import parsed_text
   file = open("irpf90_entities","w")
-  for v in variables.keys():
+  l = variables.keys()
+  l.sort()
+  for v in l:
     do_print_short(file,variables[v])
   file.close()
-  for v in variables.keys():
+  for v in l:
     do_print(variables[v])
 
 ######################################################################

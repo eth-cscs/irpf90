@@ -11,7 +11,14 @@ default:
 	cp noarch/.rpmmacros ~;\
 	mv noarch/*.tar.gz . ;\
 	mv noarch/*.rpm . ;\
-	rm -rf noarch
+	rm -rf noarch;\
+	NAME=`basename *.rpm .rpm`;\
+	cd ..;\
+	git archive --format=tar --prefix=irpf90/ HEAD | gzip > $$OLDPWD/$$NAME-src.tar.gz;\
+	cd -;\
+	ls $$NAME*;\
+
+
 
 version: ../src/version.py
 	./make_version.py > version
