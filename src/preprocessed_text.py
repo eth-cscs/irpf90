@@ -348,6 +348,7 @@ def irp_simple_statements(text):
       dummy, variable, num = buffer
     else:
       error.fail(line,"Error in IRP_%s statement"%(rw,))
+    variable = variable.lower()
     i = line.i
     f = line.filename
     txt = line.text.lstrip()
