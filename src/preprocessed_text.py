@@ -381,10 +381,8 @@ def irp_simple_statements(text):
     '''Find condition in assert statement for debug'''
     assert isinstance(line,Assert)
     match = re_test.search(line.text)
-    if match is None:
-      result = [ line ]
-    else:
-      result = []
+    result = []
+    if match is not None:
       matches = [ match.group(1).strip(), match.group(3).strip() ]
       for m in matches:
         if not(m.isdigit() or ("'" in m) or (m == "")):
