@@ -54,6 +54,15 @@ def build_dim(dim):
   else:
     return "(%s)"%( ",".join(dim) )
 
+def build_dim_colons(v):
+  d = v.dim
+  if d == []:
+    return ""
+  else:
+    x = map(lambda x: ":", d)
+    return "(%s)"%(','.join(x))
+
+
 import error
 def find_subname(line):
   buffer = line.text

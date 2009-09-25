@@ -214,13 +214,7 @@ class Variable(object):
   def header(self):
     if '_header' not in self.__dict__:
       name = self.name
-      def build_dim(d):
-        if d == []:
-          return ""
-        else:
-          x = map(lambda x: ":", self.dim)
-          return "(%s)"%(','.join(x))
-      self._header = [ "  %s :: %s %s"%(self.type, name, build_dim(self.dim) ) ]
+      self._header = [ "  %s :: %s %s"%(self.type, name, build_dim_colons(self) ) ]
       if self.is_main:
        self._header += [ "  logical :: %s_is_built = .False."%(name) ]
     return self._header
@@ -291,7 +285,7 @@ class Variable(object):
         for n in [ name ]+self.others:
           result += [\
           "  open(unit=irp_iunit,file='irpf90_%s_'//trim(irp_num),form='FORMATTED',status='OLD',action='READ')"%(n),
-          "  read(irp_iunit,*) %s%s"%(n,build_dim(variables[n].dim)),
+          "  read(irp_iunit,*) %s%s"%(n,build_dim_colons(variables[n])),
           "  close(irp_iunit)" ]
         result += [ \
         "  call touch_%s"%(name),
@@ -341,7 +335,7 @@ class Variable(object):
         for n in [ name ] + self.others:
           result += [\
           "  open(unit=irp_iunit,file='irpf90_%s_'//trim(irp_num),form='FORMATTED',status='UNKNOWN',action='WRITE')"%(n),
-          "  write(irp_iunit,*) %s%s"%(n,build_dim(variables[n].dim)),
+          "  write(irp_iunit,*) %s%s"%(n,build_dim_colons(variables[n])),
           "  close(irp_iunit)" ]
         if command_line.do_debug:
           result.append("  call irp_leave(irp_here)")
