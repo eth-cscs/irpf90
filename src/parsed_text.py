@@ -133,10 +133,10 @@ def get_parsed_text():
           result += map(lambda x: ([],Simple_line(line.i,x,line.filename)),
             variables[var].free)
       elif isinstance(line,Irp_read):
-        variables[line.filename].is_read = True
+        variables[line.filename]._is_read = True
         result.append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif isinstance(line,Irp_write):
-        variables[line.filename].is_written = True
+        variables[line.filename]._is_written = True
         result.append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif isinstance(line,Touch):
         vars = line.text.split()

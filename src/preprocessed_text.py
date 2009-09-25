@@ -352,11 +352,11 @@ def irp_simple_statements(text):
     f = line.filename
     txt = line.text.lstrip()
     result = [
-       Simple_line(i,"!",f),
+       Empty_line(i,"!",f),
        t(i,"! >>> %s"%(txt,),variable ),
        Provide_all(i,"   call %ser_%s('%s')"%(rw,variable,num),f),
-       Simple_line(i,"! >>> END %s "%(txt,),f ),
-       Simple_line(line.i,"!",f),
+       Empty_line(i,"! >>> END %s "%(txt,),f ),
+       Empty_line(line.i,"!",f),
     ]
     return result
     
@@ -403,8 +403,8 @@ def irp_simple_statements(text):
       f = line.filename
       txt = line.text.strip()
       result = [
-       Simple_line(i, "!", f),
-       Simple_line(i, "! >>> %s"%(txt,), f),
+       Empty_line(i, "!", f),
+       Empty_line(i, "! >>> %s"%(txt,), f),
        If         (i, "  if (.not.%s) then"%(condition,), f),
        Simple_line(i, "   call irp_trace", f),
        Simple_line(i, "   print *, irp_here//': Assert failed:'", f),
@@ -413,8 +413,8 @@ def irp_simple_statements(text):
        ] + debug_conditions(line) + [
        Simple_line(i, "   stop 1", f),
        Endif      (i, "  endif", f),
-       Simple_line(i, "! <<< END %s"%(txt,), f),
-       Simple_line(i, "!", f)
+       Empty_line(i, "! <<< END %s"%(txt,), f),
+       Empty_line(i, "!", f)
       ]
     else:
       result = []

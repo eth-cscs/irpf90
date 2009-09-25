@@ -40,15 +40,12 @@ class Variable(object):
     self.text = text
     if name is not None:
       self._name = name.lower()
-    self.is_read    = False
-    self.is_written = False
 
   ############################################################
   def is_touched(self):
-    '''Name is lowercase'''
     if '_is_touched' not in self.__dict__:
       from variables import variables
-      result = False
+      result = self.is_read
       for i in self.children:
         if variables[i].is_touched:
           result = True
@@ -58,8 +55,33 @@ class Variable(object):
   is_touched = property(is_touched)
 
   ############################################################
+  def is_written(self):
+    if '_is_written' not in self.__dict__:
+      from variables import variables
+      result = False
+      for i in self.parents:
+        if variables[i].is_written:
+          result = True
+          break
+      self._is_written = result
+    return self._is_written
+  is_written = property(is_written)
+
+  ############################################################
+  def is_read(self):
+    if '_is_read' not in self.__dict__:
+      from variables import variables
+      result = False
+      for i in self.parents:
+        if variables[i].is_read:
+          result = True
+          break
+      self._is_read = result
+    return self._is_read
+  is_read = property(is_read)
+
+  ############################################################
   def is_main(self):
-    '''Name is lowercase'''
     if '_is_main' not in self.__dict__:
       self._is_main = (self.name == self.same_as)
     return self._is_main
