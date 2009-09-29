@@ -43,6 +43,46 @@ Fixed_form = 1
 
 
 ######################################################################
+# Dictionary of simple statements
+simple_dict = {
+        "program":               Program         ,
+        "subroutine":            Subroutine      ,
+        "begin_shell":           Begin_shell     ,
+        "end_shell":             End_shell       ,
+        "end_doc":               End_doc         ,
+        "begin_provider":        Begin_provider  ,
+        "&begin_provider":       Cont_provider   ,
+        "end_provider":          End_provider    ,
+        "assert":                Assert          ,
+        "touch":                 Touch           ,
+        "provide":               Provide         ,
+        "free":                  Free            ,
+        "irp_if":                Irp_If          ,
+        "irp_else":              Irp_Else        ,
+        "irp_endif":             Irp_Endif       ,
+        "irp_read":              Irp_read        ,
+        "irp_write":             Irp_write       ,
+        "use":                   Use             ,
+        "do":                    Do              ,
+        "if":                    If              ,
+        "case":                  Case            ,
+        "elseif":                Elseif          ,
+        "else":                  Else            ,
+        "enddo":                 Enddo           ,
+        "endif":                 Endif           ,
+        "endselect":             End_select      ,
+        "end":                   End             ,
+        "include":               Include         ,
+        "call":                  Call            ,
+        "continue":              Continue        ,
+        "return":                Return          ,
+        "implicit":              Implicit        ,
+        "save":                  Declaration     ,
+        "function":              Function        ,
+        "recursive":             Function        ,
+}
+simple_dict_keys = simple_dict.keys()
+
 def get_type (i, filename, line, is_doc):
   '''Find the type of a text line'''
   assert isinstance(i,int)
@@ -72,10 +112,6 @@ def get_type (i, filename, line, is_doc):
     buffer = buffer[1:]
     firstword = buffer[0]
 
-  # Detect errors
-  if firstword == "dowhile":
-    error.fail( Do(i,line,filename) , "'do while' should be in 2 words." )
-  
   # Identify line
   if firstword == "end_doc":
     return [ End_doc       (i,line,filename) ], False
@@ -86,52 +122,13 @@ def get_type (i, filename, line, is_doc):
   if is_doc:
     return [ Doc (i,line,filename) ], is_doc
 
-  # Dictionary of simple statements
-  simple_dict = {
-        "program":              [ Program         (i,line,filename) ] ,
-        "subroutine":           [ Subroutine      (i,line,filename) ] ,
-        "begin_shell":          [ Begin_shell     (i,line,filename) ] ,
-        "end_shell":            [ End_shell       (i,line,filename) ] ,
-        "end_doc":              [ End_doc         (i,line,filename) ] ,
-        "begin_provider":       [ Begin_provider  (i,line,filename) ] ,
-        "&begin_provider":      [ Cont_provider   (i,line,filename) ] ,
-        "end_provider":         [ End_provider    (i,line,filename) ] ,
-        "assert":               [ Assert          (i,line,filename) ] ,
-        "touch":                [ Touch           (i,line,filename) ] ,
-        "provide":              [ Provide         (i,line,filename) ] ,
-        "free":                 [ Free            (i,line,filename) ] ,
-        "irp_if":               [ Irp_If          (i,line,filename) ] ,
-        "irp_else":             [ Irp_Else        (i,line,filename) ] ,
-        "irp_endif":            [ Irp_Endif       (i,line,filename) ] ,
-        "irp_read":             [ Irp_read        (i,line,filename) ] ,
-        "irp_write":            [ Irp_write       (i,line,filename) ] ,
-        "use":                  [ Use             (i,line,filename) ] ,
-        "do":                   [ Do              (i,line,filename) ] ,
-        "selectcase":           [ Select          (i,"",filename) ,
-                                  Simple_line     (i,line,filename) ] ,
-        "select":               [ Select          (i,"",filename) ,
-                                  Simple_line     (i,line,filename) ] ,
-        "if":                   [ If              (i,line,filename) ] ,
-        "case":                 [ Case            (i,line,filename) ] ,
-        "elseif":               [ Elseif          (i,line,filename) ] ,
-        "else":                 [ Else            (i,line,filename) ] ,
-        "enddo":                [ Enddo           (i,line,filename) ] ,
-        "endif":                [ Endif           (i,line,filename) ] ,
-        "endselect":            [ End_select      (i,line,filename) ] ,
-        "end":                  [ End             (i,line,filename) ]  ,
-        "include":              [ Include         (i,line,filename) ] ,
-        "call":                 [ Call            (i,line,filename) ]  ,
-        "continue":             [ Continue        (i,line,filename) ] ,
-        "return":               [ Return          (i,line,filename) ] ,
-        "implicit":             [ Implicit        (i,line,filename) ] ,
-        "save":                 [ Declaration     (i,line,filename) ] ,
-        "function":             [ Function        (i,line,filename) ] ,
-        "recursive":            [ Function        (i,line,filename) ] ,
-  }
-
-  if firstword in simple_dict.keys():
-    return simple_dict[firstword], is_doc
+  if firstword in simple_dict_keys:
+    return [ simple_dict[firstword](i,line,filename) ], is_doc
   
+  if firstword in [ "select", "selectcase" ]:
+    return [ Select          (i,"",filename) ,
+             Simple_line     (i,line,filename) ] , is_doc
+
   if len(lower_line0) > 4:
 
     if firstword[0] == '#':
@@ -155,6 +152,10 @@ instead of
       else:
         return [ Declaration (i,line,filename) ], is_doc
 
+    # Detect errors
+    if firstword == "dowhile":
+      error.fail( Do(i,line,filename) , "'do while' should be in 2 words." )
+  
   return [ Simple_line(i,line,filename) ], is_doc
 
 
