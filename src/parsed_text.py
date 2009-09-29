@@ -33,19 +33,20 @@ from subroutines import subroutines
 import regexps
 import error
 
+vtuple = map(lambda v: (v, variables[v], variables[v].same_as, variables[v].regexp), variables.keys())
+
 def find_variables_in_line(line):
   assert isinstance(line,Line)
   result = []
   sub_done = False
   buffer = line.text.lower()
-  for v in variables.keys():
-    var = variables[v]
-    if var.name in buffer:
+  for v,var,same_as,regexp in vtuple:
+    if v in buffer:
       if not sub_done:
         buffer = regexps.re_string.sub('',buffer)
         sub_done = True
-      if var.regexp.search(buffer) is not None:
-        result.append(var.same_as)
+      if regexp.search(buffer) is not None:
+        result.append(same_as)
   return result
 
 def find_subroutine_in_line(line):
