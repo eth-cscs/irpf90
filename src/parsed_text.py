@@ -302,7 +302,7 @@ def move_variables():
       elif type(line) in [ Endif, End_select ]:
         varlist = old_varlist.pop()
       elif type(line) == Provide_all:
-        vars = varlist
+        vars += varlist
       elif type(line) in [ End_provider, End ]:
         assert old_varlist == []
         varlist = []
@@ -367,7 +367,7 @@ parsed_text = result
 ######################################################################
 if __name__ == '__main__':
  for i in range(len(parsed_text)):
-  if parsed_text[i][0] == 'vmc_step.irp.f':
+  if parsed_text[i][0] == 'libqcio_groups.irp.f':
    print '!-------- %s -----------'%(parsed_text[i][0])
    for line in parsed_text[i][1]:
      print line[1]
