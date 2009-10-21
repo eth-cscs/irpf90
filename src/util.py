@@ -39,12 +39,14 @@ def same_file(filename,txt):
     file = open(filename,"r")
   except IOError:
     return False
-  lines = file.readlines()
+  stream = file.read()
   file.close()
-  if len(lines) != len(txt):
+
+  buffer = ''.join(txt)
+ 
+  if len(stream) != len(buffer):
     return False
-  for a,b in zip(lines,txt):
-    if a != b:
+  if stream != buffer:
       return False
   return True
 

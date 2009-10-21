@@ -1,0 +1,10 @@
+packages/.rpmmacros
+packages/*.tar.gz
+packages/*.rpm
+packages/sourceforge.sh
+packages/version
+src/*.pyc
+irpf90.make
+irpf90_entities
+IRPF90_temp
+IRPF90_man

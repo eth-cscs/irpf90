@@ -12,5 +12,8 @@ for i in range(1,6):
     print "  ASSERT ( d%d > d%d )"%(i,i-1)
  END_SHELL
 
+ print *,  &
+  'ceci est un ' &
+  //'test'
 END_PROVIDER
 
