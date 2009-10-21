@@ -71,11 +71,7 @@ def find_subname(line):
   if not buffer.endswith(')'):
     buffer += "()"
   buffer = buffer.split('(')
-  if len(buffer) > 1:
-    buffer = " ".join(buffer[:-1])
-  else:
-    buffer = buffer[0]
-  buffer = buffer.lower().split()
+  buffer = buffer[0].lower().split()
   if len(buffer) < 2:
     error.fail(line,"Syntax Error")
   return buffer[-1]

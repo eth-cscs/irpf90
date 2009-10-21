@@ -122,17 +122,16 @@ def get_parsed_text():
             error.fail(line,"Variable %s is unknown"%(v))
         result.append( (l,Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif isinstance(line,Call):
+        l = find_variables_in_line(line)
+        l = filter(lambda x: x not in varlist, l)
         sub = find_subroutine_in_line(line)
         if sub not in subroutines:
           t = Simple_line
+          result.append( (l,Simple_line(line.i,line.text,line.filename)) )
         else:
-          if subroutines[sub].touches == []:
-            t = Simple_line
-          else:
-            t = Provide_all
-        l = find_variables_in_line(line)
-        l = filter(lambda x: x not in varlist, l)
-        result.append( (l,t(line.i,line.text,line.filename)) )
+          result.append( (l,line) )
+          if subroutines[sub].touches != []:
+            result.append( ([],Provide_all(line.i,"",line.filename)) )
       elif isinstance(line,Free):
         vars = line.text.split()
         if len(vars) < 2:
@@ -439,7 +438,7 @@ parsed_text = result
 ######################################################################
 if __name__ == '__main__':
  for i in range(len(parsed_text)):
-  if parsed_text[i][0] == 'jastrow.irp.f':
+  if parsed_text[i][0] == 'orbitalJastrow.irp.f':
    print '!-------- %s -----------'%(parsed_text[i][0])
    for line in parsed_text[i][1]:
      print line[1]
