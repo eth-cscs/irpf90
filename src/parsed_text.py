@@ -339,6 +339,7 @@ def build_sub_needs():
         subname = find_subname(line)
         sub = subroutines[subname]
         sub.needs = []
+        sub.to_provide = vars
       elif isinstance(line,End):
         sub.needs = make_single(sub.needs)
         sub = None
@@ -355,7 +356,7 @@ def add_subroutine_needs():
     for vars,line in text:
       if isinstance(line,Call):
         subname = find_subname(line)
-        vars = subroutines[subname].needs
+        vars = subroutines[subname].to_provide
       result.append( (vars,line) )
     main_result.append( (filename, result) )
   return main_result
@@ -400,6 +401,11 @@ def build_needs():
         var = None
       if var is not None:
         var.needs += vars
+        if isinstance(line,Call):
+          subname = find_subname(line)
+          var.needs += subroutines[subname].needs
+        # Need to do the same for functions. Variables inside if blocks of the 
+        # function are not seen in tree.
   for v in variables.keys():
     main = variables[v].same_as 
     if main != v:
