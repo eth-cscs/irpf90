@@ -191,7 +191,6 @@ class Variable(object):
     if '_regexp' not in self.__dict__:
       import re
       self._regexp = re.compile( \
-       #r"^.*[^a-z0-9'\"_]+%s([^a-z0-9_]|$)"%(self.name),re.I)
         r"([^a-z0-9'\"_]|^)%s([^a-z0-9_]|$)"%(self.name),re.I)
     return self._regexp
   regexp = property(regexp)

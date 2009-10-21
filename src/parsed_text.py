@@ -33,14 +33,16 @@ from subroutines import subroutines
 import regexps
 import error
 
-vtuple = map(lambda v: (v, variables[v], variables[v].same_as, variables[v].regexp), variables.keys())
+vtuple = map(lambda v: (v, variables[v].same_as, variables[v].regexp), variables.keys())
+stuple = map(lambda s: (s, subroutines[s].regexp), subroutines.keys())
+stuple = filter(lambda s: subroutines[s[0]].is_function, stuple)
 
 def find_variables_in_line(line):
   assert isinstance(line,Line)
   result = []
   sub_done = False
   buffer = line.text.lower()
-  for v,var,same_as,regexp in vtuple:
+  for v,same_as,regexp in vtuple:
     if v in buffer:
       if not sub_done:
         buffer = regexps.re_string.sub('',buffer)
@@ -48,6 +50,18 @@ def find_variables_in_line(line):
       if regexp.search(buffer) is not None:
         result.append(same_as)
   return result
+
+def find_funcs_in_line(line):
+  assert isinstance(line,Line)
+  result = []
+  sub_done = False
+  buffer = line.text.lower()
+  for s,regexp in stuple:
+     if s in buffer:
+      if regexp.search(buffer) is not None:
+        result.append(s)
+  return result
+
 
 def find_subroutine_in_line(line):
   assert isinstance(line,Call)
@@ -186,7 +200,10 @@ def get_parsed_text():
   return main_result
 
 parsed_text = get_parsed_text()
+
+
 ######################################################################
+
 def move_to_top(text,t):
   assert isinstance(text,list)
   assert t in [ Declaration, Implicit, Use, Cont_provider ]
@@ -313,6 +330,60 @@ def move_variables():
   return main_result
 
 parsed_text = move_variables()
+######################################################################
+def build_sub_needs():
+  # Needs
+  for filename, text in parsed_text:
+    sub = None
+    for vars,line in text:
+      if type(line) in [ Subroutine, Function ]:
+        subname = find_subname(line)
+        sub = subroutines[subname]
+        sub.needs = []
+      elif isinstance(line,End):
+        sub.needs = make_single(sub.needs)
+        sub = None
+      if sub is not None:
+        sub.needs += vars
+
+build_sub_needs()
+#####################################################################
+
+def add_subroutine_needs():
+  main_result = []
+  for filename, text in parsed_text:
+    result = []
+    for vars,line in text:
+      if isinstance(line,Call):
+        subname = find_subname(line)
+        vars = subroutines[subname].needs
+      result.append( (vars,line) )
+    main_result.append( (filename, result) )
+  return main_result
+  
+parsed_text = add_subroutine_needs()
+
+######################################################################
+def find_vars_from_functions():
+  main_result = []
+  for filename, text in parsed_text:
+    result = []
+    for vars,line in text:
+      if type(line) in [ \
+        Simple_line,  Assert,
+        Do         ,  If,
+        Elseif     ,  Select,
+        Call       ,  Provide_all
+      ]: 
+        funcs = find_funcs_in_line(line)
+        for f in funcs:
+          vars += subroutines[f].needs 
+      result.append( (vars,line) )
+    main_result.append( (filename, result) )
+  return main_result
+
+parsed_text = find_vars_from_functions()
+parsed_text = move_variables()
 
 ######################################################################
 def build_needs():
@@ -368,7 +439,7 @@ parsed_text = result
 ######################################################################
 if __name__ == '__main__':
  for i in range(len(parsed_text)):
-  if parsed_text[i][0] == 'libqcio_groups.irp.f':
+  if parsed_text[i][0] == 'jastrow.irp.f':
    print '!-------- %s -----------'%(parsed_text[i][0])
    for line in parsed_text[i][1]:
      print line[1]

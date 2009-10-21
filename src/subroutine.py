@@ -47,6 +47,13 @@ class Sub(object):
   name = property(name)
 
   ############################################################
+  def is_function(self):
+    if '_is_function' not in self.__dict__:
+      self._is_function = "function" in self.line.text.lower()
+    return self._is_function
+  is_function = property(is_function)
+
+  ############################################################
   def doc(self):
     if '_doc' not in self.__dict__:
       def f(l): return 
