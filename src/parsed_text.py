@@ -364,27 +364,6 @@ def add_subroutine_needs():
 parsed_text = add_subroutine_needs()
 
 ######################################################################
-def find_vars_from_functions():
-  main_result = []
-  for filename, text in parsed_text:
-    result = []
-    for vars,line in text:
-      if type(line) in [ \
-        Simple_line,  Assert,
-        Do         ,  If,
-        Elseif     ,  Select,
-        Call       ,  Provide_all
-      ]: 
-        funcs = find_funcs_in_line(line)
-        for f in funcs:
-          vars += subroutines[f].needs 
-      result.append( (vars,line) )
-    main_result.append( (filename, result) )
-  return main_result
-
-parsed_text = find_vars_from_functions()
-
-######################################################################
 def build_needs():
   # Needs
   for filename, text in parsed_text:
@@ -404,8 +383,14 @@ def build_needs():
         if isinstance(line,Call):
           subname = find_subname(line)
           var.needs += subroutines[subname].needs
-        # Need to do the same for functions. Variables inside if blocks of the 
-        # function are not seen in tree.
+        elif type(line) in [ \
+          Simple_line,  Assert,
+          Do         ,  If,
+          Elseif     ,  Select,
+        ]: 
+          funcs = find_funcs_in_line(line)
+          for f in funcs:
+            var.needs += subroutines[f].needs 
   for v in variables.keys():
     main = variables[v].same_as 
     if main != v:
