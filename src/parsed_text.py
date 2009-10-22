@@ -441,6 +441,26 @@ for filename,text in parsed_text:
 parsed_text = result
 
 ######################################################################
+from command_line import command_line
+
+def check_opt():
+  if not command_line.do_checkopt:
+    return
+
+  for filename, text in parsed_text:
+    do_level = 0
+    for vars,line in text:
+      if do_level > 0 and vars != []:
+        print "Optimization: %s line %d"%(line.filename,line.i)
+        for v in vars:
+          print "  PROVIDE ",v
+      if isinstance(line,Do):
+        do_level += 1
+      elif isinstance(line,Enddo):
+        do_level -= 1
+check_opt()
+
+######################################################################
 if __name__ == '__main__':
  for i in range(len(parsed_text)):
   if parsed_text[i][0] == 'orbitalJastrow.irp.f':

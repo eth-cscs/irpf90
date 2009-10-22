@@ -36,6 +36,7 @@ options['a'] = [ 'assert'       , 'Activate assertions', 0 ]
 options['h'] = [ 'help'         , 'Print this help', 0 ]
 options['i'] = [ 'init'         , 'Initialize current directory', 0 ]
 options['D'] = [ 'define'       , 'Define variable', 1 ]
+options['o'] = [ 'checkopt'     , 'Show where optimization may be required', 0 ]
 options['p'] = [ 'preprocess'   , 'Preprocess file', 1 ]
 
 class CommandLine(object):
