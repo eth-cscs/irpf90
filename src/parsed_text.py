@@ -252,35 +252,30 @@ def move_variables():
         varlist = []
         result.append( ([],line) )
       elif type(line) in [ Endif, End_select ]:
-        old_ifvars.append(ifvars)
-        old_elsevars.append(elsevars)
-        old_varlist.append(varlist)
+        old_ifvars.append( list(ifvars) )
+        old_elsevars.append( list(elsevars) )
+        old_varlist.append( list(varlist) )
         varlist = []
         result.append( ([],line) )
       elif type(line) == Else:
+        elsevars += list(varlist)
         result.append( (varlist,line) )
-        elsevars = list(varlist)
-        if vars != []:
-          varlist = old_varlist.pop()
-          varlist += vars
-          old_varlist.append(varlist)
         varlist = []
       elif type(line) in [ Elseif, Case ]:
-        ifvars += varlist
+        ifvars += list(varlist)
         result.append( (varlist,line) )
         if vars != []:
           varlist = old_varlist.pop()
           varlist += vars
-          old_varlist.append(varlist)
+          old_varlist.append( list(varlist) )
         varlist = []
       elif type(line) in [ If, Select ]:
-        ifvars += varlist
+        ifvars += list(varlist)
         result.append( (varlist,line) )
         vars += filter(lambda x: x in elsevars, ifvars)
         ifvars = old_ifvars.pop()
         elsevars = old_elsevars.pop()
-        varlist = old_varlist.pop()
-        varlist += vars
+        varlist = old_varlist.pop() + vars
       elif type(line) in [ Begin_provider, Subroutine, Function ]:
         varlist += vars
         result.append( (varlist,line) )
@@ -295,6 +290,7 @@ def move_variables():
         varlist += vars
         result.append( ([],line) )
     result.reverse()
+  
     # 2nd pass
     text = result
     result = []
@@ -448,7 +444,7 @@ check_opt()
 ######################################################################
 if __name__ == '__main__':
  for i in range(len(parsed_text)):
-  if parsed_text[i][0] == 'orbitalJastrow.irp.f':
+  if parsed_text[i][0] == 'properties.irp.f':
    print '!-------- %s -----------'%(parsed_text[i][0])
    for line in parsed_text[i][1]:
      print line[1]

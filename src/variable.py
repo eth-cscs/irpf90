@@ -351,10 +351,17 @@ class Variable(object):
       result = [ "!","! >>> FREE %s"%(self.name),
         "  %s_is_built = .False."%(self.same_as) ] 
       if self.dim != []:
-        result += [ \
-        "  if (allocated(%s)) then"%(name),
-        "    deallocate (%s)"%(name),
-        "  endif" ]
+        if command_line.do_memory:
+          result += [ \
+          "  if (allocated(%s)) then"%(name),
+          "    deallocate (%s)"%(name),
+          "    print *, 'Deallocating %s'"%(name),
+          "  endif" ]
+        else:
+          result += [ \
+          "  if (allocated(%s)) then"%(name),
+          "    deallocate (%s)"%(name),
+          "  endif" ]
       result.append("! <<< END FREE")
       self._free = result
     return self._free
@@ -397,13 +404,27 @@ class Variable(object):
         def do_allocate():
           result = "    allocate(%s(%s),stat=irp_err)"
           result = result%(name,','.join(self.dim))
+          if command_line.do_memory:
+            tmp = "\n   print *, 'Allocating %s(%s), (',%s,')'"
+            d = ','.join(self.dim)
+            if ":" in d:
+              result += tmp%(name,d,"''")
+            else:
+              result += tmp%(name,d,d)
           return result
 
         result = [ " if (allocated (%s) ) then"%(name) ]
         result += dimensions_OK()
         result += [\
           "  if (.not.irp_dimensions_OK) then",
-          "   deallocate(%s)"%(name) ]
+          "   deallocate(%s,stat=irp_err)"%(name),
+          "   if (irp_err /= 0) then",
+          "     print *, irp_here//': Deallocation failed: %s'"%(name),
+          do_size(),
+          "   endif"]
+        if command_line.do_memory:
+          result += [\
+          "   print *, 'Deallocating %s'"%(name) ]
         result.append(check_dimensions())
         result.append(do_allocate())
         result += [\
