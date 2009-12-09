@@ -37,6 +37,8 @@ options['h'] = [ 'help'         , 'Print this help', 0 ]
 options['i'] = [ 'init'         , 'Initialize current directory', 0 ]
 options['D'] = [ 'define'       , 'Define variable', 1 ]
 options['p'] = [ 'preprocess'   , 'Preprocess file', 1 ]
+options['o'] = [ 'openmp'       , 'Auto-parallelization', 0 ]
+options['m'] = [ 'memory'       , 'Debug memory', 0 ]
 
 class CommandLine(object):
 

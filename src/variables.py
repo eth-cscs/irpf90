@@ -27,6 +27,7 @@
 
 from variable import *
 from irpf90_t import *
+from command_line import command_line
 from util import *
 
 ######################################################################
@@ -65,11 +66,27 @@ def call_provides(vars,opt=False):
     all_children = flatten( map(lambda x: variables[x].children, vars ))
     vars = filter(lambda x: x not in all_children,vars)
   def fun(x):
-    return [ \
+    if command_line.do_openmp:
+      result  = [ "!$OMP TASK" ]
+    else:
+      result = []
+    result += [ \
     "  if (.not.%s_is_built) then"%(x),
     "    call provide_%s"%(x),
     "  endif" ]
-  return flatten ( map (fun, vars) )
+    if command_line.do_openmp:
+      result += [ "!$OMP END TASK" ]
+    return result
+
+  result = flatten ( map (fun, vars) )
+  if command_line.do_openmp and result != []:
+   result.reverse()
+   result.remove("!$OMP TASK")
+   result.remove("!$OMP END TASK")
+   result.reverse()
+   if "!$OMP TASK" in result:
+     result += [ "!$OMP TASKWAIT" ]
+  return result
 
 ######################################################################
 if __name__ == '__main__':

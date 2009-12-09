@@ -30,6 +30,7 @@ from command_line import command_line
 
 do_assert = command_line.do_assert
 do_debug = command_line.do_debug
+do_openmp = command_line.do_openmp
 
 import irpf90_t
 
@@ -52,8 +53,9 @@ subroutine irp_enter(irp_where)
  integer       :: ithread
  integer       :: nthread
  character*(*) :: irp_where
- ithread = 0
- nthread = 1
+$OMP_DECL
+ ithread = $OMP_GET_THREAD_NUM
+ nthread = $OMP_GET_NUM_THREADS
 $1
 $2
 end subroutine
@@ -63,11 +65,25 @@ subroutine irp_leave (irp_where)
   character*(*) :: irp_where
   integer       :: ithread
   double precision :: cpu
-  ithread = 0
+$OMP_DECL
+  ithread = $OMP_GET_THREAD_NUM
 $3
 $4
 end subroutine
 """
+
+  # $OMP_DECL
+  if do_openmp:
+    txt = txt.replace("$OMP_DECL","""
+  integer :: omp_get_num_threads
+  integer :: omp_get_thread_num
+""")
+    txt = txt.replace("$OMP_GET_NUM_THREADS","omp_get_num_threads()")
+    txt = txt.replace("$OMP_GET_THREAD_NUM","omp_get_thread_num()")
+  else:
+    txt = txt.replace("$OMP_DECL","")
+    txt = txt.replace("$OMP_GET_NUM_THREADS","1")
+    txt = txt.replace("$OMP_GET_THREAD_NUM","0")
 
   # $1
   if do_assert or do_debug:
@@ -82,6 +98,11 @@ end subroutine
 !$OMP END CRITICAL
  stack_index(ithread+1) = stack_index(ithread+1)+1
  irp_stack(stack_index(ithread+1),ithread+1) = irp_where""")
+    if command_line.do_memory:
+      txt+="""
+  print *, 'Allocating irp_stack(',STACKMAX,','nthread,')'
+  print *, 'Allocating irp_cpu(',STACKMAX,','nthread,')'
+  print *, 'Allocating stack_index(',nthread,')'"""
   else:
     txt = txt.replace("$1","")
 

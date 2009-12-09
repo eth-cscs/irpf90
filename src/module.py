@@ -28,6 +28,7 @@
 from irpf90_t import *
 from variable import *
 from variables import variables
+from command_line import command_line
 import preprocessed_text
 from util import *
 
@@ -169,11 +170,16 @@ class Fmodule(object):
       result    = map(lambda x: x[1], result)
       result    = map(lambda x: x.text, result)
       if self.is_main:
-        result = [ \
-        "program irp_program",
-        " call %s"%(self.prog_name),
-        "end program",
-        ] + result
+        temp  = [ "program irp_program" ]
+        if command_line.do_openmp:
+          temp += [ "!$OMP PARALLEL" ]
+          temp += [ "!$OMP MASTER" ]
+        temp += [ " call %s"%(self.prog_name) ]
+        if command_line.do_openmp:
+          temp += [ "!$OMP END MASTER" ]
+          temp += [ "!$OMP END PARALLEL" ]
+        temp += [ "end program" ]
+        result = temp + result
       self._residual_text = result
     return self._residual_text
   residual_text = property(residual_text)

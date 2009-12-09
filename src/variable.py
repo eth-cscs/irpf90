@@ -352,10 +352,17 @@ class Variable(object):
       result = [ "!","! >>> FREE %s"%(self.name),
         "  %s_is_built = .False."%(self.same_as) ] 
       if self.dim != []:
-        result += [ \
-        "  if (allocated(%s)) then"%(name),
-        "    deallocate (%s)"%(name),
-        "  endif" ]
+        if command_line.do_memory:
+          result += [ \
+          "  if (allocated(%s)) then"%(name),
+          "    deallocate (%s)"%(name),
+          "    print *, 'Deallocating %s'"%(name),
+          "  endif" ]
+        else:
+          result += [ \
+          "  if (allocated(%s)) then"%(name),
+          "    deallocate (%s)"%(name),
+          "  endif" ]
       result.append("! <<< END FREE")
       self._free = result
     return self._free
@@ -398,6 +405,9 @@ class Variable(object):
         def do_allocate():
           result = "    allocate(%s(%s),stat=irp_err)"
           result = result%(name,','.join(self.dim))
+          if command_line.do_memory:
+            tmp = "\n   print *, 'Allocating %s(%s)'"
+            result += tmp%(name,','.join(self.dim))
           return result
 
         result = [ " if (allocated (%s) ) then"%(name) ]
@@ -405,6 +415,9 @@ class Variable(object):
         result += [\
           "  if (.not.irp_dimensions_OK) then",
           "   deallocate(%s)"%(name) ]
+        if command_line.do_memory:
+          result += [\
+          "   print *, 'Deallocating %s'"%(name) ]
         result.append(check_dimensions())
         result.append(do_allocate())
         result += [\
@@ -438,10 +451,14 @@ class Variable(object):
         result.append("  call irp_enter(irp_here)")
       result += call_provides(self.to_provide)
       result += flatten( map(build_alloc,[self.same_as]+self.others) )
-      result += [\
-      "  call bld_%s"%(same_as),
-      "  %s_is_built = .True."%(same_as),
-      "" ]
+      if command_line.do_openmp:
+        result += [ "!$OMP CRITICAL (%s_critical)"%(same_as) ]
+        result += [ " if (.not.%s_is_built) then"%(same_as) ]
+      result += [ "  call bld_%s"%(same_as) ]
+      result += [ "  %s_is_built = .True."%(same_as), "" ]
+      if command_line.do_openmp:
+        result += [ " endif" ]
+        result += [ "!$OMP END CRITICAL (%s_critical)"%(same_as) ]
       if command_line.do_assert or command_line.do_debug:
         result.append("  call irp_leave(irp_here)")
       result.append("end subroutine provide_%s"%(name) )
