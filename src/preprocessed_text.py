@@ -49,6 +49,9 @@ simple_dict = {
         "subroutine":            Subroutine      ,
         "begin_shell":           Begin_shell     ,
         "end_shell":             End_shell       ,
+        "begin_template":        Begin_template  ,
+        "end_template":          End_template    ,
+        "subst":                 Subst           ,
         "end_doc":               End_doc         ,
         "begin_provider":        Begin_provider  ,
         "&begin_provider":       Cont_provider   ,
@@ -224,6 +227,87 @@ def execute_shell(text):
         error.fail(line,"Begin_shell missing")
       else:
         result.append(line)
+  return result
+
+######################################################################
+def execute_templates(text):
+  '''Execute the templates'''
+  def fail(l,a,b): error.fail(l,"In %s, %s"%(a,b))
+
+  def get_variables(line):
+    buffer = line.text.split('[',1)
+    if len(buffer)<2:
+      fail(line,"Subst","Syntax error")
+    buffer = buffer[1].replace(']','')
+    buffer = buffer.split(',')
+    return map(lambda x: '$%s'%(x.strip()), buffer)
+
+  TEMPLATE = 1
+  SUBST = 2
+  inside = 0
+  result = []
+  for line in text:
+    if inside == 0:
+      if isinstance(line,Begin_template):
+        script = []
+        inside = TEMPLATE
+        script = "template = \"\"\"\n"
+      else:
+        result.append(line)
+    elif inside == TEMPLATE:
+      if isinstance(line,Begin_template):
+        fail(line,"template", "Nested Begin_Template")
+      elif isinstance(line,End_template):
+        fail(line,"template","Missing Subst")
+      elif isinstance(line,Subst):
+        inside = SUBST
+        script += "\"\"\"\n"
+        variables = get_variables(line)
+        script += "v = []\n"
+        subst = ""
+      else:
+        script += line.text+"\n"
+    else: # inside == SUBST
+      if isinstance(line,Begin_template):
+        fail(line,"subst","Nested Begin_template")
+      elif isinstance(line,Subst):
+        fail(line,"subst","Subst already defined")
+      elif isinstance(line,End_template):
+        inside = 0
+        subst = subst.rstrip()
+        if subst[-2:] == ';;':
+          subst = subst[:-2]
+        for s in subst.split(';;'):
+          buffer = map(lambda x: x.strip(), s.split(';'))
+          if len(buffer) != len(variables):
+            fail(line,"subst","%d variables defined, and %d substitutions"%(len(variables),len(buffer)))
+          script += "v.append( { \\\n"
+          for t,v in zip(variables,buffer):
+            script += ' "%s": """%s""" ,\n'%(t,v)
+          script += "} )\n"
+        script += "for d in v:\n  t0 = str(template)\n"
+        for v in variables:
+          script += "  t0 = t0.replace('%s',d['%s'])\n"%(v,v)
+        script += "  print t0\n"
+        # Write script file
+        scriptname = "%s%s_template_%d"%(irpdir,line.filename,line.i)
+        file = open(scriptname,'w')
+        file.writelines(script)
+        file.close()
+        scriptname = "%s_template_%d"%(line.filename,line.i)
+        file = open(scriptname,'w')
+        file.writelines(script)
+        file.close()
+        # Execute shell
+        import os
+        pipe = os.popen("python < %s"%(scriptname),'r')
+        lines = pipe.readlines()
+        pipe.close()
+        result += get_text(lines,scriptname)
+        os.remove(scriptname)
+      else:
+        subst += line.text+'\n'
+
   return result
 
 ######################################################################
@@ -730,6 +814,7 @@ def create_preprocessed_text(filename):
   lines = file.readlines()
   file.close()
   result = get_text(lines,filename)
+  result = execute_templates(result)
   result = execute_shell(result)
   fortran_form = form(result)
   result = remove_ifdefs(result)

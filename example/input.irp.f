@@ -4,13 +4,19 @@
 &BEGIN_PROVIDER [ integer, d4 ]
 &BEGIN_PROVIDER [ integer, d5 ]
 
- BEGIN_SHELL [ /usr/bin/python ]
-for i in range(1,6):
-  print "  print *,  'd%d'"%(i,)
-  print "  read(*,*) d%d"%(i,)
-  if i > 1:
-    print "  ASSERT ( d%d > d%d )"%(i,i-1)
- END_SHELL
+ print *,  'd1'
+ read(*,*) d1
 
+ BEGIN_TEMPLATE
+  print *,  '$X'
+  read(*,*) $X
+  ASSERT ( $X > $Y )
+
+  SUBST [ X, Y ]
+   d2; d1;;
+   d3; d2;;
+   d4; d3;;
+   d5; d4;;
+ END_TEMPLATE
 END_PROVIDER
 

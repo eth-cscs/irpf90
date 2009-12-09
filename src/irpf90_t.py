@@ -107,6 +107,24 @@ class End_shell(Line):
   def __repr__(self):
     return "%20s:%5d : %s"%("End_shell",self.i,self.text)
 
+class Begin_template(Line):
+  def __init__(self,i,text,filename):
+    Line.__init__(self,i,text,filename)
+  def __repr__(self):
+    return "%20s:%5d : %s"%("Begin_template",self.i,self.text)
+
+class End_template(Line):
+  def __init__(self,i,text,filename):
+    Line.__init__(self,i,text,filename)
+  def __repr__(self):
+    return "%20s:%5d : %s"%("End_template",self.i,self.text)
+
+class Subst(Line):
+  def __init__(self,i,text,filename):
+    Line.__init__(self,i,text,filename)
+  def __repr__(self):
+    return "%20s:%5d : %s"%("Subst",self.i,self.text)
+
 class Assert(Line):
   def __init__(self,i,text,filename):
     Line.__init__(self,i,text,filename)
