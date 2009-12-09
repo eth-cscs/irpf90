@@ -35,7 +35,7 @@ def create_subroutines():
     buffer = []
     inside = False
     for line in text:
-      if isinstance(line,Subroutine):
+      if type(line) in [ Subroutine, Function ]:
         inside = True
       if inside:
         buffer.append(line)

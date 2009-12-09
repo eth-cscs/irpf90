@@ -304,14 +304,14 @@ def remove_continuation(text,form):
   if form == Free_form:
     for line in text:
       if line.text[-1] == '&':
-        buffer = "%s%s "%(buffer,line.text[:-1].lstrip())
+        buffer = "%s%s\n"%(buffer,line.text)
         if number == 0:
           t = type(line)
           number = line.i
       else:
         if number != 0:
           newline = t(number, \
-            "%s%s"%(buffer,line.text.lstrip()), \
+            "%s%s"%(buffer,line.text), \
             line.filename)
           line = newline
           number = 0
@@ -327,7 +327,7 @@ def remove_continuation(text,form):
           if line.text[5] != ' ':
             is_continuation = True
       if is_continuation:
-         buffer = "%s %s"%(line.text[6:].lstrip(),buffer)
+         buffer = "&\n%s %s %s"%(line.text[:5],line.text[6:],buffer)
       else:
          line.text = line.text+buffer
          result.insert(0,line)

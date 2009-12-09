@@ -33,14 +33,16 @@ from subroutines import subroutines
 import regexps
 import error
 
-vtuple = map(lambda v: (v, variables[v], variables[v].same_as, variables[v].regexp), variables.keys())
+vtuple = map(lambda v: (v, variables[v].same_as, variables[v].regexp), variables.keys())
+stuple = map(lambda s: (s, subroutines[s].regexp), subroutines.keys())
+stuple = filter(lambda s: subroutines[s[0]].is_function, stuple)
 
 def find_variables_in_line(line):
   assert isinstance(line,Line)
   result = []
   sub_done = False
   buffer = line.text.lower()
-  for v,var,same_as,regexp in vtuple:
+  for v,same_as,regexp in vtuple:
     if v in buffer:
       if not sub_done:
         buffer = regexps.re_string.sub('',buffer)
@@ -48,6 +50,18 @@ def find_variables_in_line(line):
       if regexp.search(buffer) is not None:
         result.append(same_as)
   return result
+
+def find_funcs_in_line(line):
+  assert isinstance(line,Line)
+  result = []
+  sub_done = False
+  buffer = line.text.lower()
+  for s,regexp in stuple:
+     if s in buffer:
+      if regexp.search(buffer) is not None:
+        result.append(s)
+  return result
+
 
 def find_subroutine_in_line(line):
   assert isinstance(line,Call)
@@ -108,17 +122,16 @@ def get_parsed_text():
             error.fail(line,"Variable %s is unknown"%(v))
         result.append( (l,Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif isinstance(line,Call):
+        l = find_variables_in_line(line)
+        l = filter(lambda x: x not in varlist, l)
         sub = find_subroutine_in_line(line)
         if sub not in subroutines:
           t = Simple_line
+          result.append( (l,Simple_line(line.i,line.text,line.filename)) )
         else:
-          if subroutines[sub].touches == []:
-            t = Simple_line
-          else:
-            t = Provide_all
-        l = find_variables_in_line(line)
-        l = filter(lambda x: x not in varlist, l)
-        result.append( (l,t(line.i,line.text,line.filename)) )
+          result.append( (l,line) )
+          if subroutines[sub].touches != []:
+            result.append( ([],Provide_all(line.i,"",line.filename)) )
       elif isinstance(line,Free):
         vars = line.text.split()
         if len(vars) < 2:
@@ -186,7 +199,10 @@ def get_parsed_text():
   return main_result
 
 parsed_text = get_parsed_text()
+
+
 ######################################################################
+
 def move_to_top(text,t):
   assert isinstance(text,list)
   assert t in [ Declaration, Implicit, Use, Cont_provider ]
@@ -236,35 +252,30 @@ def move_variables():
         varlist = []
         result.append( ([],line) )
       elif type(line) in [ Endif, End_select ]:
-        old_ifvars.append(ifvars)
-        old_elsevars.append(elsevars)
-        old_varlist.append(varlist)
+        old_ifvars.append( list(ifvars) )
+        old_elsevars.append( list(elsevars) )
+        old_varlist.append( list(varlist) )
         varlist = []
         result.append( ([],line) )
       elif type(line) == Else:
+        elsevars += list(varlist)
         result.append( (varlist,line) )
-        elsevars = list(varlist)
-        if vars != []:
-          varlist = old_varlist.pop()
-          varlist += vars
-          old_varlist.append(varlist)
         varlist = []
       elif type(line) in [ Elseif, Case ]:
-        ifvars += varlist
+        ifvars += list(varlist)
         result.append( (varlist,line) )
         if vars != []:
           varlist = old_varlist.pop()
           varlist += vars
-          old_varlist.append(varlist)
+          old_varlist.append( list(varlist) )
         varlist = []
       elif type(line) in [ If, Select ]:
-        ifvars += varlist
+        ifvars += list(varlist)
         result.append( (varlist,line) )
         vars += filter(lambda x: x in elsevars, ifvars)
         ifvars = old_ifvars.pop()
         elsevars = old_elsevars.pop()
-        varlist = old_varlist.pop()
-        varlist += vars
+        varlist = old_varlist.pop() + vars
       elif type(line) in [ Begin_provider, Subroutine, Function ]:
         varlist += vars
         result.append( (varlist,line) )
@@ -279,6 +290,7 @@ def move_variables():
         varlist += vars
         result.append( ([],line) )
     result.reverse()
+  
     # 2nd pass
     text = result
     result = []
@@ -313,6 +325,39 @@ def move_variables():
   return main_result
 
 parsed_text = move_variables()
+######################################################################
+def build_sub_needs():
+  # Needs
+  for filename, text in parsed_text:
+    sub = None
+    for vars,line in text:
+      if type(line) in [ Subroutine, Function ]:
+        subname = find_subname(line)
+        sub = subroutines[subname]
+        sub.needs = []
+        sub.to_provide = vars
+      elif isinstance(line,End):
+        sub.needs = make_single(sub.needs)
+        sub = None
+      if sub is not None:
+        sub.needs += vars
+
+build_sub_needs()
+#####################################################################
+
+def add_subroutine_needs():
+  main_result = []
+  for filename, text in parsed_text:
+    result = []
+    for vars,line in text:
+      if isinstance(line,Call):
+        subname = find_subname(line)
+        vars = subroutines[subname].to_provide
+      result.append( (vars,line) )
+    main_result.append( (filename, result) )
+  return main_result
+  
+parsed_text = add_subroutine_needs()
 
 ######################################################################
 def build_needs():
@@ -331,6 +376,17 @@ def build_needs():
         var = None
       if var is not None:
         var.needs += vars
+        if isinstance(line,Call):
+          subname = find_subname(line)
+          var.needs += subroutines[subname].needs
+        elif type(line) in [ \
+          Simple_line,  Assert,
+          Do         ,  If,
+          Elseif     ,  Select,
+        ]: 
+          funcs = find_funcs_in_line(line)
+          for f in funcs:
+            var.needs += subroutines[f].needs 
   for v in variables.keys():
     main = variables[v].same_as 
     if main != v:
@@ -366,9 +422,29 @@ for filename,text in parsed_text:
 parsed_text = result
 
 ######################################################################
+from command_line import command_line
+
+def check_opt():
+  if not command_line.do_checkopt:
+    return
+
+  for filename, text in parsed_text:
+    do_level = 0
+    for vars,line in text:
+      if do_level > 0 and vars != []:
+        print "Optimization: %s line %d"%(line.filename,line.i)
+        for v in vars:
+          print "  PROVIDE ",v
+      if isinstance(line,Do):
+        do_level += 1
+      elif isinstance(line,Enddo):
+        do_level -= 1
+check_opt()
+
+######################################################################
 if __name__ == '__main__':
  for i in range(len(parsed_text)):
-  if parsed_text[i][0] == 'libqcio_groups.irp.f':
+  if parsed_text[i][0] == 'properties.irp.f':
    print '!-------- %s -----------'%(parsed_text[i][0])
    for line in parsed_text[i][1]:
      print line[1]

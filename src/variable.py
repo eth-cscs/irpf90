@@ -191,7 +191,6 @@ class Variable(object):
     if '_regexp' not in self.__dict__:
       import re
       self._regexp = re.compile( \
-       #r"^.*[^a-z0-9'\"_]+%s([^a-z0-9_]|$)"%(self.name),re.I)
         r"([^a-z0-9'\"_]|^)%s([^a-z0-9_]|$)"%(self.name),re.I)
     return self._regexp
   regexp = property(regexp)
@@ -406,15 +405,23 @@ class Variable(object):
           result = "    allocate(%s(%s),stat=irp_err)"
           result = result%(name,','.join(self.dim))
           if command_line.do_memory:
-            tmp = "\n   print *, 'Allocating %s(%s)'"
-            result += tmp%(name,','.join(self.dim))
+            tmp = "\n   print *, 'Allocating %s(%s), (',%s,')'"
+            d = ','.join(self.dim)
+            if ":" in d:
+              result += tmp%(name,d,"''")
+            else:
+              result += tmp%(name,d,d)
           return result
 
         result = [ " if (allocated (%s) ) then"%(name) ]
         result += dimensions_OK()
         result += [\
           "  if (.not.irp_dimensions_OK) then",
-          "   deallocate(%s)"%(name) ]
+          "   deallocate(%s,stat=irp_err)"%(name),
+          "   if (irp_err /= 0) then",
+          "     print *, irp_here//': Deallocation failed: %s'"%(name),
+          do_size(),
+          "   endif"]
         if command_line.do_memory:
           result += [\
           "   print *, 'Deallocating %s'"%(name) ]

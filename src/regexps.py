@@ -51,5 +51,5 @@ re_decl    = re.compile( "".join( [ r"^\ *",
 
 re_test  = re.compile(r"\( *(.*)(\.[a-zA-Z]*\.|[<>]=?|[=/]=)([^=]*)\)")
 
-re_string = re.compile(r"'.*'")
+re_string = re.compile(r"'.*?'")
 

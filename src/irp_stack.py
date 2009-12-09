@@ -57,6 +57,15 @@ $OMP_DECL
  ithread = $OMP_GET_THREAD_NUM
  nthread = $OMP_GET_NUM_THREADS
 $1
+"""
+  if command_line.do_memory:
+      txt+="""
+ if (.not.alloc) then
+  print *, 'Allocating irp_stack(',STACKMAX,',',nthread,')'
+  print *, 'Allocating irp_cpu(',STACKMAX,',',nthread,')'
+  print *, 'Allocating stack_index(',nthread,')'
+ endif"""
+  txt +="""
 $2
 end subroutine
 

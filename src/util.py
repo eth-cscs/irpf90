@@ -39,12 +39,14 @@ def same_file(filename,txt):
     file = open(filename,"r")
   except IOError:
     return False
-  lines = file.readlines()
+  stream = file.read()
   file.close()
-  if len(lines) != len(txt):
+
+  buffer = ''.join(txt)
+ 
+  if len(stream) != len(buffer):
     return False
-  for a,b in zip(lines,txt):
-    if a != b:
+  if stream != buffer:
       return False
   return True
 
@@ -69,11 +71,7 @@ def find_subname(line):
   if not buffer.endswith(')'):
     buffer += "()"
   buffer = buffer.split('(')
-  if len(buffer) > 1:
-    buffer = " ".join(buffer[:-1])
-  else:
-    buffer = buffer[0]
-  buffer = buffer.lower().split()
+  buffer = buffer[0].lower().split()
   if len(buffer) < 2:
     error.fail(line,"Syntax Error")
   return buffer[-1]
