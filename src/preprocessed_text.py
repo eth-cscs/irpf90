@@ -253,6 +253,24 @@ def form(text):
   return Fixed_form 
 
 ######################################################################
+def add_operators(text):
+  re_incr = re.compile(r"(\s*)(.*)(\+=)(.*$)",re.S)
+  re_decr = re.compile(r"(\s*)(.*)(-=)(.*$)",re.S)
+  re_mult = re.compile(r"(\s*)(.*)(\*=)(.*$)",re.S)
+  '''Change additional operators'''
+  result = []
+  for line in text:
+    buffer = line.text
+    if "+=" in buffer:
+      line.text = re.sub(re_incr,r'\1\2=\2+(\4)', buffer)
+    elif "-=" in buffer:
+      line.text = re.sub(re_decr,r'\1\2=\2-(\4)', buffer)
+    elif "*=" in buffer:
+      line.text = re.sub(re_mult,r'\1\2=\2*(\4)', buffer)
+    result.append(line)
+  return result
+
+######################################################################
 def remove_comments(text,form):
   '''Remove all comments'''
   result = []
@@ -717,6 +735,7 @@ def create_preprocessed_text(filename):
   result = remove_ifdefs(result)
   result = remove_comments(result,fortran_form)
   result = remove_continuation(result,fortran_form)
+  result = add_operators(result)
   result = change_includes(result)
   result = change_single_line_ifs(result)
   result = process_old_style_do(result)
