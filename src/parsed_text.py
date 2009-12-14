@@ -189,7 +189,11 @@ def get_parsed_text():
         v = buffer[1].lower()
         varlist.append(v)
         variable_list = find_variables_in_line(line)
-        variable_list.remove(variables[v].same_as)
+        try:
+          variable_list.remove(variables[v].same_as)
+        except ValueError:
+          print v, variables[v].same_as
+          raise
         result.append( (variable_list,line) )
       else:
         l = find_variables_in_line(line)
