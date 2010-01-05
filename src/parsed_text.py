@@ -435,6 +435,7 @@ def check_opt():
   for filename, text in parsed_text:
     do_level = 0
     for vars,line in text:
+     if not isinstance(line,Provide_all):
       if do_level > 0 and vars != []:
         print "Optimization: %s line %d"%(line.filename,line.i)
         for v in vars:
