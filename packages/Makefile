@@ -17,6 +17,11 @@ default:
 	git archive --format=tar --prefix=irpf90/ HEAD | gzip > $$OLDPWD/$$NAME-src.tar.gz;\
 	cd -;\
 	ls $$NAME*;\
+	$(HOME)/Python2exe/python2exe.py irpf90 /home/scemama/irpf90/src ;\
+	mv irpf90.exe irpf90;\
+	gzip irpf90 ;\
+	mv irpf90.gz irpf90-$(VERSION)-noarch.exe.gz ;\
+
 
 
 

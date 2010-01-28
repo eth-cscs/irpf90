@@ -33,3 +33,4 @@ sys.path.insert(0,(wd+"/../src/"))
 sys.path.insert(0,(wd+"/../share/irpf90/src/"))
 
 import irpf90
+irpf90.main()

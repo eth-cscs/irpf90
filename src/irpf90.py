@@ -69,4 +69,5 @@ def main():
   import create_man
   create_man.run()
 
-main()
+if __name__ == '__main__':
+  main()
