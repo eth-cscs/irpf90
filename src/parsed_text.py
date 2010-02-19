@@ -449,7 +449,7 @@ check_opt()
 ######################################################################
 if __name__ == '__main__':
  for i in range(len(parsed_text)):
-  if parsed_text[i][0] == 'properties.irp.f':
+  if parsed_text[i][0] == 'intmul.irp.f':
    print '!-------- %s -----------'%(parsed_text[i][0])
    for line in parsed_text[i][1]:
      print line[1]

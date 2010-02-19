@@ -691,7 +691,7 @@ endif'''
   result = []
   for line in text:
     if isinstance(line,If):
-      if line.text.endswith("then"):
+      if line.text.lower().endswith("then"):
         result.append(line)
       else:
         buffer = line.text
