@@ -201,6 +201,7 @@ class Fmodule(object):
       buffer = filter(lambda x: x.lstrip().startswith("use "), \
         self.generated_text+self.head+self.residual_text)
       buffer = map(lambda x: x.split()[1], buffer)
+      buffer = filter(lambda x: x.endswith("_mod"),buffer )
       self._needed_modules = make_single(buffer)
       if self.name in self._needed_modules:
         self._needed_modules.remove(self.name)
