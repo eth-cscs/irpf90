@@ -180,7 +180,10 @@ def get_parsed_text():
             error.fail(line,"Variable %s unknown"%(x,))
           return ([],Simple_line(line.i," %s_is_built = .True."%(x,),line.filename))
         result += map( fun, main_vars[:-1] )
-        result += [ ([],Provide_all(line.i,"! <<< END TOUCH",line.filename)) ]
+        if isinstance(line,SoftTouch):
+          result += [ ([],Simple_line(line.i,"! <<< END TOUCH (Soft)",line.filename)) ]
+        else:
+          result += [ ([],Provide_all(line.i,"! <<< END TOUCH",line.filename)) ]
       elif type(line) in [ Begin_provider, Cont_provider ]:
         if isinstance(line,Begin_provider):
           varlist = []

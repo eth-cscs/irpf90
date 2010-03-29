@@ -137,6 +137,12 @@ class Touch(Line):
   def __repr__(self):
     return "%20s:%5d : %s"%("Touch",self.i,self.text)
 
+class SoftTouch(Touch):
+  def __init__(self,i,text,filename):
+    Line.__init__(self,i,text,filename)
+  def __repr__(self):
+    return "%20s:%5d : %s"%("SoftTouch",self.i,self.text)
+
 class Irp_read(Line):
   def __init__(self,i,text,filename):
     Line.__init__(self,i,text,filename)

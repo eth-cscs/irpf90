@@ -58,6 +58,7 @@ simple_dict = {
         "end_provider":          End_provider    ,
         "assert":                Assert          ,
         "touch":                 Touch           ,
+        "soft_touch":            SoftTouch       ,
         "provide":               Provide         ,
         "free":                  Free            ,
         "irp_if":                Irp_If          ,
