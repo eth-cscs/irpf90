@@ -54,9 +54,11 @@ subroutine irp_enter(irp_where)
  integer       :: nthread
  character*(*) :: irp_where
 $OMP_DECL
+!$OMP CRITICAL
  ithread = $OMP_GET_THREAD_NUM
  nthread = $OMP_GET_NUM_THREADS
 $1
+!$OMP END CRITICAL
 """
   if command_line.do_memory:
       txt+="""
@@ -75,9 +77,11 @@ subroutine irp_leave (irp_where)
   integer       :: ithread
   double precision :: cpu
 $OMP_DECL
+!$OMP CRITICAL
   ithread = $OMP_GET_THREAD_NUM
 $3
 $4
+!$OMP END CRITICAL
 end subroutine
 """
 
@@ -97,14 +101,12 @@ end subroutine
   # $1
   if do_assert or do_debug:
     txt = txt.replace("$1","""
-!$OMP CRITICAL
  if (.not.alloc) then
-   allocate(irp_stack(STACKMAX,nthread))
-   allocate(irp_cpu(STACKMAX,nthread))
-   allocate(stack_index(nthread))
+   allocate(irp_stack(STACKMAX,nthread+1))
+   allocate(irp_cpu(STACKMAX,nthread+1))
+   allocate(stack_index(nthread+1))
    alloc = .True.
  endif
-!$OMP END CRITICAL
  stack_index(ithread+1) = stack_index(ithread+1)+1
  irp_stack(stack_index(ithread+1),ithread+1) = irp_where""")
     if command_line.do_memory:
