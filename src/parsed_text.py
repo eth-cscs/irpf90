@@ -42,14 +42,15 @@ def find_variables_in_line(line):
   assert isinstance(line,Line)
   result = []
   sub_done = False
-  buffer = line.text.lower()
+  buffer = line.lower
+  ap = result.append
   for v,same_as,regexp in vtuple:
     if v in buffer:
       if not sub_done:
         buffer = regexps_re_string_sub('',buffer)
         sub_done = True
       if regexp.search(buffer) is not None:
-        result.append(same_as)
+        ap(same_as)
   return result
 
 def find_funcs_in_line(line):
@@ -57,7 +58,7 @@ def find_funcs_in_line(line):
   result = []
   append = result.append
   sub_done = False
-  buffer = line.text.lower()
+  buffer = line.lower
   for s,regexp in stuple:
      if s in buffer:
       if regexp.search(buffer) is not None:
@@ -118,7 +119,7 @@ def get_parsed_text():
         varlist = []
         append( ([],line) )
       elif isinstance(line,Provide):
-        l = line.text.lower().split()[1:]
+        l = line.lower.split()[1:]
         l = filter(lambda x: x not in varlist, l)
         for v in l:
           if v not in variables.keys():
@@ -190,9 +191,9 @@ def get_parsed_text():
       elif type(line) in [ Begin_provider, Cont_provider ]:
         if isinstance(line,Begin_provider):
           varlist = []
-        buffer = map(strip,line.text.replace(']','').split(','))
+        buffer = map(strip,line.lower.replace(']','').split(','))
         assert len(buffer) > 1
-        v = buffer[1].lower()
+        v = buffer[1]
         varlist.append(v)
         variable_list = find_variables_in_line(line)
         try:
@@ -379,8 +380,8 @@ def build_needs():
     var = None
     for vars,line in text:
       if isinstance(line,Begin_provider):
-        buffer = map(strip,line.text.replace(']',',').split(','))
-        var = variables[buffer[1].lower()]
+        buffer = map(strip,line.lower.replace(']',',').split(','))
+        var = variables[buffer[1]]
         var.needs = []
         var.to_provide = vars
       elif isinstance(line,End_provider):

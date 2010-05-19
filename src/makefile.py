@@ -78,6 +78,11 @@ def run():
       result += " %s%s.irp.o"%(irpdir,m.name[:-4])
   print >>file, result
 
+  result = "MODULES += %sirp_stack.irp.module"%(irpdir)
+  for m in mod:
+    result += " %s%s.irp.module"%(irpdir,m.name[:-4])
+  print >>file, result
+
   print >>file, "OBJ1 = $(patsubst %%, %s%%,$(notdir $(OBJ))) %sirp_touches.irp.o"%(irpdir,irpdir)
 
   all = filter(lambda x: modules[x].is_main, modules)
@@ -87,14 +92,11 @@ def run():
   print >>file, "ALL_OBJ = %s"%(" ".join(all_o))
   print >>file, "ALL_OBJ1 = $(patsubst %%, %s%%,$(notdir $(ALL_OBJ)))"%(irpdir)
   print >>file, "all:$(ALL)"
-  print >>file, "\t@make -s move"
   for m in mod:
     if m.is_main:
       exe = m.name[:-4]
       print >>file, "%s: %s%s.irp.o $(OBJ1)"%(exe,irpdir,exe)
-      print >>file, "\t@echo Linking %s"%(exe)
-      print >>file, "\t@$(FC) -o $@ %s$@.irp.o $(OBJ1) $(LIB)"%(irpdir)
-      print >>file, "\t@make -s move"
+      print >>file, "\t$(FC) -o $@ %s$@.irp.o $(OBJ1) $(LIB)"%(irpdir)
 
   buffer = ""
   for m in mod:
@@ -102,7 +104,7 @@ def run():
     mds = map (lambda x: " %s%s.irp.module"%(irpdir,x[:-4]),m.needed_modules)
     print >>file, filename+" ".join(mds)
   for m in mod:
-    filename = "%s%s.irp.o:"%(irpdir,m.name[:-4])
+    filename = "%s%s.irp.o: %s%s.irp.F90 %s%s.irp.module"%(irpdir,m.name[:-4],irpdir,m.name[:-4],irpdir,m.name[:-4])
     mds = map (lambda x: " %s%s.irp.module"%(irpdir,x[:-4]),m.needed_modules)
     print >>file, filename+" ".join(mds)
     if not m.is_main:
@@ -111,10 +113,10 @@ def run():
   mds = filter(lambda x: not x.is_main,mod)
   mds = map(lambda x: " %s%s.irp.module"%(irpdir,x.name[:-4]),mds)
   print >>file," ".join(mds)
-  print >>file, "%sirp_touches.irp.o:"%(irpdir),
-  mds = filter(lambda x: not x.is_main,mod)
-  mds = map(lambda x: " %s%s.irp.o"%(irpdir,x.name[:-4]),mds)
-  print >>file," ".join(mds)
+# print >>file, "%sirp_touches.irp.o:"%(irpdir),
+# mds = filter(lambda x: not x.is_main,mod)
+# mds = map(lambda x: " %s%s.irp.o"%(irpdir,x.name[:-4]),mds)
+# print >>file," ".join(mds)
   
 
   print >>file, "%sdist_Makefile:"%(irpdir)
@@ -145,22 +147,20 @@ def run():
   print >>file, "\t- cd dist ; tar -zcvf ../$*.tar.gz $*\n"
 
   print >>file, irpdir+"%.irp.module: "+irpdir+"%.irp.F90"
-  print >>file, "\t@echo Creating $* module"
-  print >>file, "\t@$(FC) -O0 -c "+irpdir+"$*.irp.F90 -o "+irpdir+"$*.irp.o"
-  print >>file, "\t@rm "+irpdir+"$*.irp.o"
-  print >>file, "\t@touch "+irpdir+"$*.irp.module"
-  print >>file, irpdir+"%.irp.o: "+irpdir+"%.irp.module"
-  print >>file, "\t@echo Compiling $*"
-  print >>file, "\t@$(FC) $(FCFLAGS) -c "+irpdir+"$*.irp.F90 -o "+irpdir+"$*.irp.o"
+  print >>file, "\t$(FC) -O0 -c "+irpdir+"$*.irp.F90 -o /dev/null && \\"
+  print >>file, "\ttouch "+irpdir+"$*.irp.module"
+  print >>file, irpdir+"%.irp.o: IRPF90_temp/%.irp.F90 IRPF90_temp/modules"
+  print >>file, "\t$(FC) $(FCFLAGS) -c "+irpdir+"$*.irp.F90 -o "+irpdir+"$*.irp.o"
   print >>file, irpdir+"%.o: %.F90"
-  print >>file, "\t@echo Compiling $*"
-  print >>file, "\t@$(FC) $(FCFLAGS) -c $*.F90 -o "+irpdir+"$*.o"
+  print >>file, "\t$(FC) $(FCFLAGS) -c $*.F90 -o "+irpdir+"$*.o"
   print >>file, irpdir+"%.o: %.f90\n\t$(FC) $(FCFLAGS) -c $*.f90 -o "+irpdir+"$*.o"
   print >>file, irpdir+"%.o: %.f\n\t$(FC) $(FCFLAGS) -c $*.f -o "+irpdir+"$*.o"
   print >>file, irpdir+"%.o: %.F\n\t$(FC) $(FCFLAGS) -c $*.F -o "+irpdir+"$*.o"
   print >>file, irpdir+"%.irp.F90: irpf90.make\n"
-  print >>file, "move:\n\t@mv -f *.mod IRPF90_temp/ 2> /dev/null | DO_NOTHING=\n\t@touch IRPF90_temp/*\n"
-  print >>file, "clean:\n\trm -rf $(EXE) $(OBJ1) $(ALL_OBJ1) $(ALL)\n"
+  print >>file, "modules: IRPF90_temp/modules"
+  print >>file, "IRPF90_temp/modules: $(MODULES)"
+  print >>file, "\ttouch IRPF90_temp/modules"
+  print >>file, "clean:\n\trm -rf $(EXE) $(OBJ1) $(ALL_OBJ1) $(ALL) $(MODULES) IRPF90_temp/modules\n"
   print >>file, "veryclean:\n\t- make clean\n"
   print >>file, "\t- rm -rf "+irpdir+" "+mandir+" irpf90.make irpf90_variables dist\n"
 
