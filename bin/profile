@@ -34,6 +34,8 @@ sys.path.insert(0,(wd+"/../share/irpf90/src/"))
 
 def main():
   import irpf90
+  irpf90.main()
+
 import cProfile
 cProfile.run('main()')
 
