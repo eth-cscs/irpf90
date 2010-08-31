@@ -38,8 +38,9 @@ options['i'] = [ 'init'         , 'Initialize current directory', 0 ]
 options['D'] = [ 'define'       , 'Define variable', 1 ]
 options['o'] = [ 'checkopt'     , 'Show where optimization may be required', 0 ]
 options['p'] = [ 'preprocess'   , 'Preprocess file', 1 ]
-options['t'] = [ 'openmp'       , 'Task Auto-parallelization', 0 ]
+options['t'] = [ 'touch'        , 'Display which entities are touched', 1 ]
 options['m'] = [ 'memory'       , 'Debug memory info', 0 ]
+options['z'] = [ 'openmp'       , 'Automatic openMP tasks (may not work)', 0 ]
 
 class CommandLine(object):
 
@@ -66,6 +67,15 @@ class CommandLine(object):
           self._preprocessed.append(a)
     return self._preprocessed
   preprocessed = property(fget=preprocessed)
+
+  def touched(self):
+    if '_touched' not in self.__dict__:
+      self._touched = []
+      for o,a in self.opts:
+        if o in [ "-t", options['t'][0] ]:
+          self._touched.append(a)
+    return self._touched
+  touched = property(fget=touched)
 
   def usage(self):
     t = """
