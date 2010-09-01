@@ -34,6 +34,14 @@ class Line(object):
     self.i = i
     self.text = text
     self.filename = filename
+    self._lower = None
+
+  def get_lower(self):
+    if self._lower is None:
+      self._lower = self.text.lower()
+    return self._lower
+
+  text_lower = property(fget=get_lower)
 
 class Empty_line(Line):
   def __init__(self,i,text,filename):

@@ -36,16 +36,17 @@ import error
 vtuple = map(lambda v: (v, variables[v].same_as, variables[v].regexp), variables.keys())
 stuple = map(lambda s: (s, subroutines[s].regexp), subroutines.keys())
 stuple = filter(lambda s: subroutines[s[0]].is_function, stuple)
+re_string_sub = regexps.re_string.sub
 
 def find_variables_in_line(line):
   assert isinstance(line,Line)
   result = []
   sub_done = False
-  buffer = line.text.lower()
+  buffer = line.text_lower
   for v,same_as,regexp in vtuple:
     if v in buffer:
       if not sub_done:
-        buffer = regexps.re_string.sub('',buffer)
+        buffer = re_string_sub('',buffer)
         sub_done = True
       if regexp.search(buffer) is not None:
         result.append(same_as)
@@ -55,7 +56,7 @@ def find_funcs_in_line(line):
   assert isinstance(line,Line)
   result = []
   sub_done = False
-  buffer = line.text.lower()
+  buffer = line.text_lower
   for s,regexp in stuple:
      if s in buffer:
       if regexp.search(buffer) is not None:
@@ -115,7 +116,7 @@ def get_parsed_text():
         varlist = []
         result.append( ([],line) )
       elif isinstance(line,Provide):
-        l = line.text.lower().split()[1:]
+        l = line.text_lower.split()[1:]
         l = filter(lambda x: x not in varlist, l)
         for v in l:
           if v not in variables.keys():
@@ -133,10 +134,10 @@ def get_parsed_text():
           if subroutines[sub].touches != []:
             result.append( ([],Provide_all(line.i,"",line.filename)) )
       elif isinstance(line,Free):
-        vars = line.text.split()
+        vars = line.text_lower.split()
         if len(vars) < 2:
           error.fail(line,"Syntax error")
-        vars = map(lower,vars[1:])
+        vars = vars[1:]
         for v in vars:
           variables[v].is_freed = True
         result.append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
@@ -153,10 +154,10 @@ def get_parsed_text():
         variables[line.filename]._is_written = True
         result.append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif isinstance(line,Touch):
-        vars = line.text.split()
+        vars = line.text_lower.split()
         if len(vars) < 2:
           error.fail(line,"Syntax error")
-        vars = map(lower,vars[1:])
+        vars = vars[1:]
         for v in vars:
           if v not in variables:
             error.fail(line,"Variable %s unknown"%(v,))
@@ -187,9 +188,9 @@ def get_parsed_text():
       elif type(line) in [ Begin_provider, Cont_provider ]:
         if isinstance(line,Begin_provider):
           varlist = []
-        buffer = map(strip,line.text.replace(']','').split(','))
+        buffer = map(strip,line.text_lower.replace(']','').split(','))
         assert len(buffer) > 1
-        v = buffer[1].lower()
+        v = buffer[1]
         varlist.append(v)
         variable_list = find_variables_in_line(line)
         try:
@@ -373,8 +374,8 @@ def build_needs():
     var = None
     for vars,line in text:
       if isinstance(line,Begin_provider):
-        buffer = map(strip,line.text.replace(']',',').split(','))
-        var = variables[buffer[1].lower()]
+        buffer = map(strip,line.text_lower.replace(']',',').split(','))
+        var = variables[buffer[1]]
         var.needs = []
         var.to_provide = vars
       elif isinstance(line,End_provider):

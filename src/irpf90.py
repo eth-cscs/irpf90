@@ -48,10 +48,23 @@ def main():
           print line.text
 
 
+  if command_line.do_touch:
+    from variables import variables
+    for var in command_line.touched:
+      if var not in variables:
+        print "%s is not an IRP entity"%(var,)
+      else:
+        print "%s touches the following entities:"%(var,)
+        parents = variables[var].parents
+        parents.sort()
+        for x in parents:
+          print "- %s"%(x,)
+
   if not command_line.do_run:
     return
 
   init()
+
   import irp_stack
   irp_stack.create()
 
@@ -69,18 +82,6 @@ def main():
 
   import create_man
   create_man.run()
-
-  if command_line.do_touch:
-    from variables import variables
-    for var in command_line.touched:
-      if var not in variables:
-        print "%s is not an IRP entity"%(var,)
-      else:
-        print "%s touches the following entities:"%(var,)
-        parents = variables[var].parents
-        parents.sort()
-        for x in parents:
-          print "- %s"%(x,)
 
 if __name__ == '__main__':
   main()

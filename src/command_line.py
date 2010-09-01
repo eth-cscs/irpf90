@@ -73,7 +73,7 @@ class CommandLine(object):
       self._touched = []
       for o,a in self.opts:
         if o in [ "-t", options['t'][0] ]:
-          self._touched.append(a)
+          self._touched.append(a.lower())
     return self._touched
   touched = property(fget=touched)
 
@@ -142,6 +142,7 @@ do_$LONG = property(fget=do_$LONG)
        self.do_version or \
        self.do_help    or \
        self.do_preprocess or \
+       self.do_touch or \
        self.do_init )
    return self._do_run
   do_run = property(fget=do_run)

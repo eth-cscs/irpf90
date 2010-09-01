@@ -39,7 +39,7 @@ class Variable(object):
     assert isinstance(text[0],Begin_provider)
     self.text = text
     if name is not None:
-      self._name = name.lower()
+      self._name = name
 
   ############################################################
   def is_touched(self):
@@ -543,7 +543,7 @@ class Variable(object):
   ##########################################################
   def parents(self):
     if '_parents' not in self.__dict__:
-      if not self._is_main:
+      if not self.is_main:
         self._parents = []
       else:
         from variables import variables
