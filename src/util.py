@@ -128,10 +128,10 @@ def put_info(text,filename):
 
 import cPickle as pickle
 import os, sys
-def fork_and_pickle(f,filename):
+def fork_and_pickle(f,filename,text):
    fork = os.fork()
    if fork == 0:
-     result = f(filename)
+     result = f(filename,text)
      file = open('%s.pickle'%filename,'w')
      pickle.dump(result,file,-1)
      file.close()
@@ -139,21 +139,23 @@ def fork_and_pickle(f,filename):
    else:
      return fork
 
-def parallel_loop(f,files):
+def parallel_loop(f,source):
   pidlist = {}
-  for filename in files:
-   pidlist[filename] = fork_and_pickle( f, filename )
+  for filename, text in source:
+    pidlist[filename] = fork_and_pickle( f, filename, text )
 
   result = []
-  for filename in files:
-   os.waitpid(pidlist[filename],0)
-   file = open('%s.pickle'%filename,'r')
-   data = pickle.load(file)
-   file.close()
-   os.remove('%s.pickle'%filename)
-   result.append( (filename, data) )
+  for filename,text in source:
+    os.waitpid(pidlist[filename],0)
+    file = open('%s.pickle'%filename,'r')
+    data = pickle.load(file)
+    file.close()
+    os.remove('%s.pickle'%filename)
+    result.append( (filename, data) )
 
   return result
+
+
 
 if __name__ == '__main__':
   print "10",dimsize("10") #-> "10"

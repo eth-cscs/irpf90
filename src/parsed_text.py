@@ -243,8 +243,7 @@ parsed_text = result
 ######################################################################
 def move_variables():
 
-  main_result = []
-  for filename, text in parsed_text:
+  def func(filename, text):
     result = []
     # 1st pass
     varlist = []
@@ -328,9 +327,9 @@ def move_variables():
         assert old_varlist == []
         varlist = []
       result.append( (vars,line) )
+    return result
 
-    main_result.append( (filename, result) )
-  return main_result
+  return parallel_loop(func,parsed_text)
 
 parsed_text = move_variables()
 ######################################################################

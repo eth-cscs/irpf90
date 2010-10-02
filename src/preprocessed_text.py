@@ -548,7 +548,7 @@ def irp_simple_statements(text):
     i = line.i
     f = line.filename
     result = [ Begin_provider(i,line.text, (f,varname)),
-      Declaration(i,"  character*(%d) :: irp_here = '%s'"%(length,varname), line.filename) ]
+      Declaration(i,"  character*(%d) :: irp_here = '%s'"%(length,varname), f) ]
     if command_line.do_assert or command_line.do_debug:
       result += [
         Simple_line(i,"  call irp_enter(irp_here)", f),
@@ -829,7 +829,8 @@ def create_preprocessed_text(filename):
   return result
 
 ######################################################################
-preprocessed_text = parallel_loop( create_preprocessed_text, irpf90_files )
+preprocessed_text = parallel_loop( lambda x,y: create_preprocessed_text(x), \
+                map(lambda x: (x,None), irpf90_files ) )
 
 ######################################################################
 def debug():
