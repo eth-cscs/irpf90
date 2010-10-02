@@ -126,6 +126,35 @@ def put_info(text,filename):
       line.text = format%(line.text.ljust(lenmax),line.filename,str(line.i))
   return text
 
+import cPickle as pickle
+import os, sys
+def fork_and_pickle(f,filename):
+   fork = os.fork()
+   if fork == 0:
+     result = f(filename)
+     file = open('%s.pickle'%filename,'w')
+     pickle.dump(result,file,-1)
+     file.close()
+     sys.exit(0)
+   else:
+     return fork
+
+def parallel_loop(f,files):
+  pidlist = {}
+  for filename in files:
+   pidlist[filename] = fork_and_pickle( f, filename )
+
+  result = []
+  for filename in files:
+   os.waitpid(pidlist[filename],0)
+   file = open('%s.pickle'%filename,'r')
+   data = pickle.load(file)
+   file.close()
+   os.remove('%s.pickle'%filename)
+   result.append( (filename, data) )
+
+  return result
+
 if __name__ == '__main__':
   print "10",dimsize("10") #-> "10"
   print "0:10",dimsize("0:10") # -> "11"

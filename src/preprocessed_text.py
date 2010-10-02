@@ -24,7 +24,6 @@
 #   31062 Toulouse Cedex 4      
 #   scemama@irsamc.ups-tlse.fr
 
-
 from irpf90_t import *
 from regexps import *
 import error
@@ -549,7 +548,7 @@ def irp_simple_statements(text):
     i = line.i
     f = line.filename
     result = [ Begin_provider(i,line.text, (f,varname)),
-      Declaration(i,"  character*(%d) :: irp_here = '%s'"%(length,varname), filename) ]
+      Declaration(i,"  character*(%d) :: irp_here = '%s'"%(length,varname), line.filename) ]
     if command_line.do_assert or command_line.do_debug:
       result += [
         Simple_line(i,"  call irp_enter(irp_here)", f),
@@ -826,14 +825,11 @@ def create_preprocessed_text(filename):
   result = change_single_line_ifs(result)
   result = process_old_style_do(result)
   result = irp_simple_statements(result)
+  check_begin_end(result)
   return result
 
 ######################################################################
-preprocessed_text = []
-for filename in irpf90_files:
-   result = create_preprocessed_text(filename)
-   check_begin_end(result)
-   preprocessed_text.append( (filename, result) )
+preprocessed_text = parallel_loop( create_preprocessed_text, irpf90_files )
 
 ######################################################################
 def debug():
