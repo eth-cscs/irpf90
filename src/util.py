@@ -24,7 +24,7 @@
 #   31062 Toulouse Cedex 4      
 #   scemama@irsamc.ups-tlse.fr
 
-NTHREADS=3
+NTHREADS=16
 
 def strip(x):
   return x.strip()
@@ -130,7 +130,7 @@ def put_info(text,filename):
 import cPickle as pickle
 import os, sys
 def parallel_loop(f,source):
-  pidlist = {}
+  pidlist = range(NTHREADS)
 
   src = [ [] for i in xrange(NTHREADS) ]
   index = 0
@@ -145,20 +145,19 @@ def parallel_loop(f,source):
     if fork == 0:
       break
     else:
-      import time
-      time.sleep(1)
-      pidlist[i] = fork
+      pidlist[thread_id] = fork
       thread_id = 0
 
-  print "fork : ", fork,  thread_id
   for filename, text in src[thread_id]:
     result = f(filename,text)
     file = open('%s.pickle'%filename,'w')
     pickle.dump(result,file,-1)
     file.close()
+
+  if fork == 0:
     sys.exit(0)
 
-  for i in xrange(NTHREADS):
+  for i in xrange(1,NTHREADS):
     os.waitpid(pidlist[i],0)
 
   result = []
