@@ -96,14 +96,20 @@ def do_print(var):
 ######################################################################
 def run():
   import parsed_text
-  file = open("irpf90_entities","w")
+  import os,sys
   l = variables.keys()
-  l.sort()
-  for v in l:
-    do_print_short(file,variables[v])
-  file.close()
-  for v in l:
-    do_print(variables[v])
+  if os.fork() == 0:
+    for v in l:
+      do_print(variables[v])
+    sys.exit(0)
+
+  if os.fork() == 0:
+    file = open("irpf90_entities","w")
+    l.sort()
+    for v in l:
+      do_print_short(file,variables[v])
+    file.close()
+    sys.exit(0)
 
 ######################################################################
 if __name__ == '__main__':

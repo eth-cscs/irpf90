@@ -63,6 +63,7 @@ def main():
   if not command_line.do_run:
     return
 
+
   init()
 
   import irp_stack

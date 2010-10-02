@@ -87,9 +87,8 @@ def check_touch(line,vars,main_vars):
         error.fail(line,message)
 
 def get_parsed_text():
-  main_result = []
-  varlist = []
-  for filename, text in preprocessed_text:
+  def func(filename, text):
+    varlist = []
     result = []
     for line in filter(
       lambda x: type(x) not in [ Doc, Begin_doc, End_doc ],
@@ -203,10 +202,17 @@ def get_parsed_text():
         l = find_variables_in_line(line)
         l = filter(lambda x: x not in varlist, l)
         result.append( (l,line) )
-    main_result.append( (filename, result) )
-  return main_result
+    return result
+
+ #main_result = []
+ #for filename,text in preprocessed_text:
+ #  main_result.append( (filename, func(filename,text)) )
+ #return main_result
+  return parallel_loop(func,preprocessed_text)
+  
 
 parsed_text = get_parsed_text()
+
 
 
 ######################################################################
@@ -239,6 +245,7 @@ for filename,text in parsed_text:
   text = move_to_top(text,Cont_provider)
   result.append ( (filename,text) )
 parsed_text = result
+
 
 ######################################################################
 def move_variables():
@@ -329,9 +336,14 @@ def move_variables():
       result.append( (vars,line) )
     return result
 
-  return parallel_loop(func,parsed_text)
+  main_result = []
+  for filename,text in parsed_text:
+    main_result.append( (filename, func(filename,text)) )
+  return main_result
+ #return parallel_loop(func,parsed_text)
 
 parsed_text = move_variables()
+
 ######################################################################
 def build_sub_needs():
   # Needs
@@ -365,6 +377,7 @@ def add_subroutine_needs():
   return main_result
   
 parsed_text = add_subroutine_needs()
+
 
 ######################################################################
 def build_needs():
@@ -427,6 +440,7 @@ for filename,text in parsed_text:
   text = move_to_top(text,Cont_provider)
   result.append ( (filename,text) )
 parsed_text = result
+
 
 ######################################################################
 from command_line import command_line
