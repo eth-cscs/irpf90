@@ -24,6 +24,7 @@
 #   31062 Toulouse Cedex 4      
 #   scemama@irsamc.ups-tlse.fr
 
+NTHREADS=3
 
 def strip(x):
   return x.strip()
@@ -128,25 +129,40 @@ def put_info(text,filename):
 
 import cPickle as pickle
 import os, sys
-def fork_and_pickle(f,filename,text):
-   fork = os.fork()
-   if fork == 0:
-     result = f(filename,text)
-     file = open('%s.pickle'%filename,'w')
-     pickle.dump(result,file,-1)
-     file.close()
-     sys.exit(0)
-   else:
-     return fork
-
 def parallel_loop(f,source):
   pidlist = {}
-  for filename, text in source:
-    pidlist[filename] = fork_and_pickle( f, filename, text )
+
+  src = [ [] for i in xrange(NTHREADS) ]
+  index = 0
+  for i in source:
+    index = index+1
+    if index == NTHREADS:
+      index = 0
+    src[index].append(i)
+
+  for thread_id in xrange(1,NTHREADS):
+    fork = os.fork()
+    if fork == 0:
+      break
+    else:
+      import time
+      time.sleep(1)
+      pidlist[i] = fork
+      thread_id = 0
+
+  print "fork : ", fork,  thread_id
+  for filename, text in src[thread_id]:
+    result = f(filename,text)
+    file = open('%s.pickle'%filename,'w')
+    pickle.dump(result,file,-1)
+    file.close()
+    sys.exit(0)
+
+  for i in xrange(NTHREADS):
+    os.waitpid(pidlist[i],0)
 
   result = []
   for filename,text in source:
-    os.waitpid(pidlist[filename],0)
     file = open('%s.pickle'%filename,'r')
     data = pickle.load(file)
     file.close()
