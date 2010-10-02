@@ -33,7 +33,7 @@ class Sub(object):
 
   ############################################################
   def __init__(self,text):
-    assert isinstance(text,list)
+    assert type(text) == list
     assert len(text) > 0
     assert type(text[0]) in [Subroutine, Function]
     self.text = text
@@ -57,7 +57,7 @@ class Sub(object):
   def doc(self):
     if '_doc' not in self.__dict__:
       def f(l): return 
-      buffer = filter(lambda l:isinstance(l,Doc), self.text)
+      buffer = filter(lambda l:type(l) == Doc, self.text)
       self._doc = map(lambda l: l.text[1:], buffer)
       if buffer == []:
         error.warn(None,"Subroutine %s is not documented"%(self.name))
@@ -76,7 +76,7 @@ class Sub(object):
     if '_touches' not in self.__dict__:
       from subroutines import subroutines
       self._touches = []
-      for line in filter(lambda x: isinstance(x,Touch),self.text):
+      for line in filter(lambda x: type(x) in [Touch, SoftTouch],self.text):
         self._touches += line.text.split()[1:]
       for sub in self.calls:
         if sub in subroutines:
@@ -97,7 +97,7 @@ class Sub(object):
   ############################################################
   def calls(self):
     if '_calls' not in self.__dict__:
-      buffer = filter(lambda x: isinstance(x,Call),self.text)
+      buffer = filter(lambda x: type(x) == Call,self.text)
       self._calls = []
       for line in buffer:
         sub = line.text.split('(',1)[0].split()[1]

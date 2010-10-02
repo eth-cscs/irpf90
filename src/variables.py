@@ -38,11 +38,11 @@ def create_variables():
     buffer = []
     inside = False
     for line in text:
-      if isinstance(line,Begin_provider):
+      if type(line) == Begin_provider:
         inside = True
       if inside:
         buffer.append(line)
-      if isinstance(line,End_provider):
+      if type(line) == End_provider:
         inside = False
         v = Variable(buffer)
         result[v.name] = v

@@ -46,7 +46,7 @@ class Fmodule(object):
 
   def prog_name(self):
     if '_prog_name' not in self.__dict__:
-      buffer = filter(lambda x: isinstance(x[1],Program),self.text)
+      buffer = filter(lambda x: type(x[1]) == Program,self.text)
       if buffer == []:
         self._prog_name = None
       else:
@@ -111,11 +111,11 @@ class Fmodule(object):
         result = []
         inside = False
         for vars,line in text:
-          if isinstance(line,Begin_provider):
+          if type(line) == Begin_provider:
             inside = True
           if not inside:
             result.append( (vars,line) )
-          if isinstance(line,End_provider):
+          if type(line) == End_provider:
             inside = False
         return result
 
@@ -125,7 +125,7 @@ class Fmodule(object):
         for vars,line in text:
           if type(line) in [ Subroutine, Function ]:
             variable_list = list(vars)
-          elif isinstance(line,End):
+          elif type(line) == End:
             result += map(lambda x: ([],Use(line.i,x,line.filename)), build_use(variable_list))
           else:
             variable_list += vars
@@ -143,11 +143,11 @@ class Fmodule(object):
           if inside:
             result.append( (vars,line) )
           else:
-            if isinstance(line,Use):
+            if type(line) == Use:
               use.append( (vars,line) )
-            elif isinstance(line,Declaration):
+            elif type(line) == Declaration:
               dec.append( (vars,line) )
-          if isinstance(line,End):
+          if type(line) == End:
             inside = False
         return use, dec, result
 

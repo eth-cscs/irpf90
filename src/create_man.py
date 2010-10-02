@@ -32,7 +32,7 @@ from util import *
 
 
 def do_print_short(file,var):
-  assert isinstance(var,Variable)
+  assert type(var) == Variable
   print >>file, "%s : %s :: %s %s"%( \
    var.line.filename[0].ljust(25),
    var.type.ljust(25),
@@ -41,7 +41,7 @@ def do_print_short(file,var):
 
 ######################################################################
 def process_doc(file,line):
-  assert isinstance(line,str)
+  assert type(line) == str
   line = line.strip()
   if line == "":
     line = ".br"
@@ -49,24 +49,24 @@ def process_doc(file,line):
 
 ######################################################################
 def process_deps(file,l):
-  assert isinstance(l,list)
+  assert type(l) == list
   for v in l:
     print >>file, "%s\n.br"%(v,)
 
 ######################################################################
 def process_types(file,var):
-  assert isinstance(var,Variable)
+  assert type(var) == Variable
   vars = [var.name] + var.others
   for var in vars:
     name = var
     var = variables[var]
-    type = var.type
+    Type = var.type
     dim = build_dim(var.dim)
-    print >>file, "%s\t:: %s\t%s"%(type,name,dim)
+    print >>file, "%s\t:: %s\t%s"%(Type,name,dim)
 
 ######################################################################
 def do_print(var):
-  assert isinstance(var,Variable)
+  assert type(var) == Variable
   filename = var.line.filename[0]
   name = var.name
   file = open("%s%s.l"%(mandir,var.name), "w")

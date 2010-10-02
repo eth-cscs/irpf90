@@ -88,10 +88,10 @@ simple_dict_keys = simple_dict.keys()
 
 def get_type (i, filename, line, is_doc):
   '''Find the type of a text line'''
-  assert isinstance(i,int)
-  assert isinstance(filename,str)
-  assert isinstance(line,str)
-  assert isinstance(is_doc,bool)
+  assert type(i) == int
+  assert type(filename) == str
+  assert type(line) == str
+  assert type(is_doc) == bool
 
   line = line.rstrip()
   lower_line0 = line.lstrip().lower()
@@ -165,8 +165,8 @@ instead of
 ######################################################################
 def get_text(lines,filename):
   '''Read the input file and transform it to labeled lines'''
-  assert isinstance(filename,str)
-  assert isinstance(lines,list)
+  assert type(filename) == str
+  assert type(lines) == list
 
   result = []
   is_doc = False
@@ -183,9 +183,9 @@ def execute_shell(text):
   result = []
   for line in text:
     if inside:
-      if isinstance(line,Begin_shell):
+      if type(line) == Begin_shell:
         error.fail(line,"Nested Begin_shell")
-      elif isinstance(line,End_shell):
+      elif type(line) == End_shell:
         inside = False
         # Write script file
         scriptname = "%s%s_shell_%d"%(irpdir,line.filename,line.i)
@@ -206,7 +206,7 @@ def execute_shell(text):
       else:
         script.append(line.text+'\n')
     else:
-      if isinstance(line,Begin_shell):
+      if type(line) == Begin_shell:
         inside = True
         begin = line.i
         script = []
@@ -223,7 +223,7 @@ def execute_shell(text):
         elif len(buffer) < 2:
           fail(line,"Missing",']')
         shell = buffer[0].strip()
-      elif isinstance(line,End_shell):
+      elif type(line) == End_shell:
         error.fail(line,"Begin_shell missing")
       else:
         result.append(line)
@@ -248,18 +248,18 @@ def execute_templates(text):
   result = []
   for line in text:
     if inside == 0:
-      if isinstance(line,Begin_template):
+      if type(line) == Begin_template:
         script = []
         inside = TEMPLATE
         script = "template = \"\"\"\n"
       else:
         result.append(line)
     elif inside == TEMPLATE:
-      if isinstance(line,Begin_template):
+      if type(line) == Begin_template:
         fail(line,"template", "Nested Begin_Template")
-      elif isinstance(line,End_template):
+      elif type(line) == End_template:
         fail(line,"template","Missing Subst")
-      elif isinstance(line,Subst):
+      elif type(line) == Subst:
         inside = SUBST
         script += "\"\"\"\n"
         variables = get_variables(line)
@@ -268,11 +268,11 @@ def execute_templates(text):
       else:
         script += line.text+"\n"
     else: # inside == SUBST
-      if isinstance(line,Begin_template):
+      if type(line) == Begin_template:
         fail(line,"subst","Nested Begin_template")
-      elif isinstance(line,Subst):
+      elif type(line) == Subst:
         fail(line,"subst","Subst already defined")
-      elif isinstance(line,End_template):
+      elif type(line) == End_template:
         inside = 0
         subst = subst.rstrip()
         if subst[-2:] == ';;':
@@ -313,7 +313,7 @@ def execute_templates(text):
 ######################################################################
 def form(text):
   '''Find if the text is in fixed form or in free form'''
-  assert isinstance(text,list)
+  assert type(text) == list
   if len(text) == 0:
     return Free_form
   assert isinstance(text[0],Line)
@@ -370,7 +370,7 @@ def remove_comments(text,form):
     for line in text:
       if type(line) in [ Openmp, Doc] :
          result.append(line)
-      elif isinstance(line,Empty_line):
+      elif type(line) == Empty_line:
          pass
       else:
         newline = line.text.lstrip()
@@ -384,7 +384,7 @@ def remove_comments(text,form):
     for line in text:
       if type(line) in [ Openmp, Doc ]:
          result.append(line)
-      elif isinstance(line,Empty_line):
+      elif type(line) == Empty_line:
          pass
       else:
         newline = line.text.lstrip()
@@ -424,7 +424,7 @@ def remove_continuation(text,form):
     rev_text.reverse()
     for line in rev_text:
       is_continuation = False
-      if isinstance(line,Simple_line):
+      if type(line) == Simple_line:
         if len(line.text) >= 6:
           if line.text[5] != ' ':
             is_continuation = True
@@ -442,7 +442,7 @@ def irp_simple_statements(text):
   '''Processes simple statements'''
 
   def process_irp_rw(line,rw,t):
-    assert isinstance(line,t)
+    assert type(line) == t
     buffer = line.text.split()
     if len(buffer) == 2:
       dummy, variable = buffer
@@ -465,15 +465,15 @@ def irp_simple_statements(text):
     return result
     
   def process_irp_read (line):
-    assert isinstance(line,Irp_read)
+    assert type(line) == Irp_read
     return process_irp_rw(line,'read' ,Irp_read )
 
   def process_irp_write(line):
-    assert isinstance(line,Irp_write)
+    assert type(line) == Irp_write
     return process_irp_rw(line,'writ' ,Irp_write)
 
   def process_return(line):
-    assert isinstance(line,Return)
+    assert type(line) == Return
     if command_line.do_assert or command_line.do_debug:
       newline = Simple_line(line.i," call irp_leave(irp_here)",line.filename)
       result = [newline, line]
@@ -483,7 +483,7 @@ def irp_simple_statements(text):
 
   def debug_conditions(line):
     '''Find condition in assert statement for debug'''
-    assert isinstance(line,Assert)
+    assert type(line) == Assert
     match = re_test.search(line.text)
     result = []
     if match is not None:
@@ -495,7 +495,7 @@ def irp_simple_statements(text):
     return result
    
   def process_assert(line):
-    assert isinstance(line,Assert)
+    assert type(line) == Assert
     if command_line.do_assert:
       condition = "(%s"%(line.text.split('(',1)[1])
       if condition == "":
@@ -537,7 +537,7 @@ def irp_simple_statements(text):
     return result
 
   def process_begin_provider(line):
-    assert isinstance(line,Begin_provider)
+    assert type(line) == Begin_provider
     buffer = line.lower.replace('['," ")
     buffer = buffer.replace(']',"")
     buffer = buffer.split(',')
@@ -556,7 +556,7 @@ def irp_simple_statements(text):
     return result
 
   def process_cont_provider(line):
-    assert isinstance(line,Cont_provider)
+    assert type(line) == Cont_provider
     buffer = line.lower.replace('['," ")
     buffer = buffer.replace(']',"")
     buffer = buffer.split(',')
@@ -568,7 +568,7 @@ def irp_simple_statements(text):
     return [ Cont_provider(i,line.text,(f,varname)) ]
 
   def process_subroutine(line):
-    assert isinstance(line,Subroutine)
+    assert type(line) == Subroutine
     subname = find_subname(line)
     length = len(subname)
     i = line.i
@@ -582,7 +582,7 @@ def irp_simple_statements(text):
     return result
 
   def process_function(line):
-    assert isinstance(line,Function)
+    assert type(line) == Function
     buffer = line.text.split('(')
     subname = find_subname(line)
     length = len(subname)
@@ -598,7 +598,7 @@ def irp_simple_statements(text):
 
 
   def process_program(line):
-    assert isinstance(line,Program)
+    assert type(line) == Program
     program_name = line.lower.split()[1]
     result = [ Program(0,"",program_name) ] + \
        process_subroutine( Subroutine(line.i,"subroutine %s"%(program_name,),line.filename) )
@@ -621,7 +621,7 @@ def irp_simple_statements(text):
   for line in text:
     buffer = [ line ]
     for t in d.keys():
-      if isinstance(line,t):
+      if type(line) == t:
         buffer = d[t](line)
         break
     result += buffer
@@ -633,7 +633,7 @@ def change_includes(text):
   '''Deals with include files'''
   result = []
   for line in text:
-    if (isinstance(line,Include)):
+    if type(line) == Include:
      txt = line.text.replace('"',"'").split("'")
      if len(txt) != 3:
        print txt
@@ -652,7 +652,7 @@ def change_includes(text):
 ######################################################################
 def process_old_style_do(text):
   '''Changes old-style do loops to new style'''
-  assert isinstance(text,list)
+  assert type(text) == list
 
   def change_matching_enddo(begin,number):
     for i in range(begin+1,len(text)):
@@ -667,7 +667,7 @@ def process_old_style_do(text):
   result = []
   for i in range(len(text)):
     line = text[i]
-    if isinstance(line,Do):
+    if type(line) == Do:
       buffer = line.text.split()
       if buffer[1].isdigit():
         number = buffer.pop(1)
@@ -687,10 +687,10 @@ if (test) then
   result
 endif'''
 
-  assert isinstance(text,list)
+  assert type(text) == list
   result = []
   for line in text:
-    if isinstance(line,If):
+    if type(line) == If:
       if line.lower.endswith("then"):
         result.append(line)
       else:
@@ -737,15 +737,15 @@ def check_begin_end(text):
   d = { 'do' : Do,         'enddo': Enddo,
         'if' : If,         'endif': Endif,
         '_doc': Begin_doc, 'end_doc': End_doc}
-  assert isinstance(text,list)
+  assert type(text) == list
 
   def find_matching_end_ifdo(begin,x):
     level = 1
     for i in range(begin+1,len(text)):
       line = text[i]
-      if isinstance(line,d[x]):
+      if type(line) == d[x]:
         level += 1
-      elif isinstance(line,d["end%s"%(x,)]):
+      elif type(line) == d["end%s"%(x,)]:
         level -= 1
         if level == 0:
           return True
@@ -756,7 +756,7 @@ def check_begin_end(text):
   def find_matching_end_subfunpro(begin,x):
     for i in range(begin+1,len(text)):
       line = text[i]
-      if isinstance(line,x):
+      if type(line) == x:
         return
       if type(line) in [ Subroutine, Function, Begin_provider ]:
         error.fail(text[begin],"Subroutine/Function/Provider is not closed")
@@ -765,25 +765,25 @@ def check_begin_end(text):
   
   level = 0
   for i,line in enumerate(text):
-    if isinstance(line,Begin_doc):
+    if type(line) == Begin_doc:
       find_matching_end_ifdo(i,'_doc')
   for i,line in enumerate(text):
-    if isinstance(line,Do):
+    if type(line) == Do:
       find_matching_end_ifdo(i,'do')
-    elif isinstance(line,If):
+    elif type(line) == If:
       find_matching_end_ifdo(i,'if')
-    elif isinstance(line,Subroutine):
+    elif type(line) == Subroutine:
       level += 1
       find_matching_end_subfunpro(i,End)
-    elif isinstance(line,Function):
+    elif type(line) == Function:
       level += 1
       find_matching_end_subfunpro(i,End)
-    elif isinstance(line,Begin_provider):
+    elif type(line) == Begin_provider:
       level += 1
       find_matching_end_subfunpro(i,End_provider)
-    elif isinstance(line,End):
+    elif type(line) == End:
       level -= 1
-    elif isinstance(line,End_provider):
+    elif type(line) == End_provider:
       level -= 1
     if level < 0:
       error.fail(line,"Beginning of block not matched")
@@ -792,16 +792,16 @@ def check_begin_end(text):
 
 ######################################################################
 def remove_ifdefs(text):
-  assert isinstance(text,list)
+  assert type(text) == list
   result = []
   do_print = True
   for line in text:
-    if isinstance(line,Irp_If):
+    if type(line) == Irp_If:
       var = line.text.split()[1]
       do_print = var in command_line.defined
-    elif isinstance(line,Irp_Else):
+    elif type(line) == Irp_Else:
       do_print = not do_print
-    elif isinstance(line,Irp_Endif):
+    elif type(line) == Irp_Endif:
       do_print = True
     else:
       if do_print:

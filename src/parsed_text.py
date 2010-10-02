@@ -68,7 +68,7 @@ def find_funcs_in_line(line):
 
 
 def find_subroutine_in_line(line):
-  assert isinstance(line,Call)
+  assert type(line) == Call
   buffer = line.text.split('(')[0]
   buffer = buffer.split()[1]
   return buffer
@@ -102,7 +102,7 @@ def update_variables():
             error.fail(line,"Variable %s unknown"%(v,))
           variables[v]._is_touched = True
 
-    for line in filter(lambda x: isinstance(x,Free),text):
+    for line in filter(lambda x: type(x) == Free,text):
         vars = line.text_lower.split()
         if len(vars) < 2:
           error.fail(line,"Syntax error")
@@ -111,10 +111,10 @@ def update_variables():
             error.fail(line,"Variable %s unknown"%(v,))
           variables[v].is_freed = True
 
-    for line in filter(lambda x: isinstance(x,Irp_read),text):
+    for line in filter(lambda x: type(x) == Irp_read,text):
         variables[line.filename]._is_read = True
 
-    for line in filter(lambda x: isinstance(x,Irp_write),text):
+    for line in filter(lambda x: type (x) == Irp_write,text):
         variables[line.filename]._is_written = True
 
 ################################################################################
@@ -124,9 +124,9 @@ def get_parsed_text():
     varlist = []
     result = []
     append = result.append
-    for line in filter(
-      lambda x: type(x) not in [ Doc, Begin_doc, End_doc ],
-      text):
+    for line in text: #filter(
+#     lambda x: type(x) not in [ Doc, Begin_doc, End_doc ],
+#     text):
       if type(line) in [ \
         Empty_line,
         Continue,
@@ -145,42 +145,31 @@ def get_parsed_text():
         End,
       ]: 
         append( ([],line) )
-      elif isinstance(line,End_provider):
+      elif type(line) in [ Begin_provider, Cont_provider ]:
+        if type(line) == Begin_provider:
+          varlist = []
+        buffer = map(strip,line.text_lower.replace(']','').split(','))
+        assert len(buffer) > 1
+        v = buffer[1]
+        varlist.append(v)
+        variable_list = find_variables_in_line(line)
+        try:
+          variable_list.remove(variables[v].same_as)
+        except ValueError:
+          print v, variables[v].same_as
+          raise
+        append( (variable_list,line) )
+      elif type(line) == End_provider:
         varlist = []
         append( ([],line) )
-      elif isinstance(line,Provide):
+      elif type(line) == Provide:
         l = line.text_lower.split()[1:]
         l = filter(lambda x: x not in varlist, l)
         for v in l:
           if v not in variables.keys():
             error.fail(line,"Variable %s is unknown"%(v))
         append( (l,Simple_line(line.i,"!%s"%(line.text),line.filename)) )
-      elif isinstance(line,Call):
-        l = find_variables_in_line(line)
-        l = filter(lambda x: x not in varlist, l)
-        sub = find_subroutine_in_line(line)
-        if sub not in subroutines:
-          t = Simple_line
-          append( (l,Simple_line(line.i,line.text,line.filename)) )
-        else:
-          append( (l,line) )
-          if subroutines[sub].touches != []:
-            append( ([],Provide_all(line.i,"",line.filename)) )
-      elif isinstance(line,Free):
-        vars = line.text_lower.split()
-        vars = vars[1:]
-        append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
-        use = map(lambda x: "  use %s"%(variables[x].fmodule),vars)
-        for var in vars:
-          result += map(lambda x: ([],Use(line.i,x,line.filename)),
-            make_single(use))
-          result += map(lambda x: ([],Simple_line(line.i,x,line.filename)),
-            variables[var].free)
-      elif isinstance(line,Irp_read):
-        append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
-      elif isinstance(line,Irp_write):
-        append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
-      elif isinstance(line,Touch):
+      elif type(line) in [ Touch, SoftTouch ]:
         vars = line.text_lower.split()
         if len(vars) < 2:
           error.fail(line,"Syntax error")
@@ -204,24 +193,37 @@ def get_parsed_text():
             error.fail(line,"Variable %s unknown"%(x,))
           return ([],Simple_line(line.i," %s_is_built = .True."%(x,),line.filename))
         result += map( fun, main_vars[:-1] )
-        if isinstance(line,SoftTouch):
+        if type(line) == SoftTouch:
           append ( ([],Simple_line(line.i,"! <<< END TOUCH (Soft)",line.filename)) )
         else:
           append ( ([],Provide_all(line.i,"! <<< END TOUCH",line.filename)) )
-      elif type(line) in [ Begin_provider, Cont_provider ]:
-        if isinstance(line,Begin_provider):
-          varlist = []
-        buffer = map(strip,line.text_lower.replace(']','').split(','))
-        assert len(buffer) > 1
-        v = buffer[1]
-        varlist.append(v)
-        variable_list = find_variables_in_line(line)
-        try:
-          variable_list.remove(variables[v].same_as)
-        except ValueError:
-          print v, variables[v].same_as
-          raise
-        append( (variable_list,line) )
+      elif type(line) == Call:
+        l = find_variables_in_line(line)
+        l = filter(lambda x: x not in varlist, l)
+        sub = find_subroutine_in_line(line)
+        if sub not in subroutines:
+          t = Simple_line
+          append( (l,Simple_line(line.i,line.text,line.filename)) )
+        else:
+          append( (l,line) )
+          if subroutines[sub].touches != []:
+            append( ([],Provide_all(line.i,"",line.filename)) )
+      elif type(line) == Free:
+        vars = line.text_lower.split()
+        vars = vars[1:]
+        append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
+        use = map(lambda x: "  use %s"%(variables[x].fmodule),vars)
+        for var in vars:
+          result += map(lambda x: ([],Use(line.i,x,line.filename)),
+            make_single(use))
+          result += map(lambda x: ([],Simple_line(line.i,x,line.filename)),
+            variables[var].free)
+      elif type(line) == Irp_read:
+        append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
+      elif type(line) == Irp_write:
+        append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
+      elif type(line) in [ Begin_doc, End_doc, Doc ]:
+        pass
       else:
         l = find_variables_in_line(line)
         l = filter(lambda x: x not in varlist, l)
@@ -241,7 +243,7 @@ parsed_text = get_parsed_text()
 ######################################################################
 
 def move_to_top(text,t):
-  assert isinstance(text,list)
+  assert type(text) == list
   assert t in [ Declaration, Implicit, Use, Cont_provider ]
 
   inside = False
@@ -252,7 +254,7 @@ def move_to_top(text,t):
       inside = True
     elif type(line) in [ End_provider, End ]:
       inside = False
-    elif isinstance(line,t):
+    elif type(line) == t:
       if inside:
         text.pop(i)
         begin += 1
@@ -322,7 +324,7 @@ def move_variables():
          or old_elsevars != []:
           error.fail(line,"End if missing")
         varlist = []
-      elif isinstance(line,Provide_all):
+      elif type(line) == Provide_all:
         append( (vars,line) )
       else:
         varlist += vars
@@ -380,7 +382,7 @@ def build_sub_needs():
         sub = subroutines[subname]
         sub.needs = []
         sub.to_provide = vars
-      elif isinstance(line,End):
+      elif type(line) == End:
         sub.needs = make_single(sub.needs)
         sub = None
       if sub is not None:
@@ -395,7 +397,7 @@ def add_subroutine_needs():
     result = []
     append = result.append
     for vars,line in text:
-      if isinstance(line,Call):
+      if type(line) == Call:
         subname = find_subname(line)
         vars = subroutines[subname].to_provide
       append( (vars,line) )
@@ -411,18 +413,18 @@ def build_needs():
   for filename, text in parsed_text:
     var = None
     for vars,line in text:
-      if isinstance(line,Begin_provider):
+      if type(line) == Begin_provider:
         buffer = map(strip,line.text_lower.replace(']',',').split(','))
         var = variables[buffer[1]]
         var.needs = []
         var.to_provide = vars
-      elif isinstance(line,End_provider):
+      elif type(line) == End_provider:
         var.needs = make_single(var.needs)
         var.to_provide = make_single(var.to_provide)
         var = None
       if var is not None:
         var.needs += vars
-        if isinstance(line,Call):
+        if type(line) == Call:
           subname = find_subname(line)
           var.needs += subroutines[subname].needs
         elif type(line) in [ \
@@ -478,14 +480,14 @@ def check_opt():
   for filename, text in parsed_text:
     do_level = 0
     for vars,line in text:
-     if not isinstance(line,Provide_all):
+     if not type(line) == Provide_all:
       if do_level > 0 and vars != []:
         print "Optimization: %s line %d"%(line.filename,line.i)
         for v in vars:
           print "  PROVIDE ",v
-      if isinstance(line,Do):
+      if type(line) == Do:
         do_level += 1
-      elif isinstance(line,Enddo):
+      elif type(line) == Enddo:
         do_level -= 1
 check_opt()
 

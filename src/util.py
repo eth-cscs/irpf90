@@ -35,7 +35,7 @@ def lower(x):
 
 def same_file(filename,txt):
   assert isinstance(filename,str)
-  assert isinstance(txt,list)
+  assert type(txt) == list
 
   try:
     file = open(filename,"r")
@@ -85,7 +85,7 @@ def make_single(l):
   return d.keys()
 
 def flatten(l):
-  if isinstance(l,list):
+  if type(l) == list:
     result = []
     for i in range(len(l)):
       elem = l[i]
@@ -116,12 +116,12 @@ def dimsize(x):
     return size
 
 def put_info(text,filename):
-  assert isinstance(text,list)
+  assert type(text) == list
   if len(text) > 0:
-    assert isinstance(text[0],tuple)
+    assert type(text[0]) == tuple
     from irpf90_t import Line
-    assert isinstance(text[0][0],list)
-    assert isinstance(text[0][1],Line)
+    assert type(text[0][0]) == list
+    assert isinstance(text[0][1], Line)
     lenmax = 80 - len(filename)
     format = "%"+str(lenmax)+"s ! %s:%4s"
     for vars,line in text:

@@ -34,9 +34,9 @@ class Variable(object):
 
   ############################################################
   def __init__(self,text,name = None):
-    assert isinstance(text,list)
+    assert type(text) == list
     assert len(text) > 0
-    assert isinstance(text[0],Begin_provider)
+    assert type(text[0]) == Begin_provider
     self.text = text
     if name is not None:
       self._name = name
@@ -93,7 +93,7 @@ class Variable(object):
     if '_name' not in self.__dict__:
       buffer = None
       for line in self.text:
-        if isinstance(line,Begin_provider):
+        if type(line) == Begin_provider:
           self._name = line.filename[1]
           break
     return self._name
@@ -103,7 +103,7 @@ class Variable(object):
   def doc(self):
     if '_doc' not in self.__dict__:
       def f(l): return 
-      buffer = filter(lambda l:isinstance(l,Doc), self.text)
+      buffer = filter(lambda l:type(l) == Doc, self.text)
       self._doc = map(lambda l: l.text[1:], buffer)
       if buffer == []:
         error.warn(None,"Variable %s is not documented"%(self.name))
@@ -134,7 +134,7 @@ class Variable(object):
   ############################################################
   def same_as(self):
     if '_same_as' not in self.__dict__:
-      if isinstance(self.line,Begin_provider):
+      if type(self.line) == Begin_provider:
         result = self.name
       else:
         result = self.text[0].filename[1]
@@ -490,14 +490,14 @@ class Variable(object):
         same_as = self.same_as
         inside = False
         for vars,line in buffer:
-          if isinstance(line,Begin_provider):
+          if type(line) == Begin_provider:
             if line.filename[1] == same_as:
               inside = True
             vars = []
           if inside:
             text.append( (vars,line) )
             text += map( lambda x: ([],Simple_line(line.i,x,line.filename)), call_provides(vars) )
-          if isinstance(line,End_provider):
+          if type(line) == End_provider:
             if inside:
               break
         name = self.name
