@@ -538,12 +538,12 @@ def irp_simple_statements(text):
 
   def process_begin_provider(line):
     assert isinstance(line,Begin_provider)
-    buffer = line.text.replace('['," ")
+    buffer = line.lower.replace('['," ")
     buffer = buffer.replace(']',"")
     buffer = buffer.split(',')
     if len(buffer) < 2:
       error.fail(line,"Error in Begin_provider statement")
-    varname = buffer[1].strip().lower()
+    varname = buffer[1].strip()
     length = len(varname)
     i = line.i
     f = line.filename
@@ -557,12 +557,12 @@ def irp_simple_statements(text):
 
   def process_cont_provider(line):
     assert isinstance(line,Cont_provider)
-    buffer = line.text.replace('['," ")
+    buffer = line.lower.replace('['," ")
     buffer = buffer.replace(']',"")
     buffer = buffer.split(',')
     if len(buffer) < 2:
       error.fail(line,"Error in Cont_provider statement")
-    varname = buffer[1].strip().lower()
+    varname = buffer[1].strip()
     i = line.i
     f = line.filename
     return [ Cont_provider(i,line.text,(f,varname)) ]
@@ -599,7 +599,7 @@ def irp_simple_statements(text):
 
   def process_program(line):
     assert isinstance(line,Program)
-    program_name = line.text.split()[1].lower()
+    program_name = line.lower.split()[1]
     result = [ Program(0,"",program_name) ] + \
        process_subroutine( Subroutine(line.i,"subroutine %s"%(program_name,),line.filename) )
     return result
@@ -691,7 +691,7 @@ endif'''
   result = []
   for line in text:
     if isinstance(line,If):
-      if line.text.lower().endswith("then"):
+      if line.lower.endswith("then"):
         result.append(line)
       else:
         buffer = line.text

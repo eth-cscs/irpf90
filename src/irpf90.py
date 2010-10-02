@@ -24,6 +24,8 @@
 #   31062 Toulouse Cedex 4      
 #   scemama@irsamc.ups-tlse.fr
 
+import sys
+sys.setcheckinterval(1000)
 
 def main():
   from command_line import command_line

@@ -38,29 +38,32 @@ stuple = map(lambda s: (s, subroutines[s].regexp), subroutines.keys())
 stuple = filter(lambda s: subroutines[s[0]].is_function, stuple)
 re_string_sub = regexps.re_string.sub
 
+regexps_re_string_sub = regexps.re_string.sub
 def find_variables_in_line(line):
   assert isinstance(line,Line)
   result = []
   sub_done = False
   buffer = line.text_lower
+  ap = result.append
   for v,same_as,regexp in vtuple:
     if v in buffer:
       if not sub_done:
-        buffer = re_string_sub('',buffer)
+        buffer = regexps_re_string_sub('',buffer)
         sub_done = True
       if regexp.search(buffer) is not None:
-        result.append(same_as)
+        ap(same_as)
   return result
 
 def find_funcs_in_line(line):
   assert isinstance(line,Line)
   result = []
+  append = result.append
   sub_done = False
   buffer = line.text_lower
   for s,regexp in stuple:
      if s in buffer:
       if regexp.search(buffer) is not None:
-        result.append(s)
+        append(s)
   return result
 
 
@@ -90,6 +93,7 @@ def get_parsed_text():
   def func(filename, text):
     varlist = []
     result = []
+    append = result.append
     for line in filter(
       lambda x: type(x) not in [ Doc, Begin_doc, End_doc ],
       text):
@@ -110,28 +114,28 @@ def get_parsed_text():
         Function,
         End,
       ]: 
-        result.append( ([],line) )
+        append( ([],line) )
       elif isinstance(line,End_provider):
         varlist = []
-        result.append( ([],line) )
+        append( ([],line) )
       elif isinstance(line,Provide):
         l = line.text_lower.split()[1:]
         l = filter(lambda x: x not in varlist, l)
         for v in l:
           if v not in variables.keys():
             error.fail(line,"Variable %s is unknown"%(v))
-        result.append( (l,Simple_line(line.i,"!%s"%(line.text),line.filename)) )
+        append( (l,Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif isinstance(line,Call):
         l = find_variables_in_line(line)
         l = filter(lambda x: x not in varlist, l)
         sub = find_subroutine_in_line(line)
         if sub not in subroutines:
           t = Simple_line
-          result.append( (l,Simple_line(line.i,line.text,line.filename)) )
+          append( (l,Simple_line(line.i,line.text,line.filename)) )
         else:
-          result.append( (l,line) )
+          append( (l,line) )
           if subroutines[sub].touches != []:
-            result.append( ([],Provide_all(line.i,"",line.filename)) )
+            append( ([],Provide_all(line.i,"",line.filename)) )
       elif isinstance(line,Free):
         vars = line.text_lower.split()
         if len(vars) < 2:
@@ -139,7 +143,7 @@ def get_parsed_text():
         vars = vars[1:]
         for v in vars:
           variables[v].is_freed = True
-        result.append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
+        append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
         use = map(lambda x: "  use %s"%(variables[x].fmodule),vars)
         for var in vars:
           result += map(lambda x: ([],Use(line.i,x,line.filename)),
@@ -148,10 +152,10 @@ def get_parsed_text():
             variables[var].free)
       elif isinstance(line,Irp_read):
         variables[line.filename]._is_read = True
-        result.append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
+        append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif isinstance(line,Irp_write):
         variables[line.filename]._is_written = True
-        result.append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
+        append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif isinstance(line,Touch):
         vars = line.text_lower.split()
         if len(vars) < 2:
@@ -197,7 +201,7 @@ def get_parsed_text():
         except ValueError:
           print v, variables[v].same_as
           raise
-        result.append( (variable_list,line) )
+        append( (variable_list,line) )
       else:
         l = find_variables_in_line(line)
         l = filter(lambda x: x not in varlist, l)
@@ -210,7 +214,6 @@ def get_parsed_text():
  #return main_result
   return parallel_loop(func,preprocessed_text)
   
-
 parsed_text = get_parsed_text()
 
 
@@ -252,6 +255,7 @@ def move_variables():
 
   def func(filename, text):
     result = []
+    append = result.append
     # 1st pass
     varlist = []
     ifvars = []
@@ -264,20 +268,20 @@ def move_variables():
     for vars,line in revtext:
       if type(line) in [ End_provider,End ]:
         varlist = []
-        result.append( ([],line) )
+        append( ([],line) )
       elif type(line) in [ Endif, End_select ]:
         old_ifvars.append( list(ifvars) )
         old_elsevars.append( list(elsevars) )
         old_varlist.append( list(varlist) )
         varlist = []
-        result.append( ([],line) )
+        append( ([],line) )
       elif type(line) == Else:
         elsevars += list(varlist)
-        result.append( (varlist,line) )
+        append( (varlist,line) )
         varlist = []
       elif type(line) in [ Elseif, Case ]:
         ifvars += list(varlist)
-        result.append( (varlist,line) )
+        append( (varlist,line) )
         if vars != []:
           varlist = old_varlist.pop()
           varlist += vars
@@ -285,29 +289,30 @@ def move_variables():
         varlist = []
       elif type(line) in [ If, Select ]:
         ifvars += list(varlist)
-        result.append( (varlist,line) )
+        append( (varlist,line) )
         vars += filter(lambda x: x in elsevars, ifvars)
         ifvars = old_ifvars.pop()
         elsevars = old_elsevars.pop()
         varlist = old_varlist.pop() + vars
       elif type(line) in [ Begin_provider, Subroutine, Function ]:
         varlist += vars
-        result.append( (varlist,line) )
+        append( (varlist,line) )
         if old_varlist != [] \
          or old_ifvars != [] \
          or old_elsevars != []:
           error.fail(line,"End if missing")
         varlist = []
       elif isinstance(line,Provide_all):
-        result.append( (vars,line) )
+        append( (vars,line) )
       else:
         varlist += vars
-        result.append( ([],line) )
+        append( ([],line) )
     result.reverse()
   
     # 2nd pass
     text = result
     result = []
+    append = result.append
     old_varlist = []
     varlist = []
     for vars,line in text:
@@ -368,11 +373,12 @@ def add_subroutine_needs():
   main_result = []
   for filename, text in parsed_text:
     result = []
+    append = result.append
     for vars,line in text:
       if isinstance(line,Call):
         subname = find_subname(line)
         vars = subroutines[subname].to_provide
-      result.append( (vars,line) )
+      append( (vars,line) )
     main_result.append( (filename, result) )
   return main_result
   

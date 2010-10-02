@@ -121,10 +121,11 @@ class Variable(object):
   def others(self):
     if '_others' not in self.__dict__:
       result = []
+      append = result.append
       f = lambda  l: type(l) in [Begin_provider, Cont_provider]
       lines = filter(f, self.text)
       for line in lines:
-        result.append(line.filename[1])
+        append(line.filename[1])
       result.remove(self.name)
       self._others = result
     return self._others

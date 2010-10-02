@@ -32,5 +32,11 @@ wd = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0,(wd+"/../src/"))
 sys.path.insert(0,(wd+"/../share/irpf90/src/"))
 
-import irpf90
-irpf90.main()
+debug = int(os.getenv("IRP_DEBUG",0))
+if debug == 0:
+  import irpf90
+  irpf90.main()
+else:
+  import profile
+  print "Profiling irpf90"
+  profile.run('import irpf90 ; irpf90.main()')

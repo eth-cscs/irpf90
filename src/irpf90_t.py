@@ -33,6 +33,7 @@ class Line(object):
   def __init__(self,i,text,filename):
     self.i = i
     self.text = text
+    self.lower = text.lower()
     self.filename = filename
     self._lower = None
 
