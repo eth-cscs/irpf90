@@ -89,6 +89,36 @@ def check_touch(line,vars,main_vars):
         message = "\n".join([message]+map(lambda x: "- %s"%(x,),all_others))
         error.fail(line,message)
 
+################################################################################
+def update_variables():
+  for filename,text in preprocessed_text:
+
+    for line in filter(lambda x: type(x) in [ Touch, SoftTouch ], text):
+        vars = line.text_lower.split()
+        if len(vars) < 2:
+          error.fail(line,"Syntax error")
+        for v in vars[1:]:
+          if v not in variables:
+            error.fail(line,"Variable %s unknown"%(v,))
+          variables[v]._is_touched = True
+
+    for line in filter(lambda x: isinstance(x,Free),text):
+        vars = line.text_lower.split()
+        if len(vars) < 2:
+          error.fail(line,"Syntax error")
+        for v in vars[1:]:
+          if v not in variables:
+            error.fail(line,"Variable %s unknown"%(v,))
+          variables[v].is_freed = True
+
+    for line in filter(lambda x: isinstance(x,Irp_read),text):
+        variables[line.filename]._is_read = True
+
+    for line in filter(lambda x: isinstance(x,Irp_write),text):
+        variables[line.filename]._is_written = True
+
+################################################################################
+  
 def get_parsed_text():
   def func(filename, text):
     varlist = []
@@ -138,11 +168,7 @@ def get_parsed_text():
             append( ([],Provide_all(line.i,"",line.filename)) )
       elif isinstance(line,Free):
         vars = line.text_lower.split()
-        if len(vars) < 2:
-          error.fail(line,"Syntax error")
         vars = vars[1:]
-        for v in vars:
-          variables[v].is_freed = True
         append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
         use = map(lambda x: "  use %s"%(variables[x].fmodule),vars)
         for var in vars:
@@ -151,28 +177,22 @@ def get_parsed_text():
           result += map(lambda x: ([],Simple_line(line.i,x,line.filename)),
             variables[var].free)
       elif isinstance(line,Irp_read):
-        variables[line.filename]._is_read = True
         append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif isinstance(line,Irp_write):
-        variables[line.filename]._is_written = True
         append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif isinstance(line,Touch):
         vars = line.text_lower.split()
         if len(vars) < 2:
           error.fail(line,"Syntax error")
         vars = vars[1:]
-        for v in vars:
-          if v not in variables:
-            error.fail(line,"Variable %s unknown"%(v,))
-          variables[v]._is_touched = True
         def fun(x):
           main = variables[x].same_as
           return main
         main_vars = make_single( map(fun, vars) )
         check_touch(line,vars,main_vars)
         txt = " ".join(vars)
-        result +=  [ (vars,Simple_line(line.i,"!",line.filename)),
-                     ([],Simple_line(line.i,"! >>> TOUCH %s"%(txt,),line.filename)) ]
+        append ( (vars,Simple_line(line.i,"!",line.filename)) )
+        append ( ([],Simple_line(line.i,"! >>> TOUCH %s"%(txt,),line.filename)) )
         def fun(x):
           if x not in variables:
             error.fail(line,"Variable %s unknown"%(x,))
@@ -185,9 +205,9 @@ def get_parsed_text():
           return ([],Simple_line(line.i," %s_is_built = .True."%(x,),line.filename))
         result += map( fun, main_vars[:-1] )
         if isinstance(line,SoftTouch):
-          result += [ ([],Simple_line(line.i,"! <<< END TOUCH (Soft)",line.filename)) ]
+          append ( ([],Simple_line(line.i,"! <<< END TOUCH (Soft)",line.filename)) )
         else:
-          result += [ ([],Provide_all(line.i,"! <<< END TOUCH",line.filename)) ]
+          append ( ([],Provide_all(line.i,"! <<< END TOUCH",line.filename)) )
       elif type(line) in [ Begin_provider, Cont_provider ]:
         if isinstance(line,Begin_provider):
           varlist = []
@@ -205,17 +225,17 @@ def get_parsed_text():
       else:
         l = find_variables_in_line(line)
         l = filter(lambda x: x not in varlist, l)
-        result.append( (l,line) )
+        append( (l,line) )
     return result
 
- #main_result = []
- #for filename,text in preprocessed_text:
- #  main_result.append( (filename, func(filename,text)) )
- #return main_result
-  return parallel_loop(func,preprocessed_text)
+  main_result = []
+  for filename,text in preprocessed_text:
+    main_result.append( (filename, func(filename,text)) )
+  return main_result
+ #return parallel_loop(func,preprocessed_text)
   
+update_variables()
 parsed_text = get_parsed_text()
-
 
 
 ######################################################################

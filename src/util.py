@@ -24,7 +24,8 @@
 #   31062 Toulouse Cedex 4      
 #   scemama@irsamc.ups-tlse.fr
 
-NTHREADS=16
+import os
+NTHREADS=int(os.getenv('OMP_NUM_THREADS',4))
 
 def strip(x):
   return x.strip()
@@ -135,11 +136,13 @@ def parallel_loop(f,source):
   src = [ [] for i in xrange(NTHREADS) ]
   index = 0
   for i in source:
-    index = index+1
+    index += 1
     if index == NTHREADS:
       index = 0
     src[index].append(i)
 
+  thread_id = 0
+  fork = 1
   for thread_id in xrange(1,NTHREADS):
     fork = os.fork()
     if fork == 0:
@@ -158,7 +161,8 @@ def parallel_loop(f,source):
     sys.exit(0)
 
   for i in xrange(1,NTHREADS):
-    os.waitpid(pidlist[i],0)
+    if os.waitpid(pidlist[i],0)[1] != 0:
+      sys.exit(0)
 
   result = []
   for filename,text in source:

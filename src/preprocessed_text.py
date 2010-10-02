@@ -830,7 +830,7 @@ def create_preprocessed_text(filename):
 
 ######################################################################
 preprocessed_text = parallel_loop( lambda x,y: create_preprocessed_text(x), \
-                map(lambda x: (x,None), irpf90_files ) )
+                 map(lambda x: (x,None), irpf90_files ) )
 
 ######################################################################
 def debug():
