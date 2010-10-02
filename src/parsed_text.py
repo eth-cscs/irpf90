@@ -228,11 +228,11 @@ def get_parsed_text():
         append( (l,line) )
     return result
 
-  main_result = []
-  for filename,text in preprocessed_text:
-    main_result.append( (filename, func(filename,text)) )
-  return main_result
- #return parallel_loop(func,preprocessed_text)
+ #main_result = []
+ #for filename,text in preprocessed_text:
+ #  main_result.append( (filename, func(filename,text)) )
+ #return main_result
+  return parallel_loop(func,preprocessed_text)
   
 update_variables()
 parsed_text = get_parsed_text()
