@@ -43,7 +43,7 @@ def find_variables_in_line(line):
   assert isinstance(line,Line)
   result = []
   sub_done = False
-  buffer = line.text_lower
+  buffer = line.lower
   ap = result.append
   for v,same_as,regexp in vtuple:
     if v in buffer:
@@ -59,7 +59,7 @@ def find_funcs_in_line(line):
   result = []
   append = result.append
   sub_done = False
-  buffer = line.text_lower
+  buffer = line.lower
   for s,regexp in stuple:
      if s in buffer:
       if regexp.search(buffer) is not None:
@@ -94,7 +94,7 @@ def update_variables():
   for filename,text in preprocessed_text:
 
     for line in filter(lambda x: type(x) in [ Touch, SoftTouch ], text):
-        vars = line.text_lower.split()
+        vars = line.lower.split()
         if len(vars) < 2:
           error.fail(line,"Syntax error")
         for v in vars[1:]:
@@ -103,7 +103,7 @@ def update_variables():
           variables[v]._is_touched = True
 
     for line in filter(lambda x: type(x) == Free,text):
-        vars = line.text_lower.split()
+        vars = line.lower.split()
         if len(vars) < 2:
           error.fail(line,"Syntax error")
         for v in vars[1:]:
@@ -148,7 +148,7 @@ def get_parsed_text():
       elif type(line) in [ Begin_provider, Cont_provider ]:
         if type(line) == Begin_provider:
           varlist = []
-        buffer = map(strip,line.text_lower.replace(']','').split(','))
+        buffer = map(strip,line.lower.replace(']','').split(','))
         assert len(buffer) > 1
         v = buffer[1]
         varlist.append(v)
@@ -163,14 +163,14 @@ def get_parsed_text():
         varlist = []
         append( ([],line) )
       elif type(line) == Provide:
-        l = line.text_lower.split()[1:]
+        l = line.lower.split()[1:]
         l = filter(lambda x: x not in varlist, l)
         for v in l:
           if v not in variables.keys():
             error.fail(line,"Variable %s is unknown"%(v))
         append( (l,Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif type(line) in [ Touch, SoftTouch ]:
-        vars = line.text_lower.split()
+        vars = line.lower.split()
         if len(vars) < 2:
           error.fail(line,"Syntax error")
         vars = vars[1:]
@@ -209,7 +209,7 @@ def get_parsed_text():
           if subroutines[sub].touches != []:
             append( ([],Provide_all(line.i,"",line.filename)) )
       elif type(line) == Free:
-        vars = line.text_lower.split()
+        vars = line.lower.split()
         vars = vars[1:]
         append( ([],Simple_line(line.i,"!%s"%(line.text),line.filename)) )
         use = map(lambda x: "  use %s"%(variables[x].fmodule),vars)
@@ -414,7 +414,7 @@ def build_needs():
     var = None
     for vars,line in text:
       if type(line) == Begin_provider:
-        buffer = map(strip,line.text_lower.replace(']',',').split(','))
+        buffer = map(strip,line.lower.replace(']',',').split(','))
         var = variables[buffer[1]]
         var.needs = []
         var.to_provide = vars

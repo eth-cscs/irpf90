@@ -32,17 +32,23 @@ mandir = "IRPF90_man/"
 class Line(object):
   def __init__(self,i,text,filename):
     self.i = i
-    self.text = text
-    self.lower = text.lower()
+    self._text = None
     self.filename = filename
     self._lower = None
+    self.set_text(text)
+
+  def get_text(self):
+    return self._text
+  
+  def set_text(self,value):
+    self._text = value
+    self._lower = value.lower()
 
   def get_lower(self):
-    if self._lower is None:
-      self._lower = self.text.lower()
     return self._lower
 
-  text_lower = property(fget=get_lower)
+  text = property(fget=get_text, fset=set_text)
+  lower = property(fget=get_lower)
 
 class Empty_line(Line):
   def __init__(self,i,text,filename):

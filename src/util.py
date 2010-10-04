@@ -69,7 +69,7 @@ def build_dim_colons(v):
 
 import error
 def find_subname(line):
-  buffer = line.text_lower
+  buffer = line.lower
   if not buffer.endswith(')'):
     buffer += "()"
   buffer = buffer.split('(')
