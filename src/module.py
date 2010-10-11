@@ -34,6 +34,16 @@ from util import *
 
 class Fmodule(object):
 
+  header = \
+     [ "! -*- F90 -*-",
+       "!",
+       "!-----------------------------------------------!",
+       "! This file was generated with the irpf90 tool. !",
+       "!                                               !",
+       "!           DO NOT MODIFY IT BY HAND            !",
+       "!-----------------------------------------------!",
+       "" ]
+
   def __init__(self,text,filename):
     self.text = put_info(text,filename)
     self.name = "%s_mod"%(filename[:-6])
@@ -62,16 +72,10 @@ class Fmodule(object):
     return self._variables
   variables = property(variables)
 
+
   def head(self):
     if '_head' not in self.__dict__:
-      result = [ "! -*- F90 -*-",
-       "!",
-       "!-----------------------------------------------!",
-       "! This file was generated with the irpf90 tool. !",
-       "!                                               !",
-       "!           DO NOT MODIFY IT BY HAND            !",
-       "!-----------------------------------------------!",
-       "", "module %s"%(self.name) ]
+      result = [ "module %s"%(self.name) ]
       result += self.use
       result += self.dec
       result += flatten( map(lambda x: variables[x].header,self.variables) )
@@ -209,6 +213,7 @@ class Fmodule(object):
   needed_modules = property(needed_modules)
 
 ######################################################################
+
 if __name__ == '__main__':
   from parsed_text import parsed_text
   for filename, text in parsed_text:

@@ -105,6 +105,7 @@ end subroutine
    allocate(irp_stack(STACKMAX,nthread+1))
    allocate(irp_cpu(STACKMAX,nthread+1))
    allocate(stack_index(nthread+1))
+   stack_index = 0
    alloc = .True.
  endif
  stack_index(ithread+1) = stack_index(ithread+1)+1

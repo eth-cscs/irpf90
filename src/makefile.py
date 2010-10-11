@@ -72,19 +72,21 @@ def run():
     result += " %sirp_touches.irp.F90"%(irpdir)
     for m in mod:
       result += " %s%s.irp.F90"%(irpdir,m.name[:-4])
+      result += " %s%s.irp.module.F90"%(irpdir,m.name[:-4])
     print >>file, result
 
     result = "OBJ += %sirp_stack.irp.o"%(irpdir)
     for m in mod:
       if not m.is_main:
         result += " %s%s.irp.o"%(irpdir,m.name[:-4])
+        result += " %s%s.irp.module.o"%(irpdir,m.name[:-4])
     print >>file, result
 
     print >>file, "OBJ1 = $(patsubst %%, %s%%,$(notdir $(OBJ))) %sirp_touches.irp.o"%(irpdir,irpdir)
 
     all = filter(lambda x: modules[x].is_main, modules)
     all = map(lambda x: x[:-6], all)
-    all_o = map(lambda x: "%s.irp.o"%(x), all)
+    all_o = map(lambda x: "%s.irp.module.o %s.irp.o"%(x,x), all)
     print >>file, "ALL = %s"%(" ".join(all))
     print >>file, "ALL_OBJ = %s"%(" ".join(all_o))
     print >>file, "ALL_OBJ1 = $(patsubst %%, %s%%,$(notdir $(ALL_OBJ)))"%(irpdir)
@@ -93,20 +95,20 @@ def run():
     for m in mod:
       if m.is_main:
         exe = m.name[:-4]
-        print >>file, "%s: %s%s.irp.o $(OBJ1)"%(exe,irpdir,exe)
-        print >>file, "\t$(FC) -o $@ %s$@.irp.o $(OBJ1) $(LIB)"%(irpdir)
+        print >>file, "%s: %s%s.irp.o %s%s.irp.module.o $(OBJ1)"%(exe,irpdir,exe,irpdir,exe)
+        print >>file, "\t$(FC) -o $@ %s$@.irp.o %s$@.irp.module.o $(OBJ1) $(LIB)"%(irpdir,irpdir)
         print >>file, "\t@make -s move"
 
     buffer = ""
     for m in mod:
-      filename = "%s%s.irp.o:"%(irpdir,m.name[:-4])
-      mds = map (lambda x: " %s%s.irp.o"%(irpdir,x[:-4]),m.needed_modules)
+      filename = "%s%s.irp.o: %s%s.irp.module.o"%(irpdir,m.name[:-4],irpdir,m.name[:-4])
+      mds = map (lambda x: " %s%s.irp.module.o"%(irpdir,x[:-4]),m.needed_modules)
       print >>file, filename+" ".join(mds)
       if not m.is_main:
         buffer += "\t - @echo '"+filename+" ".join(mds)+"' >> %sdist_Makefile\n"%(irpdir)
     print >>file, "%sirp_touches.irp.o:"%(irpdir),
     mds = filter(lambda x: not x.is_main,mod)
-    mds = map(lambda x: " %s%s.irp.o"%(irpdir,x.name[:-4]),mds)
+    mds = map(lambda x: " %s%s.irp.o %s%s.irp.o"%(irpdir,x.name[:-4],irpdir,x.name[:-4]),mds)
     print >>file," ".join(mds)
     
 
@@ -137,6 +139,10 @@ def run():
     print >>file, "\t- @cp %s$*.irp.F90 dist/$*/| DO_NOTHING="%(irpdir)
     print >>file, "\t- cd dist ; tar -zcvf ../$*.tar.gz $*\n"
 
+    print >>file, irpdir+"%.irp.module.o: "+irpdir+"%.irp.module.F90"
+    print >>file, "\t$(FC) $(FCFLAGS) -c "+irpdir+"$*.irp.module.F90 -o "+irpdir+"$*.irp.module.o"
+    print >>file, irpdir+"%.irp.o: "+irpdir+"%.irp.module.o "+irpdir+"%.irp.F90"
+    print >>file, "\t$(FC) $(FCFLAGS) -c "+irpdir+"$*.irp.F90 -o "+irpdir+"$*.irp.o"
     print >>file, irpdir+"%.irp.o: "+irpdir+"%.irp.F90"
     print >>file, "\t$(FC) $(FCFLAGS) -c "+irpdir+"$*.irp.F90 -o "+irpdir+"$*.irp.o"
     print >>file, irpdir+"%.o: %.F90"
