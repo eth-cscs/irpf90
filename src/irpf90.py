@@ -24,8 +24,12 @@
 #   31062 Toulouse Cedex 4      
 #   scemama@irsamc.ups-tlse.fr
 
-import sys
+
+
+import os,sys
+wd = os.path.abspath(os.path.dirname(__file__))
 sys.setcheckinterval(1000)
+sys.path.insert(0,(wd+"/../src/"))
 
 def main():
   from command_line import command_line
