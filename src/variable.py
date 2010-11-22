@@ -92,7 +92,8 @@ class Variable(object):
     '''Name is lowercase'''
     if '_name' not in self.__dict__:
       buffer = None
-      for line in self.text:
+      text = self.text
+      for line in text:
         if type(line) == Begin_provider:
           self._name = line.filename[1]
           break
@@ -102,8 +103,8 @@ class Variable(object):
   ############################################################
   def doc(self):
     if '_doc' not in self.__dict__:
-      def f(l): return 
-      buffer = filter(lambda l:type(l) == Doc, self.text)
+      text = self.text
+      buffer = filter(lambda l:type(l) == Doc, text)
       self._doc = map(lambda l: l.text[1:], buffer)
       if buffer == []:
         error.warn(None,"Variable %s is not documented"%(self.name))
@@ -118,12 +119,24 @@ class Variable(object):
   documented = property(documented)
 
   ############################################################
+  def includes(self):
+    if '_includes' not in self.__dict__:
+      self._includes = []
+      text = self.text
+      for line in filter(lambda x: type(x) == Include,text):
+        self._includes.append(line.filename)
+      make_single(self._includes)
+    return self._includes
+  includes = property(includes)
+
+  ############################################################
   def others(self):
     if '_others' not in self.__dict__:
       result = []
       append = result.append
       f = lambda  l: type(l) in [Begin_provider, Cont_provider]
-      lines = filter(f, self.text)
+      text = self.text
+      lines = filter(f, text)
       for line in lines:
         append(line.filename[1])
       result.remove(self.name)
@@ -200,7 +213,8 @@ class Variable(object):
   def line(self):
     if '_line' not in self.__dict__:
       f = lambda l: type(l) in [Begin_provider, Cont_provider]
-      lines = filter(f, self.text)
+      text = self.text
+      lines = filter(f, text)
       for line in lines:
         buffer = line.filename[1]
         if self._name == buffer:

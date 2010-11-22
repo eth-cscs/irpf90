@@ -642,6 +642,7 @@ def change_includes(text):
      try:
        file = open(filename,'r')
        file.close()
+       result.append(Include(line.i,"! include '%s'"%filename,filename))
        result += create_preprocessed_text(filename)
      except IOError:
        result.append(Declaration(line.i,line.text,line.filename))

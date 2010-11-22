@@ -92,6 +92,15 @@ class Fmodule(object):
     return self._needed_vars
   needed_vars = property(needed_vars)
 
+  def includes(self):
+    if '_includes' not in self.__dict__:
+      buffer = []
+      for v in self.needed_vars:
+        buffer += variables[v].includes
+      self._includes = make_single(buffer)
+    return self._includes
+  includes = property(includes)
+
   def generated_text(self):
     if '_generated_text' not in self.__dict__:
       result = []
@@ -200,6 +209,7 @@ class Fmodule(object):
     return self._dec
   dec = property(dec)
 
+
   def needed_modules(self):
     if '_needed_modules' not in self.__dict__:
       buffer = filter(lambda x: x.lstrip().startswith("use "), \
@@ -217,9 +227,10 @@ class Fmodule(object):
 if __name__ == '__main__':
   from parsed_text import parsed_text
   for filename, text in parsed_text:
-    if filename == 'random.irp.f':
+    if filename == 'vmc_step.irp.f':
      x = Fmodule(text,filename)
      break
   for line in x.head:
     print line
+  print x.includes
 

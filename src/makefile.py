@@ -103,7 +103,7 @@ def run():
     for m in mod:
       filename = "%s%s.irp.o: %s%s.irp.module.o"%(irpdir,m.name[:-4],irpdir,m.name[:-4])
       mds = map (lambda x: " %s%s.irp.module.o"%(irpdir,x[:-4]),m.needed_modules)
-      print >>file, filename+" ".join(mds)
+      print >>file, filename," ".join(mds)," ".join(m.includes)
       if not m.is_main:
         buffer += "\t - @echo '"+filename+" ".join(mds)+"' >> %sdist_Makefile\n"%(irpdir)
     print >>file, "%sirp_touches.irp.o:"%(irpdir),
