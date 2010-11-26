@@ -670,10 +670,13 @@ def process_old_style_do(text):
     line = text[i]
     if type(line) == Do:
       buffer = line.text.split()
-      if buffer[1].isdigit():
+      try:
+       if buffer[1].isdigit():
         number = buffer.pop(1)
         change_matching_enddo(i,number)
         line.text = " ".join(buffer)
+      except IndexError:
+        pass
     result.append(line)
   return result
 
