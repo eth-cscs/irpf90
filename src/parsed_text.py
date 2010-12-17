@@ -273,6 +273,42 @@ parsed_text = result
 
 
 ######################################################################
+def build_sub_needs():
+  # Needs
+  for filename, text in parsed_text:
+    sub = None
+    for vars,line in text:
+      if type(line) in [ Subroutine, Function ]:
+        subname = find_subname(line)
+        sub = subroutines[subname]
+        sub.needs = []
+        sub.to_provide = vars
+      elif type(line) == End:
+        sub.needs = make_single(sub.needs)
+        sub = None
+      if sub is not None:
+        sub.needs += vars
+
+build_sub_needs()
+
+#####################################################################
+
+def add_subroutine_needs():
+  main_result = []
+  for filename, text in parsed_text:
+    result = []
+    append = result.append
+    for vars,line in text:
+      if type(line) == Call:
+        subname = find_subname(line)
+        vars += subroutines[subname].to_provide
+      append( (vars,line) )
+    main_result.append( (filename, result) )
+  return main_result
+  
+parsed_text = add_subroutine_needs()
+
+######################################################################
 def move_variables():
 
   def func(filename, text):
@@ -372,42 +408,6 @@ def move_variables():
 parsed_text = move_variables()
 
 ######################################################################
-def build_sub_needs():
-  # Needs
-  for filename, text in parsed_text:
-    sub = None
-    for vars,line in text:
-      if type(line) in [ Subroutine, Function ]:
-        subname = find_subname(line)
-        sub = subroutines[subname]
-        sub.needs = []
-        sub.to_provide = vars
-      elif type(line) == End:
-        sub.needs = make_single(sub.needs)
-        sub = None
-      if sub is not None:
-        sub.needs += vars
-
-build_sub_needs()
-#####################################################################
-
-def add_subroutine_needs():
-  main_result = []
-  for filename, text in parsed_text:
-    result = []
-    append = result.append
-    for vars,line in text:
-      if type(line) == Call:
-        subname = find_subname(line)
-        vars = subroutines[subname].to_provide
-      append( (vars,line) )
-    main_result.append( (filename, result) )
-  return main_result
-  
-parsed_text = add_subroutine_needs()
-
-
-######################################################################
 def build_needs():
   # Needs
   for filename, text in parsed_text:
@@ -494,7 +494,7 @@ check_opt()
 ######################################################################
 if __name__ == '__main__':
  for i in range(len(parsed_text)):
-  if parsed_text[i][0] == 'intmul.irp.f':
+  if parsed_text[i][0] == 'eplf_function.irp.f':
    print '!-------- %s -----------'%(parsed_text[i][0])
    for line in parsed_text[i][1]:
      print line[1]
