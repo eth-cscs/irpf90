@@ -158,11 +158,11 @@ def parallel_loop(f,source):
     file.close()
 
   if fork == 0:
-    sys.exit(0)
+    os._exit(0)
 
   for i in xrange(1,NTHREADS):
     if os.waitpid(pidlist[i],0)[1] != 0:
-      sys.exit(0)
+      os._exit(0)
 
   result = []
   for filename,text in source:
