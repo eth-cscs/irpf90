@@ -169,6 +169,13 @@ def get_parsed_text():
           if v not in variables.keys():
             error.fail(line,"Variable %s is unknown"%(v))
         append( (l,Simple_line(line.i,"!%s"%(line.text),line.filename)) )
+      elif type(line) == NoDep:
+        l = line.lower.split()[1:]
+        for v in l:
+          if v not in variables.keys():
+            error.fail(line,"Variable %s is unknown"%(v))
+        l = map(lambda x: "-%s"%(x), l)
+        append( (l,Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif type(line) in [ Touch, SoftTouch ]:
         vars = line.lower.split()
         if len(vars) < 2:
@@ -244,7 +251,7 @@ parsed_text = get_parsed_text()
 
 def move_to_top(text,t):
   assert type(text) == list
-  assert t in [ Declaration, Implicit, Use, Cont_provider ]
+  assert t in [ NoDep, Declaration, Implicit, Use, Cont_provider ]
 
   inside = False
   for i in range(len(text)):
@@ -264,6 +271,7 @@ def move_to_top(text,t):
 
 result = []
 for filename,text in parsed_text:
+  text = move_to_top(text,NoDep)
   text = move_to_top(text,Declaration)
   text = move_to_top(text,Implicit)
   text = move_to_top(text,Use)
@@ -396,6 +404,10 @@ def move_variables():
       elif type(line) in [ End_provider, End ]:
         assert old_varlist == []
         varlist = []
+      for v in vars[:]:
+        if v[0] == '-':
+          vars.remove(v)
+          vars.remove(v[1:])
       result.append( (vars,line) )
     return result
 
@@ -462,6 +474,7 @@ build_needs()
 
 result = []
 for filename,text in parsed_text:
+  text = move_to_top(text,NoDep)
   text = move_to_top(text,Declaration)
   text = move_to_top(text,Implicit)
   text = move_to_top(text,Use)
@@ -494,7 +507,7 @@ check_opt()
 ######################################################################
 if __name__ == '__main__':
  for i in range(len(parsed_text)):
-  if parsed_text[i][0] == 'eplf_function.irp.f':
+  if parsed_text[i][0] == 'mo.irp.f':
    print '!-------- %s -----------'%(parsed_text[i][0])
    for line in parsed_text[i][1]:
      print line[1]

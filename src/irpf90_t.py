@@ -284,6 +284,12 @@ class Provide(Line):
   def __repr__(self):
     return "%20s:%5d : %s"%("Provide",self.i,self.text)
 
+class NoDep(Line):
+  def __init__(self,i,text,filename):
+    Line.__init__(self,i,text,filename)
+  def __repr__(self):
+    return "%20s:%5d : %s"%("NoDep",self.i,self.text)
+
 class Return (Line):
   def __init__(self,i,text,filename):
     Line.__init__(self,i,text,filename)

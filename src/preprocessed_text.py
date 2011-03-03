@@ -59,6 +59,7 @@ simple_dict = {
         "touch":                 Touch           ,
         "soft_touch":            SoftTouch       ,
         "provide":               Provide         ,
+        "no_dep":                NoDep           ,
         "free":                  Free            ,
         "irp_if":                Irp_If          ,
         "irp_else":              Irp_Else        ,
