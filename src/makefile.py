@@ -63,8 +63,8 @@ def run():
   from modules import modules
   if os.fork() == 0:
     mod = []
-    for m in modules.keys():
-      mod.append(modules[m])
+    for m in modules.values():
+      mod.append(m)
 
     file = open('irpf90.make','w')
 

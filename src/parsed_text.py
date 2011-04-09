@@ -166,13 +166,13 @@ def get_parsed_text():
         l = line.lower.split()[1:]
         l = filter(lambda x: x not in varlist, l)
         for v in l:
-          if v not in variables.keys():
+          if v not in variables:
             error.fail(line,"Variable %s is unknown"%(v))
         append( (l,Simple_line(line.i,"!%s"%(line.text),line.filename)) )
       elif type(line) == NoDep:
         l = line.lower.split()[1:]
         for v in l:
-          if v not in variables.keys():
+          if v not in variables:
             error.fail(line,"Variable %s is unknown"%(v))
         l = map(lambda x: "-%s"%(x), l)
         append( (l,Simple_line(line.i,"!%s"%(line.text),line.filename)) )
@@ -447,25 +447,25 @@ def build_needs():
           funcs = find_funcs_in_line(line)
           for f in funcs:
             var.needs += subroutines[f].needs 
-  for v in variables.keys():
+  for v in variables:
     main = variables[v].same_as 
     if main != v:
       variables[v].needs = variables[main].needs
       variables[v].to_provide = variables[main].to_provide
 
   # Needed_by
-  for v in variables.keys():
+  for v in variables:
     variables[v].needed_by = []
-  for v in variables.keys():
+  for v in variables:
     main = variables[v].same_as 
     if main != v:
       variables[v].needed_by = variables[main].needed_by
-  for v in variables.keys():
+  for v in variables:
     var = variables[v]
     if var.is_main:
       for x in var.needs:
         variables[x].needed_by.append(var.same_as)
-  for v in variables.keys():
+  for v in variables:
     var = variables[v]
     var.needed_by = make_single(var.needed_by)
 
@@ -507,7 +507,7 @@ check_opt()
 ######################################################################
 if __name__ == '__main__':
  for i in range(len(parsed_text)):
-  if parsed_text[i][0] == 'mo.irp.f':
+  if parsed_text[i][0] == 'psi.irp.f':
    print '!-------- %s -----------'%(parsed_text[i][0])
    for line in parsed_text[i][1]:
      print line[1]

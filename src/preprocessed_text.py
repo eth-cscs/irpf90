@@ -85,7 +85,6 @@ simple_dict = {
         "function":              Function        ,
         "recursive":             Function        ,
 }
-simple_dict_keys = simple_dict.keys()
 
 def get_type (i, filename, line, is_doc):
   '''Find the type of a text line'''
@@ -126,7 +125,7 @@ def get_type (i, filename, line, is_doc):
   if is_doc:
     return [ Doc (i,line,filename) ], is_doc
 
-  if firstword in simple_dict_keys:
+  if firstword in simple_dict:
     return [ simple_dict[firstword](i,line,filename) ], is_doc
   
   if firstword in [ "select", "selectcase" ]:
@@ -621,7 +620,7 @@ def irp_simple_statements(text):
   result = []
   for line in text:
     buffer = [ line ]
-    for t in d.keys():
+    for t in d:
       if type(line) == t:
         buffer = d[t](line)
         break

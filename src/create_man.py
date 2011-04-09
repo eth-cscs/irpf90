@@ -97,13 +97,13 @@ def do_print(var):
 def run():
   import parsed_text
   import os,sys
-  l = variables.keys()
   if os.fork() == 0:
-    for v in l:
-      do_print(variables[v])
+    for v in variables.values():
+      do_print(v)
     sys.exit(0)
 
   if os.fork() == 0:
+    l = variables.keys()
     file = open("irpf90_entities","w")
     l.sort()
     for v in l:
