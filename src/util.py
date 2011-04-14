@@ -25,7 +25,7 @@
 #   scemama@irsamc.ups-tlse.fr
 
 import os
-NTHREADS=int(os.getenv('OMP_NUM_THREADS',4))
+NTHREADS=int(os.getenv('OMP_NUM_THREADS',2))
 
 def strip(x):
   return x.strip()
@@ -135,6 +135,12 @@ def parallel_loop(f,source):
 
   src = [ [] for i in xrange(NTHREADS) ]
   index = 0
+  try:
+    source = map( lambda x: (len(x[1]),(x[0], x[1])), source )
+    source.sort()
+    source = map( lambda x: x[1], source )
+  except:
+    pass
   for i in source:
     index += 1
     if index == NTHREADS:
@@ -143,34 +149,36 @@ def parallel_loop(f,source):
 
   thread_id = 0
   fork = 1
+  r = range(0,NTHREADS)
   for thread_id in xrange(1,NTHREADS):
+    r[thread_id], w = os.pipe()
     fork = os.fork()
     if fork == 0:
+      os.close(r[thread_id])
+      w = os.fdopen(w,'w')
       break
     else:
+      os.close(w)
+      r[thread_id] = os.fdopen(r[thread_id],'r')
       pidlist[thread_id] = fork
       thread_id = 0
 
+  result = []
   for filename, text in src[thread_id]:
-    result = f(filename,text)
-    file = open('%s.pickle'%filename,'w')
-    pickle.dump(result,file,-1)
-    file.close()
+    result.append( (filename, f(filename,text)) )
+
+  result.sort()
 
   if fork == 0:
+    pickle.dump(result,w,-1)
+    w.close()
     os._exit(0)
-
+  
   for i in xrange(1,NTHREADS):
+    result += pickle.load(r[i])
+    r[i].close()
     if os.waitpid(pidlist[i],0)[1] != 0:
-      os._exit(0)
-
-  result = []
-  for filename,text in source:
-    file = open('%s.pickle'%filename,'r')
-    data = pickle.load(file)
-    file.close()
-    os.remove('%s.pickle'%filename)
-    result.append( (filename, data) )
+      raise OSError
 
   return result
 
