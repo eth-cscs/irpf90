@@ -47,7 +47,7 @@ def create():
     subroutine irpf90_dummy_touch()
     end
     """
-  if not same_file(FILENAME,out):
+  if not same_file(FILENAME,out.splitlines()):
     file = open(FILENAME,'w')
     file.writelines(out)
     file.close()
