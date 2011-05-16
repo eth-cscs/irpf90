@@ -43,10 +43,7 @@ def create():
   if out != []:
     out = map(lambda x: "%s\n"%(x),out)
   else:
-    out = """
-    subroutine irpf90_dummy_touch()
-    end
-    """.splitlines()
+    out = ["subroutine irpf90_dummy_touch()\n", "end\n"]
   if not same_file(FILENAME,out):
     file = open(FILENAME,'w')
     file.writelines(out)
