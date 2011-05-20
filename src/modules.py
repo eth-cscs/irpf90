@@ -63,6 +63,6 @@ def write_module(m):
 
 ######################################################################
 if __name__ == '__main__':
-  write_module(modules['electrons.irp.f'])
+  write_module(modules['psi.irp.f'])
   
 

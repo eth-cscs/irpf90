@@ -40,7 +40,13 @@ def create():
     if var.is_touched:
       out += var.toucher
 
-  out = map(lambda x: "%s\n"%(x),out)
+  if out != []:
+    out = map(lambda x: "%s\n"%(x),out)
+  else:
+    out = """
+    subroutine irpf90_dummy_touch()
+    end
+    """.splitlines()
   if not same_file(FILENAME,out):
     file = open(FILENAME,'w')
     file.writelines(out)

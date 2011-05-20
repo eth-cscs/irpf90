@@ -102,7 +102,7 @@ Options:
   def opts(self):
     if self._opts is None:
       optlist = ["",[]]
-      for o in options.keys():
+      for o in options:
         b = [o]+options[o]
         if b[3] == 1:
           b[0] = b[0]+":"
@@ -132,7 +132,7 @@ def do_$LONG(self):
     return self._do_$LONG
 do_$LONG = property(fget=do_$LONG)
 """
-  for short in options.keys():
+  for short in options:
     long = options[short][0]
     exec t.replace("$LONG",long).replace("$SHORT",short)
 
