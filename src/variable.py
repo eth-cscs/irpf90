@@ -267,6 +267,44 @@ class Variable(object):
   toucher = property(toucher)
 
   ##########################################################
+  def locker(self):
+    if '_locker' not in self.__dict__:
+      if not command_line.do_openmp:
+        self._locker = []
+      else:
+        from modules import modules
+        from variables import variables
+        name = self.name
+        result  = [ "subroutine irp_lock_%s(set)"%(name) ]
+        result += [ "  use omp_lib",
+                    "  implicit none",
+                    "  logical, intent(in) :: set",
+                    "  integer(kind=omp_nest_lock_kind),save :: %s_lock"%(name), 
+                    "  integer,save :: ifirst",
+                  ]
+        if command_line.do_debug:
+          length = str(len("irp_lock_%s"%(name)))
+          result += [ "  character*(%s) :: irp_here = 'irp_lock_%s'"%(length,name),
+                      "  call irp_enter(irp_here)" ]
+        result += [ "  if (ifirst == 0) then",
+                    "    ifirst = 1",
+                    "    call omp_init_nest_lock(%s_lock)"%(name),
+                    "  endif",
+                    "  if (set) then",
+                    "    call omp_set_nest_lock(%s_lock)"%(name),
+                    "  else",
+                    "    call omp_unset_nest_lock(%s_lock)"%(name),
+                    "  endif",
+                  ]
+        if command_line.do_debug:
+          result.append("  call irp_leave(irp_here)")
+        result.append("end subroutine irp_lock_%s"%(name))
+        result.append("")
+        self._locker = result
+    return self._locker
+  locker = property(locker)
+
+  ##########################################################
   def reader(self):
     if '_reader' not in self.__dict__:
       if not self.is_main:
@@ -469,20 +507,20 @@ class Variable(object):
       "  character*(%d) :: irp_here = 'provide_%s'"%(length,name),
       "  integer                   :: irp_err ",
       "  logical                   :: irp_dimensions_OK" ] 
+      if command_line.do_openmp:
+        result.append(" call irp_lock_%s(.True.)"%(same_as))
       if command_line.do_assert or command_line.do_debug:
         result.append("  call irp_enter(irp_here)")
       result += call_provides(self.to_provide)
       result += flatten( map(build_alloc,[self.same_as]+self.others) )
-      if command_line.do_openmp:
-        result += [ "!$OMP CRITICAL (%s_critical)"%(same_as) ]
-        result += [ " if (.not.%s_is_built) then"%(same_as) ]
-      result += [ "  call bld_%s"%(same_as) ]
-      result += [ "  %s_is_built = .True."%(same_as), "" ]
-      if command_line.do_openmp:
-        result += [ " endif" ]
-        result += [ "!$OMP END CRITICAL (%s_critical)"%(same_as) ]
+      result += [ " if (.not.%s_is_built) then"%(same_as),
+                  "  call bld_%s"%(same_as),
+                  "  %s_is_built = .True."%(same_as), "" ]
+      result += [ " endif" ]
       if command_line.do_assert or command_line.do_debug:
         result.append("  call irp_leave(irp_here)")
+      if command_line.do_openmp:
+        result.append(" call irp_lock_%s(.False.)"%(same_as))
       result.append("end subroutine provide_%s"%(name) )
       result.append("")
       self._provider = result
