@@ -24,9 +24,12 @@
 #   31062 Toulouse Cedex 4      
 #   scemama@irsamc.ups-tlse.fr
 
+import os
+from zlib import crc32
 
 irpdir = "IRPF90_temp/"
 mandir = "IRPF90_man/"
+irp_id = crc32(os.getcwd())
 
 
 class Line(object):

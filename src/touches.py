@@ -28,6 +28,7 @@
 from irpf90_t import *
 from util import *
 from variables import variables
+from modules import modules
 
 FILENAME=irpdir+'irp_touches.irp.F90'
 
@@ -35,15 +36,26 @@ def create():
   out = []
   l = variables.keys()
   l.sort
+  finalize = "subroutine irp_finalize_%s\n"%(irp_id)
+  for m in filter(lambda x: not modules[x].is_main, modules):
+    finalize += " use %s\n"%(modules[m].name)
   for v in l:
     var = variables[v]
     if var.is_touched:
       out += var.toucher
+    var2 = variables[v]
+    if var2.dim != []:
+      finalize += "  if (allocated(%s)) then\n"%v
+      finalize += "    deallocate(%s)\n"%v
+      finalize += "  endif\n"
+  finalize += "end\n"
+
 
   if out != []:
     out = map(lambda x: "%s\n"%(x),out)
-  else:
-    out = ["subroutine irpf90_dummy_touch()\n", "end\n"]
+
+  out += finalize
+  
   if not same_file(FILENAME,out):
     file = open(FILENAME,'w')
     file.writelines(out)

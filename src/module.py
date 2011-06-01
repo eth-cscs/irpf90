@@ -191,6 +191,7 @@ class Fmodule(object):
         if command_line.do_openmp:
           temp += [ "!$OMP END MASTER" ]
           temp += [ "!$OMP END PARALLEL" ]
+        temp += [ " call irp_finalize_%s()"%(irp_id) ]
         temp += [ "end program" ]
         result = temp + result
       self._residual_text = result

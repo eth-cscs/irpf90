@@ -87,10 +87,6 @@ def main():
   import touches
   touches.create()
 
-  if command_line.do_openmp:
-    import locks
-    locks.create()
-
   import create_man
   create_man.run()
 
