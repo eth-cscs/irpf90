@@ -43,9 +43,9 @@ def create():
     var = variables[v]
     if var.is_touched:
       out += var.toucher
-    var2 = variables[v]
-    if var2.dim != []:
+    if var.dim != []:
       finalize += "  if (allocated(%s)) then\n"%v
+      finalize += "    %s_is_built = .False.\n"%var.same_as
       finalize += "    deallocate(%s)\n"%v
       finalize += "  endif\n"
   finalize += "end\n"
