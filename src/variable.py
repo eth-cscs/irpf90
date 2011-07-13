@@ -231,6 +231,8 @@ class Variable(object):
       self._header = [ "  %s :: %s %s"%(self.type, name, build_dim_colons(self) ) ]
       if self.is_main:
        self._header += [ "  logical :: %s_is_built = .False."%(name) ]
+      if "allocatable" in self.type:
+       self._header += ["!DEC$ ATTRIBUTES ALIGN: 32 :: %s"%(name)]
     return self._header
   header = property(header)
 

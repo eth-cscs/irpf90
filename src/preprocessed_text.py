@@ -146,7 +146,7 @@ instead of
     if firstword.startswith("case("):
      return [ Case(i,line,filename) ], is_doc
 
-    if lower_line0[1:5] == "$omp":
+    if lower_line0[1:5] in ["$omp", "dec$", "dir$"]:
      return [ Openmp(i,line,filename) ], is_doc
 
     if re_decl.match(lower_line) is not None:
