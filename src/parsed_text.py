@@ -134,6 +134,7 @@ def get_parsed_text():
         Begin_shell,
         End_shell,
         Openmp,
+        Directive,
         Use,
         Enddo,
         End_select,
