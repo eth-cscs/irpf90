@@ -229,6 +229,8 @@ class Variable(object):
     if '_header' not in self.__dict__:
       name = self.name
       self._header = [ "  %s :: %s %s"%(self.type, name, build_dim_colons(self) ) ]
+      if self.dim != [] and command_line.align > 0:
+       self._header += ["  !DIR$ ATTRIBUTES ALIGN: %d :: %s"%(command_line.align,name)]
       if self.is_main:
        self._header += [ "  logical :: %s_is_built = .False."%(name) ]
     return self._header
@@ -458,12 +460,13 @@ class Variable(object):
           result = "    allocate(%s(%s),stat=irp_err)"
           result = result%(name,','.join(self.dim))
           if command_line.do_memory:
-            tmp = "\n   print *, 'Allocating %s(%s), (',%s,')'"
+            tmp = "\n   print *, %s, 'Allocating %s(%s), (',%s,')'"
             d = ','.join(self.dim)
+            d2 = '*'.join(self.dim)
             if ":" in d:
-              result += tmp%(name,d,"''")
+              result += tmp%('-1',name,d,"''")
             else:
-              result += tmp%(name,d,d)
+              result += tmp%(d2,name,d,d)
           return result
 
         result = [ " if (allocated (%s) ) then"%(name) ]

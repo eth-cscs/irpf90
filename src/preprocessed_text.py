@@ -148,6 +148,8 @@ instead of
 
     if lower_line0[1:5] == "$omp":
      return [ Openmp(i,line,filename) ], is_doc
+    elif lower_line0[1:5] in ["dec$", "dir$"] and command_line.directives:
+     return [ Directive(i,line,filename) ], is_doc
 
     if re_decl.match(lower_line) is not None:
       if "function" in buffer[1:3]:
@@ -321,7 +323,7 @@ def form(text):
   re2 = re.compile(r"^\s*[!#]")
   re3 = re.compile(r"^\s*[^ 0-9]+")
   for line in text:
-    if type(line) in [ Empty_line, Doc, Openmp ]:
+    if type(line) in [ Empty_line, Doc, Openmp, Directive ]:
       pass
     else:
       if len(line.text) > 5:
@@ -368,7 +370,7 @@ def remove_comments(text,form):
       
   if form == Free_form:
     for line in text:
-      if type(line) in [ Openmp, Doc] :
+      if type(line) in [ Openmp, Doc, Directive] :
          result.append(line)
       elif type(line) == Empty_line:
          pass
@@ -382,7 +384,7 @@ def remove_comments(text,form):
     return result
   else:
     for line in text:
-      if type(line) in [ Openmp, Doc ]:
+      if type(line) in [ Openmp, Doc, Directive ]:
          result.append(line)
       elif type(line) == Empty_line:
          pass

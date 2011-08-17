@@ -41,6 +41,8 @@ options['p'] = [ 'preprocess'   , 'Preprocess file', 1 ]
 options['t'] = [ 'touch'        , 'Display which entities are touched', 1 ]
 options['m'] = [ 'memory'       , 'Debug memory info', 0 ]
 options['z'] = [ 'openmp'       , 'Automatic openMP tasks (may not work)', 0 ]
+options['l'] = [ 'align'        , 'Align arrays using compiler directives', 1 ]
+options['r'] = [ 'no_directives', 'Ignore compiler directives !DEC$ and !DIR$', 0 ]
 
 class CommandLine(object):
 
@@ -54,7 +56,7 @@ class CommandLine(object):
     if '_defined' not in self.__dict__:
       self._defined = []
       for o,a in self.opts:
-        if o in [ "-D", options['D'][0] ]:
+        if o in [ "-D", '--'+options['D'][0] ]:
           self._defined.append(a)
     return self._defined
   defined = property(fget=defined)
@@ -63,7 +65,7 @@ class CommandLine(object):
     if '_preprocessed' not in self.__dict__:
       self._preprocessed = []
       for o,a in self.opts:
-        if o in [ "-p", options['p'][0] ]:
+        if o in [ "-p", '--'+options['p'][0] ]:
           self._preprocessed.append(a)
     return self._preprocessed
   preprocessed = property(fget=preprocessed)
@@ -72,10 +74,28 @@ class CommandLine(object):
     if '_touched' not in self.__dict__:
       self._touched = []
       for o,a in self.opts:
-        if o in [ "-t", options['t'][0] ]:
+        if o in [ "-t", '--'+options['t'][0] ]:
           self._touched.append(a.lower())
     return self._touched
   touched = property(fget=touched)
+
+  def align(self):
+    if '_align' not in self.__dict__:
+      self._align = 0
+      for o,a in self.opts:
+        if o in [ "-l", '--'+options['l'][0] ]:
+          self._align = int(a)
+    return self._align
+  align = property(fget=align)
+
+  def directives(self):
+    if '_directives' not in self.__dict__:
+      self._directives = True
+      for o,a in self.opts:
+        if o in [ "-r", '--'+options['r'][0] ]:
+          self._directives = False
+    return self._directives
+  directives = property(fget=directives)
 
   def usage(self):
     t = """

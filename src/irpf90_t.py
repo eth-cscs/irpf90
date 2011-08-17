@@ -197,6 +197,12 @@ class Openmp(Line):
   def __repr__(self):
     return "%20s:%5d : %s"%("Openmp",self.i,self.text)
 
+class Directive(Line):
+  def __init__(self,i,text,filename):
+    Line.__init__(self,i,text,filename)
+  def __repr__(self):
+    return "%20s:%5d : %s"%("Directive",self.i,self.text)
+
 class Use(Line):
   def __init__(self,i,text,filename):
     Line.__init__(self,i,text,filename)
