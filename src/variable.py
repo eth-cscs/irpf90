@@ -186,7 +186,10 @@ class Variable(object):
     if '_type' not in self.__dict__:
       line = self.line.text
       buffer = line.split(',')[0]
-      buffer = buffer.split('[')[1].strip()
+      try:
+        buffer = buffer.split('[')[1].strip()
+      except IndexError:
+        error.fail(None,"Error in definition of %s."%(self.name))
       if self.dim != []:
         buffer = "%s, allocatable"%(buffer)
       self._type = buffer
