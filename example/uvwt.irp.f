@@ -13,6 +13,15 @@ END_PROVIDER
 BEGIN_PROVIDER [ integer, u1 ]
   integer :: fu
   u1 = fu(d1,d2)
+  integer :: n, m
+  n=3
+  do i=1,n
+    print *,  i
+  enddo
+  m=2
+  do i=1,m
+    print *,  i
+  enddo
   PROVIDE u2
 END_PROVIDER
 

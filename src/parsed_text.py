@@ -30,7 +30,7 @@ from irpf90_t import *
 from variables import variables
 from preprocessed_text import preprocessed_text
 from subroutines import subroutines
-import regexps
+import regexps, re
 import error
 
 vtuple = map(lambda v: (v, variables[v].same_as, variables[v].regexp), variables.keys())
@@ -506,9 +506,27 @@ def check_opt():
 check_opt()
 
 ######################################################################
+def perform_loop_substitutions():
+  main_result = []
+  for filename, text in parsed_text:
+    result = []
+    append = result.append
+    for vars,line in text:
+      if type(line) == Do:
+        for k,v in command_line.substituted.items():
+          reg = v[1]
+          if reg.search(line.text) is not None:
+            line.text = re.sub(reg,r'\1%s\3', line.text)%v[0]
+      append( (vars,line) )
+    main_result.append( (filename, result) )
+  return main_result
+  
+parsed_text = perform_loop_substitutions()
+
+######################################################################
 if __name__ == '__main__':
  for i in range(len(parsed_text)):
-  if parsed_text[i][0] == 'psi.irp.f':
+# if parsed_text[i][0] == 'psi.irp.f':
    print '!-------- %s -----------'%(parsed_text[i][0])
    for line in parsed_text[i][1]:
      print line[1]

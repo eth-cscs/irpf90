@@ -27,6 +27,7 @@
 
 import getopt, sys
 from version import version
+import re
 
 description = "IRPF90 Fortran preprocessor."
 options = {}
@@ -42,6 +43,7 @@ options['t'] = [ 'touch'        , 'Display which entities are touched', 1 ]
 options['m'] = [ 'memory'       , 'Debug memory info', 0 ]
 options['z'] = [ 'openmp'       , 'Automatic openMP tasks (may not work)', 0 ]
 options['l'] = [ 'align'        , 'Align arrays using compiler directives', 1 ]
+options['s'] = [ 'substitute'   , 'Substitute values for loop max values', 1 ]
 options['r'] = [ 'no_directives', 'Ignore compiler directives !DEC$ and !DIR$', 0 ]
 
 class CommandLine(object):
@@ -60,6 +62,17 @@ class CommandLine(object):
           self._defined.append(a)
     return self._defined
   defined = property(fget=defined)
+
+  def substituted(self):
+    if '_substituted' not in self.__dict__:
+      self._substituted = {}
+      for o,a in self.opts:
+        if o in [ "-s", '--'+options['s'][0] ]:
+          k, v = a.split(':')
+          v_re = re.compile(r"(^.*[,| ]+)(%s)(\s*$)"%k.strip())
+          self._substituted[k] = [v, v_re]
+    return self._substituted
+  substituted = property(fget=substituted)
 
   def preprocessed(self):
     if '_preprocessed' not in self.__dict__:
