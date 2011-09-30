@@ -2,13 +2,13 @@
 
 rdtsc = """
 #define uint64_t unsigned long
-//#ifdef __i386
+#ifdef __i386
 uint64_t irp_rdtsc_() {
   uint64_t x;
   __asm__ volatile ("rdtsc" : "=A" (x));
   return x;
 }
-#if __amd64
+#elif __amd64
 uint64_t irp_rdtsc_() {
   uint64_t a, d;
   __asm__ volatile ("rdtsc" : "=a" (a), "=d" (d));
