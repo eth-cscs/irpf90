@@ -558,7 +558,7 @@ class Variable(object):
             text.append( (vars,line) )
             text += map( lambda x: ([],Simple_line(line.i,x,line.filename)), call_provides(vars) )
             if command_line.do_profile and type(line) == Begin_provider:
-              text.append( ( [], Declaration(line.i,"  integer*8 :: irp_rdtsc, irp_rdtsc1, irp_rdtsc2",line.filename) ) )
+              text.append( ( [], Declaration(line.i,"  double precision :: irp_rdtsc, irp_rdtsc1, irp_rdtsc2",line.filename) ) )
               text.append( ( [], Simple_line(line.i,"  irp_rdtsc1 = irp_rdtsc()",line.filename) ) )
           if type(line) == End_provider:
             if inside:

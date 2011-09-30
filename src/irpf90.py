@@ -66,10 +66,6 @@ def main():
         for x in parents:
           print "- %s"%(x,)
 
-  if command_line.do_profile:
-    import profile
-    profile.run()
-
   if not command_line.do_run:
     return
 
@@ -93,6 +89,10 @@ def main():
 
   import create_man
   create_man.run()
+
+  if command_line.do_profile:
+    import profile
+    profile.run()
 
 if __name__ == '__main__':
   main()
