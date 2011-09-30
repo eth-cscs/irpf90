@@ -34,6 +34,7 @@ from util import *
 def create_variables():
   from preprocessed_text import preprocessed_text
   result = {}
+  icount = 0
   for filename, text in preprocessed_text:
     buffer = []
     inside = False
@@ -44,10 +45,11 @@ def create_variables():
         buffer.append(line)
       if type(line) == End_provider:
         inside = False
-        v = Variable(buffer)
+        icount += 1
+        v = Variable(buffer,icount)
         result[v.name] = v
         for other in v.others:
-          result[other] = Variable(buffer,other)
+          result[other] = Variable(buffer,icount,other)
         buffer = []
   return result
 

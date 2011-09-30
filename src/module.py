@@ -184,6 +184,8 @@ class Fmodule(object):
       result    = map(lambda x: x.text, result)
       if self.is_main:
         temp  = [ "program irp_program" ]
+        if command_line.do_profile:
+          temp += [ "call irp_init_timer()" ]
         if command_line.do_openmp:
           temp += [ "!$OMP PARALLEL" ]
           temp += [ "!$OMP MASTER" ]
@@ -191,6 +193,8 @@ class Fmodule(object):
         if command_line.do_openmp:
           temp += [ "!$OMP END MASTER" ]
           temp += [ "!$OMP END PARALLEL" ]
+        if command_line.do_profile:
+          temp += [ "call irp_print_timer()" ]
         temp += [ " call irp_finalize_%s()"%(irp_id) ]
         temp += [ "end program" ]
         result = temp + result

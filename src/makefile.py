@@ -73,6 +73,8 @@ def run():
     result += " %sirp_touches.irp.F90"%(irpdir)
     if command_line.do_openmp:
       result += " %sirp_locks.irp.F90"%(irpdir)
+    if command_line.do_profile:
+      result += " %sirp_profile.irp.F90"%(irpdir)
     for m in mod:
       result += " %s%s.irp.F90"%(irpdir,m.name[:-4])
       result += " %s%s.irp.module.F90"%(irpdir,m.name[:-4])
@@ -86,8 +88,10 @@ def run():
     print >>file, result
 
     print >>file, "OBJ1 = $(patsubst %%, %s%%,$(notdir $(OBJ))) %sirp_touches.irp.o"%(irpdir,irpdir),
+    if command_line.do_profile:
+      print >>file, " %sirp_profile.irp.o"%(irpdir), " %sirp_rdtsc.o"%(irpdir),
     if command_line.do_openmp:
-      print >>file, " %sirp_locks.irp.o"%(irpdir)
+      print >>file, " %sirp_locks.irp.o"%(irpdir),
     else:
       print >>file, ""
 
@@ -117,6 +121,9 @@ def run():
     mds = filter(lambda x: not x.is_main,mod)
     mds = map(lambda x: " %s%s.irp.o %s%s.irp.o"%(irpdir,x.name[:-4],irpdir,x.name[:-4]),mds)
     print >>file," ".join(mds)
+    if command_line.do_profile:
+      print >>file, "%sirp_profile.irp.o:"%(irpdir),
+      print >>file," ".join(mds)
     if command_line.do_openmp:
       print >>file, "%sirp_locks.irp.o:"%(irpdir),
       print >>file," ".join(mds)

@@ -4,6 +4,7 @@ packages/*.rpm
 packages/sourceforge.sh
 packages/version
 src/*.pyc
+src/*.pyo
 irpf90.make
 irpf90_entities
 IRPF90_temp

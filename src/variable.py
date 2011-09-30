@@ -33,10 +33,11 @@ from command_line import command_line
 class Variable(object):
 
   ############################################################
-  def __init__(self,text,name = None):
+  def __init__(self,text,label,name = None):
     assert type(text) == list
     assert len(text) > 0
     assert type(text[0]) == Begin_provider
+    self.label = label
     self.text = text
     if name is not None:
       self._name = name
@@ -259,8 +260,9 @@ class Variable(object):
         result.append("  implicit none")
         if command_line.do_debug:
           length = str(len("touch_%s"%(name)))
-          result += [ "  character*(%s) :: irp_here = 'touch_%s'"%(length,name),
-                      "  call irp_enter(irp_here)" ]
+          result += [ "  character*(%s) :: irp_here = 'touch_%s'"%(length,name) ]
+        if command_line.do_debug:
+          result += [ "  call irp_enter(irp_here)" ]
         result += map( lambda x: "  %s_is_built = .False."%(x), parents)
         result.append("  %s_is_built = .True."%(name))
         if command_line.do_debug:
@@ -555,6 +557,9 @@ class Variable(object):
           if inside:
             text.append( (vars,line) )
             text += map( lambda x: ([],Simple_line(line.i,x,line.filename)), call_provides(vars) )
+            if command_line.do_profile and type(line) == Begin_provider:
+              text.append( ( [], Declaration(line.i,"  integer*8 :: irp_rdtsc, irp_rdtsc1, irp_rdtsc2",line.filename) ) )
+              text.append( ( [], Simple_line(line.i,"  irp_rdtsc1 = irp_rdtsc()",line.filename) ) )
           if type(line) == End_provider:
             if inside:
               break
@@ -570,6 +575,9 @@ class Variable(object):
           elif type(line) == Cont_provider:
             pass
           elif type(line) == End_provider:
+            if command_line.do_profile:
+              result += [ "  irp_rdtsc2 = irp_rdtsc()" ,
+                          "  call irp_set_timer(%d,(irp_rdtsc2-irp_rdtsc1))"%self.label ]
             result.append( "end subroutine bld_%s"%(name) )
             break
           else:
