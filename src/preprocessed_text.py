@@ -129,8 +129,7 @@ def get_type (i, filename, line, is_doc):
     return [ simple_dict[firstword](i,line,filename) ], is_doc
   
   if firstword in [ "select", "selectcase" ]:
-    return [ Select          (i,"",filename) ,
-             Simple_line     (i,line,filename) ] , is_doc
+    return [ Select(i,line,filename) ] , is_doc
 
   if len(lower_line0) > 4:
 
