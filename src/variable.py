@@ -575,7 +575,7 @@ class Variable(object):
           if type(line) == Begin_provider:
             result = []
             if command_line.directives and command_line.inline in ["all","builders"]:
-              result += [ "!DEC$ ATTRIBUTES FORCEINLINE :: bld_%s"%(same_as) ]
+              result += [ "!DEC$ ATTRIBUTES INLINE :: bld_%s"%(same_as) ]
             result += [ "subroutine bld_%s"%(name) ]
             result += build_use([name]+self.needs)
           elif type(line) == Cont_provider:
