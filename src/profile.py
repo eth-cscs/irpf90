@@ -29,8 +29,7 @@ def build_rdtsc():
   file.write(rdtsc)
   file.close()
   def t():
-    p = subprocess.Popen(["gcc","-O2",filename,"-c","-o","IRPF90_temp/irp_rdtsc.o"])
-
+    p = subprocess.Popen(["gcc","-O2",filename,"-c","-o","irp_rdtsc.o"])
     p.communicate()
     os.remove(filename)
 
@@ -39,14 +38,52 @@ def build_rdtsc():
 def build_module():
   data = """
 module irp_timer
- double precision :: irp_profile(2,%(n)d) 
+ double precision :: irp_profile(3,%(n)d) 
+ integer          :: irp_order(%(n)d) 
  character*(64)   :: irp_profile_label(%(n)d)
+ double precision :: irp_rdtsc_shift
+
+ contains
+
+   subroutine profile_sort ()
+    implicit none
+    character*(64)         :: xtmp
+    integer                :: i, i0, j, jmax
+
+    do i=1,size(irp_profile_label)
+     irp_order(i)=i
+    enddo
+    do i=1,size(irp_profile_label)
+     xtmp = irp_profile_label(i)
+     i0 = irp_order(i)
+     j = i-1
+     do j=i-1,1,-1
+      if ( irp_profile_label(j) > xtmp ) then
+       irp_profile_label(j+1) = irp_profile_label(j)
+       irp_order(j+1) = irp_order(j)
+      else
+       exit
+      endif
+     enddo
+     irp_profile_label(j+1) = xtmp
+     irp_order(j+1) = i0
+    enddo
+   end subroutine profile_sort
+
 end module
 
 subroutine irp_init_timer
  use irp_timer
  implicit none
- irp_profile = 0.
+ integer :: i
+ double precision :: irp_rdtsc, t0
+ irp_profile = 0.d0
+ irp_rdtsc_shift = 0.d0
+ do i=1,1000
+   t0 = irp_rdtsc()
+   irp_rdtsc_shift = irp_rdtsc_shift + (irp_rdtsc()-t0)
+ enddo
+ irp_rdtsc_shift = 1.d-3*irp_rdtsc_shift
 %(text)s
 end
 
@@ -54,33 +91,55 @@ subroutine irp_set_timer(i,value)
  use irp_timer
  implicit none
  integer, intent(in) :: i
- double precision, intent(in) :: value
+ double precision, intent(inout) :: value
+ value = value - irp_rdtsc_shift
  irp_profile(1,i) = irp_profile(1,i) + value
- irp_profile(2,i) = irp_profile(2,i) + 1.d0
+ irp_profile(2,i) = irp_profile(2,i) + value*value
+ irp_profile(3,i) = irp_profile(3,i) + 1.d0
 end
 
 subroutine irp_print_timer()
  use irp_timer
  implicit none
- integer :: i
- print '(A24,A8,4(X,A14))', 'Calls', 'Tot Cycles', 'Avge Cycles', &
-                          'Tot Secs(1GHz)', 'Avge Secs(1GHz)'
+ integer :: i, ii
+ double precision :: error, sigma2, average, average2, frequency, t0
+ double precision :: irp_rdtsc
+ t0 = irp_rdtsc()
+ call sleep(1)
+ frequency = (irp_rdtsc()-t0-irp_rdtsc_shift)
+
+ call profile_sort()
+ print '(A24,A8,A17,A20,A13,A20)', '', 'N.Calls', 'Tot Cycles', 'Avg Cycles', &
+                          'Tot Secs', 'Avg Secs'
    print '(A)', '----------------------------------------------'// &
                 '----------------------------------------------'
- do i=1,%(n)d
-  if (irp_profile(2,i) > 0.) then
-   print '(A24,F8.0,2(X,F14.0),2(X,F14.8))', &
-     irp_profile_label(i), irp_profile(2,i), &
-     irp_profile(1,i), irp_profile(1,i)/irp_profile(2,i), &
-     irp_profile(1,i)*1.d-9, 1.d-9*irp_profile(1,i)/irp_profile(2,i)
+ do ii=1,%(n)d
+  i = irp_order(ii)
+  if (irp_profile(3,i) > 0.) then
+   error = 0.d0
+   average  = irp_profile(1,i)/irp_profile(3,i)
+   if (irp_profile(3,i) > 1.d0) then
+     average2 = irp_profile(2,i)/irp_profile(3,i)
+     sigma2   = (average2 - average*average)
+     error = sqrt(sigma2/(irp_profile(3,i)+1.d0))
+   endif
+   print '(A24 , F8.0 , X,F12.0 , X,F12.0,A3,F8.0, X,F12.8, X,F8.5,A3,F8.5 )', &
+     irp_profile_label(ii), &
+     irp_profile(3,i), &
+     irp_profile(1,i), &
+     average, '+/-', error, &
+     irp_profile(1,i)/frequency, &
+     average/frequency, '+/-', error/frequency
   endif
  enddo
+ print *, 'Frequency     :', frequency*1.d-9, ' GHz'
+ print *, 'rdtsc latency :', irp_rdtsc_shift, ' cycles'
 end
   """
   label = {}
   for i in variables:
     vi = variables[i]
-    label[vi.label] = vi.name
+    label[vi.label] = vi.same_as
   text = []
   lmax = 0
   for l in label:

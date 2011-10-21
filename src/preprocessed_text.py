@@ -34,6 +34,8 @@ from util import *
 re_endif = re.compile("end\s+if")
 re_elseif = re.compile("else\s+if")
 re_enddo  = re.compile("end\s+do")
+re_endtype= re.compile("end\s+type")
+re_endmodule = re.compile("end\s+module")
 re_endselect  = re.compile("end\s+select")
 
 # Local variables
@@ -100,6 +102,8 @@ def get_type (i, filename, line, is_doc):
   # Replacements
   lower_line = re_elseif.sub("elseif",lower_line)
   lower_line = re_enddo.sub("enddo",lower_line)
+  lower_line = re_endtype.sub("endtype",lower_line)
+  lower_line = re_endmodule.sub("endmodule",lower_line)
   lower_line = re_endif.sub("endif",lower_line)
   lower_line = re_endselect.sub("endselect",lower_line)
   for c in """()'"[]""":

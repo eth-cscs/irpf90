@@ -46,6 +46,7 @@ options['z'] = [ 'openmp'       , 'Automatic openMP tasks (may not work)', 0 ]
 options['l'] = [ 'align'        , 'Align arrays using compiler directives', 1 ]
 options['s'] = [ 'substitute'   , 'Substitute values for loop max values', 1 ]
 options['r'] = [ 'no_directives', 'Ignore compiler directives !DEC$ and !DIR$', 0 ]
+options['n'] = [ 'inline'       , 'all|providers|builders : Force inlining of providers or builders', 1 ]
 
 class CommandLine(object):
 
@@ -63,6 +64,16 @@ class CommandLine(object):
           self._defined.append(a)
     return self._defined
   defined = property(fget=defined)
+
+  def inline(self):
+    if '_inline' not in self.__dict__:
+      self._inline = ""
+      for o,a in self.opts:
+        if o in [ "-n", '--'+options['n'][0] ]:
+          self._inline = a
+          break
+    return self._inline
+  inline = property(fget=inline)
 
   def substituted(self):
     if '_substituted' not in self.__dict__:

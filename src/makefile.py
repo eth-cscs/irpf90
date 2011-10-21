@@ -89,7 +89,7 @@ def run():
 
     print >>file, "OBJ1 = $(patsubst %%, %s%%,$(notdir $(OBJ))) %sirp_touches.irp.o"%(irpdir,irpdir),
     if command_line.do_profile:
-      print >>file, " %sirp_profile.irp.o"%(irpdir), " %sirp_rdtsc.o"%(irpdir),
+      print >>file, " %sirp_profile.irp.o"%(irpdir), " irp_rdtsc.o",
     if command_line.do_openmp:
       print >>file, " %sirp_locks.irp.o"%(irpdir),
     else:

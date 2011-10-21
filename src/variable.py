@@ -507,14 +507,17 @@ class Variable(object):
           " endif" ]
         return result
 
-      result = [ "subroutine provide_%s"%(name) ] 
+      result = []
+      if command_line.directives and command_line.inline in ["all","providers"]:
+        result += [ "!DEC$ ATTRIBUTES FORCEINLINE :: provide_%s"%(name) ]
+      result += [ "subroutine provide_%s"%(name) ] 
       result += build_use( [same_as]+self.to_provide )
       result.append("  implicit none")
       length = len("provide_%s"%(name))
       result += [\
       "  character*(%d) :: irp_here = 'provide_%s'"%(length,name),
       "  integer                   :: irp_err ",
-      "  logical                   :: irp_dimensions_OK" ] 
+      "  logical                   :: irp_dimensions_OK" ]
       if command_line.do_openmp:
         result.append(" call irp_lock_%s(.True.)"%(same_as))
       if command_line.do_assert or command_line.do_debug:
@@ -570,7 +573,10 @@ class Variable(object):
         text = map(lambda x: x[1], text)
         for line in filter(lambda x: type(x) not in [ Begin_doc, End_doc, Doc], text):
           if type(line) == Begin_provider:
-            result = [ "subroutine bld_%s"%(name) ]
+            result = []
+            if command_line.directives and command_line.inline in ["all","builders"]:
+              result += [ "!DEC$ ATTRIBUTES FORCEINLINE :: bld_%s"%(same_as) ]
+            result += [ "subroutine bld_%s"%(name) ]
             result += build_use([name]+self.needs)
           elif type(line) == Cont_provider:
             pass
