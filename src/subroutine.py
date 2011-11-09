@@ -86,6 +86,20 @@ class Sub(object):
   touches = property(touches)
 
   ############################################################
+  def needs(self):
+    if '_needs' not in self.__dict__:
+      import parsed_text
+    return self._needs
+  needs = property(needs)
+
+  ############################################################
+  def to_provide(self):
+    if '_to_provide' not in self.__dict__:
+      import parsed_text
+    return self._to_provide
+  to_provide = property(to_provide)
+
+  ############################################################
   def regexp(self):
     if '_regexp' not in self.__dict__:
       import re
@@ -110,4 +124,5 @@ class Sub(object):
 if __name__ == '__main__':
   from preprocessed_text import preprocessed_text
   from subroutines import subroutines
-  print subroutines['brownian_step'].touches
+  print subroutines['run'].needs
+  print subroutines['run'].to_provide

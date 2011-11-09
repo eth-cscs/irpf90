@@ -605,7 +605,21 @@ def irp_simple_statements(text):
   def process_program(line):
     assert type(line) == Program
     program_name = line.lower.split()[1]
-    result = [ Program(0,"",program_name) ] + \
+    temp = [ Program(0,"program irp_program",program_name) ] 
+    if command_line.do_profile:
+      temp += [ Simple_line(0,"call irp_init_timer()",line.filename) ]
+    if command_line.do_openmp:
+      temp += [ Openmp(0,"!$OMP PARALLEL",line.filename) ]
+      temp += [ Openmp(0,"!$OMP MASTER",line.filename) ]
+    temp += [ Call(0," call %s"%(program_name),line.filename) ]
+    if command_line.do_openmp:
+     temp += [ Openmp(0,"!$OMP END MASTER",line.filename) ]
+     temp += [ Openmp(0,"!$OMP END PARALLEL",line.filename) ]
+    if command_line.do_profile:
+      temp += [ Simple_line(0,"call irp_print_timer()",line.filename) ]
+    temp += [ Simple_line(0," call irp_finalize_%s()"%(irp_id),line.filename) ]
+    temp += [ End(0,"end program",line.filename) ]
+    result = temp + \
        process_subroutine( Subroutine(line.i,"subroutine %s"%(program_name,),line.filename) )
     return result
 
@@ -739,7 +753,7 @@ def check_begin_end(text):
   '''Checks x...endx consistence'''
 
   filter_line = lambda line: type(line) in [ Do, Enddo, If, Endif, \
-         Begin_provider, End_provider, \
+         Program, Begin_provider, End_provider, \
          Subroutine, Function, End, Begin_doc, End_doc ]
   text = filter(filter_line, text)
 
@@ -767,9 +781,9 @@ def check_begin_end(text):
       line = text[i]
       if type(line) == x:
         return
-      if type(line) in [ Subroutine, Function, Begin_provider ]:
-        error.fail(text[begin],"Subroutine/Function/Provider is not closed")
-    error.fail(text[begin],"Subroutine/Function/Provider is not closed")
+      if type(line) in [ Subroutine, Function, Program, Begin_provider ]:
+        error.fail(text[begin],type(line)+" is not closed")
+    error.fail(text[begin],type(line) + " is not closed")
 
   
   level = 0
@@ -781,10 +795,7 @@ def check_begin_end(text):
       find_matching_end_ifdo(i,'do')
     elif type(line) == If:
       find_matching_end_ifdo(i,'if')
-    elif type(line) == Subroutine:
-      level += 1
-      find_matching_end_subfunpro(i,End)
-    elif type(line) == Function:
+    elif type(line) in [Subroutine, Function, Program]:
       level += 1
       find_matching_end_subfunpro(i,End)
     elif type(line) == Begin_provider:

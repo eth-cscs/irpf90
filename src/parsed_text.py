@@ -257,7 +257,7 @@ def move_to_top(text,t):
   inside = False
   for i in range(len(text)):
     vars, line = text[i]
-    if type(line) in [ Begin_provider, Subroutine, Function ]:
+    if type(line) in [ Begin_provider, Program, Subroutine, Function ]:
       begin = i
       inside = True
     elif type(line) in [ End_provider, End ]:
@@ -286,17 +286,25 @@ def build_sub_needs():
   # Needs
   for filename, text in parsed_text:
     sub = None
+    in_program = False
     for vars,line in text:
       if type(line) in [ Subroutine, Function ]:
         subname = find_subname(line)
         sub = subroutines[subname]
-        sub.needs = []
-        sub.to_provide = vars
+        sub._needs = []
+        sub._to_provide = []
       elif type(line) == End:
-        sub.needs = make_single(sub.needs)
-        sub = None
+        if not in_program:
+          sub._needs = make_single(sub._needs)
+          sub._to_provide = make_single(sub._to_provide)
+          sub = None
+      elif type(line) == Program:
+        in_program = True
       if sub is not None:
-        sub.needs += vars
+        if type(line) == Declaration:
+          sub._to_provide += vars
+        else:
+          sub._needs += vars
 
 build_sub_needs()
 
@@ -361,7 +369,7 @@ def move_variables():
         ifvars = old_ifvars.pop()
         elsevars = old_elsevars.pop()
         varlist = old_varlist.pop() + vars
-      elif type(line) in [ Begin_provider, Subroutine, Function ]:
+      elif type(line) in [ Begin_provider, Program, Subroutine, Function ]:
         varlist += vars
         append( (varlist,line) )
         if old_varlist != [] \
@@ -385,7 +393,7 @@ def move_variables():
     for vars,line in text:
       if vars != []:
         vars = make_single(vars)
-      if type(line) in [ Begin_provider, Subroutine, Function ]:
+      if type(line) in [ Begin_provider, Program, Subroutine, Function ]:
         varlist = list(vars)
       elif type(line) in [ If, Select ]:
         old_varlist.append(varlist)

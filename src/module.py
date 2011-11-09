@@ -151,7 +151,7 @@ class Fmodule(object):
         dec = []
         use = []
         for vars,line in text:
-          if type(line) in [ Subroutine, Function]:
+          if type(line) in [ Subroutine, Function, Program]:
             inside = True
           if inside:
             result.append( (vars,line) )
@@ -182,22 +182,6 @@ class Fmodule(object):
       result = move_to_top(result,Use)
       result    = map(lambda x: x[1], result)
       result    = map(lambda x: x.text, result)
-      if self.is_main:
-        temp  = [ "program irp_program" ]
-        if command_line.do_profile:
-          temp += [ "call irp_init_timer()" ]
-        if command_line.do_openmp:
-          temp += [ "!$OMP PARALLEL" ]
-          temp += [ "!$OMP MASTER" ]
-        temp += [ " call %s"%(self.prog_name) ]
-        if command_line.do_openmp:
-          temp += [ "!$OMP END MASTER" ]
-          temp += [ "!$OMP END PARALLEL" ]
-        if command_line.do_profile:
-          temp += [ "call irp_print_timer()" ]
-        temp += [ " call irp_finalize_%s()"%(irp_id) ]
-        temp += [ "end program" ]
-        result = temp + result
       self._residual_text = result
     return self._residual_text
   residual_text = property(residual_text)
