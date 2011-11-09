@@ -26,6 +26,7 @@
 
 
 
+import vim
 import os,sys
 wd = os.path.abspath(os.path.dirname(__file__))
 sys.setcheckinterval(1000)
@@ -33,6 +34,8 @@ sys.path.insert(0,(wd+"/../src/"))
 
 def main():
   from command_line import command_line
+
+  vim.install()
 
   if command_line.do_help:
     command_line.usage()

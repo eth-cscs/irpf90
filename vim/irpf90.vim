@@ -2,7 +2,7 @@
 " Language:	IRPF90
 " Version:	0.1
 " URL:		
-" Last Change:	2010 Jun. 9
+" Last Change:	2011 Nov. 9
 " Maintainer:	
 " Usage:	Do :help irpf90-syntax from Vim
 " Credits:
@@ -365,5 +365,10 @@ if !exists("did_irpf90_syn_inits")
   delcommand HiLink
 endif
 
+fun! ReadMan()
+  let s:man_word = expand('<cword>')
+  :exe ":!irpman " . s:man_word 
+endfun
+map K :call ReadMan()<CR>
 
 " vim: ts=8 tw=132

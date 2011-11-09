@@ -166,7 +166,6 @@ def parallel_loop(f,source):
   result = []
   for filename, text in src[thread_id]:
     result.append( (filename, f(filename,text)) )
-
   result.sort()
 
   if fork == 0:
@@ -174,11 +173,16 @@ def parallel_loop(f,source):
     w.close()
     os._exit(0)
   
+  OK = True
+  for i in xrange(1,NTHREADS):
+    if os.waitpid(pidlist[i],0)[1] != 0:
+      OK = False
+  if not OK:
+    sys.exit(1)
+
   for i in xrange(1,NTHREADS):
     result += pickle.load(r[i])
     r[i].close()
-    if os.waitpid(pidlist[i],0)[1] != 0:
-      raise OSError
 
   return result
 

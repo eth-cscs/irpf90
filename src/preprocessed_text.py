@@ -782,8 +782,8 @@ def check_begin_end(text):
       if type(line) == x:
         return
       if type(line) in [ Subroutine, Function, Program, Begin_provider ]:
-        error.fail(text[begin],type(line)+" is not closed")
-    error.fail(text[begin],type(line) + " is not closed")
+        error.fail(text[begin],type(line).str+" is not closed")
+    error.fail(text[begin],type(line).str + " is not closed")
 
   
   level = 0

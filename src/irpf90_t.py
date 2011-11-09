@@ -78,6 +78,7 @@ class Continue(Line):
     return "%20s:%5d : %s"%("Continue",self.i,self.text)
 
 class Begin_provider(Line):
+  str = "Provider"
   def __init__(self,i,text,filename):
     Line.__init__(self,i,text,filename)
   def __repr__(self):
@@ -264,18 +265,21 @@ class End_select(Line):
     return "%20s:%5d : %s"%("End_select",self.i,self.text)
 
 class Program(Line):
+  str = "Program"
   def __init__(self,i,text,filename):
     Line.__init__(self,i,text,filename)
   def __repr__(self):
     return "%20s:%5d : %s"%("Program",self.i,self.text)
 
 class Subroutine(Line):
+  str = "Subroutine"
   def __init__(self,i,text,filename):
     Line.__init__(self,i,text,filename)
   def __repr__(self):
     return "%20s:%5d : %s"%("Subroutine",self.i,self.text)
 
 class Function(Line):
+  str = "Function"
   def __init__(self,i,text,filename):
     Line.__init__(self,i,text,filename)
   def __repr__(self):
