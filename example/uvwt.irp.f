@@ -8,7 +8,7 @@ END_PROVIDER
 
 BEGIN_PROVIDER [ integer, v ]
   v = u2+w+2
-!END_PROVIDER
+END_PROVIDER
 
 BEGIN_PROVIDER [ integer, u1 ]
   integer :: fu

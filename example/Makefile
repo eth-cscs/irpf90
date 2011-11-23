@@ -1,4 +1,4 @@
-IRPF90 = irpf90  #-a -d
+IRPF90 = irpf90  -a -d
 FC     = gfortran
 FCFLAGS= -O2
 
