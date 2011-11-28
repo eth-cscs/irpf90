@@ -303,8 +303,7 @@ def build_sub_needs():
       if sub is not None:
         if type(line) == Declaration:
           sub._to_provide += vars
-        else:
-          sub._needs += vars
+        sub._needs += vars
 
 build_sub_needs()
 
@@ -534,9 +533,10 @@ parsed_text = perform_loop_substitutions()
 ######################################################################
 if __name__ == '__main__':
  for i in range(len(parsed_text)):
-  if parsed_text[i][0] == 'ao_oneD.irp.f':
+  if parsed_text[i][0] == sys.argv[1]:
    print '!-------- %s -----------'%(parsed_text[i][0])
    for line in parsed_text[i][1]:
      print line[1]
      print line[0], line[1].filename
-
+ for i in subroutines:
+   print i, subroutines[i].needs, subroutines[i].to_provide
