@@ -25,7 +25,7 @@
 #   scemama@irsamc.ups-tlse.fr
 
 import os
-NTHREADS=int(os.getenv('OMP_NUM_THREADS',2))
+NTHREADS=1 #int(os.getenv('OMP_NUM_THREADS',1))
 
 def strip(x):
   return x.strip()
