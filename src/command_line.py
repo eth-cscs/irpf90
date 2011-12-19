@@ -179,7 +179,7 @@ do_$LONG = property(fget=do_$LONG)
 """
   for short in options:
     long = options[short][0]
-    exec t.replace("$LONG",long).replace("$SHORT",short)
+    exec t.replace("$LONG",long).replace("$SHORT",short) #in locals()
 
   def do_run(self):
    if '_do_run' not in self.__dict__:

@@ -4,7 +4,7 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 import os
 
-to_remove = """cython_setup.py command_line.py irpf90.py""".split()
+to_remove = """cython_setup.py command_line.py""".split()
 ext_modules = []
 
 files = os.listdir('.')
@@ -16,11 +16,12 @@ for file in files:
    module = file.split('.')[0]
    ext_modules += [ Extension(module,[file]) ]
 
-
 setup(
   name = 'IRPF90 extensions',
   cmdclass = {'build_ext': build_ext},
   ext_modules = ext_modules
 )
+
+
 
 

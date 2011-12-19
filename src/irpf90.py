@@ -28,9 +28,12 @@
 
 import vim
 import os,sys
-wd = os.path.abspath(os.path.dirname(__file__))
+try:
+  wd = os.path.abspath(os.path.dirname(__file__))
+  sys.path.insert(0,(wd+"/../src/"))
+except:
+  pass
 sys.setcheckinterval(1000)
-sys.path.insert(0,(wd+"/../src/"))
 
 def main():
   from command_line import command_line
