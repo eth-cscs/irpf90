@@ -347,7 +347,7 @@ def create_irpf90_files():
   from command_line import command_line
   import os
   def is_irpf90_file(filename):
-    return filename.endswith(".irp.f")
+    return filename.endswith(".irp.f") and not filename.startswith('.')
   result = filter ( is_irpf90_file, os.listdir(os.getcwd()) )
   return result
 irpf90_files = create_irpf90_files()
