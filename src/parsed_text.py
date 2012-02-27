@@ -70,7 +70,7 @@ def find_funcs_in_line(line):
 def find_subroutine_in_line(line):
   assert type(line) == Call
   buffer = line.text.split('(')[0]
-  buffer = buffer.split()[1]
+  buffer = buffer.split()[1].lower()
   return buffer
 
 def check_touch(line,vars,main_vars):
