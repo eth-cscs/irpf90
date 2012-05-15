@@ -81,7 +81,7 @@ class CommandLine(object):
       for o,a in self.opts:
         if o in [ "-s", '--'+options['s'][0] ]:
           k, v = a.split(':')
-          v_re = re.compile(r"(^.*[,| ]+)(%s)(\s*$)"%k.strip())
+          v_re = re.compile(r"(\W)(%s)(\W.*$|$)"%k.strip())
           self._substituted[k] = [v, v_re]
     return self._substituted
   substituted = property(fget=substituted)

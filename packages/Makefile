@@ -1,7 +1,7 @@
 include version
 default:
 	rm *.rpm *.tar.gz *.exe.gz 2> /dev/null ;\
-	VERSION=$(VERSION) epm -a noarch -m noarch irpf90 irpf90.list ;\
+	VERSION=$(VERSION) epm -f portable -a noarch -m noarch irpf90 irpf90.list ;\
 	cd noarch ;\
 	cp ~/.rpmmacros .;\
 	echo "%_topdir $$PWD" > ~/.rpmmacros ;\

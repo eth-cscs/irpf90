@@ -519,11 +519,11 @@ def perform_loop_substitutions():
     result = []
     append = result.append
     for vars,line in text:
-      if type(line) == Do:
+      if type(line) in [ Do, If, Elseif] :
         for k,v in command_line.substituted.items():
           reg = v[1]
-          if reg.search(line.text) is not None:
-            line.text = re.sub(reg,r'\1%s\3', line.text)%v[0]
+          while reg.search(line.text) is not None:
+            line.text = re.sub(reg,r'\1%s\3', line.text,count=1)%v[0]
       append( (vars,line) )
     main_result.append( (filename, result) )
   return main_result

@@ -588,7 +588,6 @@ def irp_simple_statements(text):
 
   def process_function(line):
     assert type(line) == Function
-    buffer = line.text.split('(')
     subname = find_subname(line)
     length = len(subname)
     i = line.i
