@@ -4,7 +4,7 @@ HAS_CYTHON=$(shell which cython &> /dev/null && echo 1 || echo 0)
 ifeq ($(HAS_CYTHON),0)
 
 irpf90.exe: 
-	cp irpf90_python.exe irpf90.exe
+	cp -f irpf90_python.exe irpf90.exe
 
 else
 
@@ -20,4 +20,4 @@ irpf90.c: irpf90.py
 endif
 
 clean:
-	rm *.c *.so *.pyc 2>/dev/null
+	rm -f *.c *.so *.pyc *.pyo 2>/dev/null
