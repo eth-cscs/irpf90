@@ -1,5 +1,6 @@
 include version
 default:
+	set -x
 	rm *.rpm *.tar.gz *.exe.gz 2> /dev/null ;\
 	VERSION=$(VERSION) epm -f portable -a noarch -m noarch irpf90 irpf90.list ;\
 	cd noarch ;\
