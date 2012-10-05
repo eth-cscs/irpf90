@@ -36,18 +36,25 @@ def create():
   out = []
   l = variables.keys()
   l.sort
+  main_modules = filter(lambda x: modules[x].is_main, modules)
   finalize = "subroutine irp_finalize_%s\n"%(irp_id)
   for m in filter(lambda x: not modules[x].is_main, modules):
     finalize += " use %s\n"%(modules[m].name)
   for v in l:
     var = variables[v]
-    if var.is_touched:
-      out += var.toucher
-    if var.dim != []:
-      finalize += "  if (allocated(%s)) then\n"%v
-      finalize += "    %s_is_built = .False.\n"%var.same_as
-      finalize += "    deallocate(%s)\n"%v
-      finalize += "  endif\n"
+    var_in_main = False
+    for m in main_modules:
+      if var.fmodule == modules[m].name:
+        var_in_main = True
+        break
+    if not var_in_main:
+      if var.is_touched:
+        out += var.toucher
+      if var.dim != []:
+        finalize += "  if (allocated(%s)) then\n"%v
+        finalize += "    %s_is_built = .False.\n"%var.same_as
+        finalize += "    deallocate(%s)\n"%v
+        finalize += "  endif\n"
   finalize += "end\n"
 
 
