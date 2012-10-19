@@ -22,7 +22,7 @@ BEGIN_PROVIDER [ integer, u1 ]
   do i=1,m
     print *,  i
   enddo
-  PROVIDE u2
+! PROVIDE u2
 END_PROVIDER
 
 BEGIN_PROVIDER [ integer, u2 ]
