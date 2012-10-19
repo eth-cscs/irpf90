@@ -339,48 +339,52 @@ def move_variables():
     old_elsevars = []
     revtext = list(text)
     revtext.reverse()
-    for vars,line in revtext:
-      if type(line) in [ End_provider,End ]:
-        varlist = []
-        append( ([],line) )
-      elif type(line) in [ Endif, End_select ]:
-        old_ifvars.append( list(ifvars) )
-        old_elsevars.append( list(elsevars) )
-        old_varlist.append( list(varlist) )
-        varlist = []
-        append( ([],line) )
-      elif type(line) == Else:
-        elsevars += list(varlist)
-        append( (varlist,line) )
-        varlist = []
-      elif type(line) in [ Elseif, Case ]:
-        ifvars += list(varlist)
-        append( (varlist,line) )
-        if vars != []:
-          varlist = old_varlist.pop()
-          varlist += vars
+    try:
+      for vars,line in revtext:
+        if type(line) in [ End_provider,End ]:
+          varlist = []
+          append( ([],line) )
+        elif type(line) in [ Endif, End_select ]:
+          old_ifvars.append( list(ifvars) )
+          old_elsevars.append( list(elsevars) )
           old_varlist.append( list(varlist) )
-        varlist = []
-      elif type(line) in [ If, Select ]:
-        ifvars += list(varlist)
-        append( (varlist,line) )
-        vars += filter(lambda x: x in elsevars, ifvars)
-        ifvars = old_ifvars.pop()
-        elsevars = old_elsevars.pop()
-        varlist = old_varlist.pop() + vars
-      elif type(line) in [ Begin_provider, Program, Subroutine, Function ]:
-        varlist += vars
-        append( (varlist,line) )
-        if old_varlist != [] \
-         or old_ifvars != [] \
-         or old_elsevars != []:
-          error.fail(line,"End if missing")
-        varlist = []
-      elif type(line) == Provide_all:
-        append( (vars,line) )
-      else:
-        varlist += vars
-        append( ([],line) )
+          varlist = []
+          append( ([],line) )
+        elif type(line) == Else:
+          elsevars += list(varlist)
+          append( (varlist,line) )
+          varlist = []
+        elif type(line) in [ Elseif, Case ]:
+          ifvars += list(varlist)
+          append( (varlist,line) )
+          if vars != []:
+            varlist = old_varlist.pop()
+            varlist += vars
+            old_varlist.append( list(varlist) )
+          varlist = []
+        elif type(line) in [ If, Select ]:
+          ifvars += list(varlist)
+          append( (varlist,line) )
+          vars += filter(lambda x: x in elsevars, ifvars)
+          ifvars = old_ifvars.pop()
+          elsevars = old_elsevars.pop()
+          varlist = old_varlist.pop() + vars
+        elif type(line) in [ Begin_provider, Program, Subroutine, Function ]:
+          varlist += vars
+          append( (varlist,line) )
+          if old_varlist != [] \
+           or old_ifvars != [] \
+           or old_elsevars != []:
+            error.fail(line,"End if missing")
+          varlist = []
+        elif type(line) == Provide_all:
+          append( (vars,line) )
+        else:
+          varlist += vars
+          append( ([],line) )
+    except:
+      error.fail(line,"Unable to parse file")
+
     result.reverse()
   
     # 2nd pass
@@ -389,34 +393,37 @@ def move_variables():
     append = result.append
     old_varlist = []
     varlist = []
-    for vars,line in text:
-      if vars != []:
-        vars = make_single(vars)
-      if type(line) in [ Begin_provider, Program, Subroutine, Function ]:
-        varlist = list(vars)
-      elif type(line) in [ If, Select ]:
-        old_varlist.append(varlist)
-        vars = filter(lambda x: x not in varlist,vars)
-        varlist = make_single(varlist + vars)
-        assert old_varlist is not varlist
-      elif type(line) in [ Elseif, Else, Case ]:
-        varlist = old_varlist.pop()
-        old_varlist.append(varlist)
-        vars = filter(lambda x: x not in varlist,vars)
-        varlist = make_single(varlist + vars)
-        assert old_varlist is not varlist
-      elif type(line) in [ Endif, End_select ]:
-        varlist = old_varlist.pop()
-      elif type(line) == Provide_all:
-        vars += varlist
-      elif type(line) in [ End_provider, End ]:
-        assert old_varlist == []
-        varlist = []
-      for v in vars[:]:
-        if v[0] == '-':
-          vars.remove(v)
-          vars.remove(v[1:])
-      result.append( (vars,line) )
+    try:
+      for vars,line in text:
+        if vars != []:
+          vars = make_single(vars)
+        if type(line) in [ Begin_provider, Program, Subroutine, Function ]:
+          varlist = list(vars)
+        elif type(line) in [ If, Select ]:
+          old_varlist.append(varlist)
+          vars = filter(lambda x: x not in varlist,vars)
+          varlist = make_single(varlist + vars)
+          assert old_varlist is not varlist
+        elif type(line) in [ Elseif, Else, Case ]:
+          varlist = old_varlist.pop()
+          old_varlist.append(varlist)
+          vars = filter(lambda x: x not in varlist,vars)
+          varlist = make_single(varlist + vars)
+          assert old_varlist is not varlist
+        elif type(line) in [ Endif, End_select ]:
+          varlist = old_varlist.pop()
+        elif type(line) == Provide_all:
+          vars += varlist
+        elif type(line) in [ End_provider, End ]:
+          assert old_varlist == []
+          varlist = []
+        for v in vars[:]:
+          if v[0] == '-':
+            vars.remove(v)
+            vars.remove(v[1:])
+        result.append( (vars,line) )
+    except:
+      error.fail(line,"Unable to parse file")
     return result
 
   main_result = []
