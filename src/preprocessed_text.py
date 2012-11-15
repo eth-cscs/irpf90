@@ -107,7 +107,7 @@ def get_type (i, filename, line, is_doc):
   lower_line = re_endif.sub("endif",lower_line)
   lower_line = re_endselect.sub("endselect",lower_line)
   for c in """()'"[]""":
-    lower_line = lower_line.replace(c," ")
+    lower_line = lower_line.replace(c," "+c+" ")
 
   buffer = lower_line.split()
   if len(buffer) == 0:
@@ -854,6 +854,7 @@ preprocessed_text = parallel_loop( lambda x,y: create_preprocessed_text(x), \
 ######################################################################
 def debug():
   for filename, txt in preprocessed_text:
+   if filename == 'jastrow_large.irp.f':
     print "=== "+filename+" ==="
     for line in txt:
       print line

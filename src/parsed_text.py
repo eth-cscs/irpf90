@@ -545,5 +545,5 @@ if __name__ == '__main__':
    for line in parsed_text[i][1]:
      print line[1]
      print line[0], line[1].filename
- for i in subroutines:
-   print i, subroutines[i].needs, subroutines[i].to_provide
+#for i in subroutines:
+#  print i, subroutines[i].needs, subroutines[i].to_provide
