@@ -153,6 +153,8 @@ instead of
      return [ Openmp(i,line,filename) ], is_doc
     elif lower_line0[1:5] in ["dec$", "dir$"] and command_line.directives:
      return [ Directive(i,line,filename) ], is_doc
+    elif lower_line0[1:3] == "$ ":
+     return [ Openmp(i,line,filename) ], is_doc
 
     if re_decl.match(lower_line) is not None:
       if "function" in buffer[1:3]:
