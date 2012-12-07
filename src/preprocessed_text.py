@@ -96,8 +96,9 @@ def get_type (i, filename, line, is_doc):
   assert type(is_doc) == bool
 
   line = line.rstrip()
+  line = line.replace("$IRP_ALIGN",command_line.align)
   lower_line0 = line.lstrip().lower()
-  lower_line  = lower_line0.replace("!"," ! ")
+  lower_line = lower_line0.replace("!"," ! ")
 
   # Replacements
   lower_line = re_elseif.sub("elseif",lower_line)
@@ -106,6 +107,7 @@ def get_type (i, filename, line, is_doc):
   lower_line = re_endmodule.sub("endmodule",lower_line)
   lower_line = re_endif.sub("endif",lower_line)
   lower_line = re_endselect.sub("endselect",lower_line)
+
   for c in """()'"[]""":
     lower_line = lower_line.replace(c," "+c+" ")
 

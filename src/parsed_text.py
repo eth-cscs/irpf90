@@ -526,7 +526,7 @@ def perform_loop_substitutions():
     result = []
     append = result.append
     for vars,line in text:
-      if type(line) in [ Do, If, Elseif] :
+      if type(line) in [ Do, If, Elseif ] :
         for k,v in command_line.substituted.items():
           reg = v[1]
           while reg.search(line.text) is not None:

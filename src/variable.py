@@ -233,8 +233,8 @@ class Variable(object):
     if '_header' not in self.__dict__:
       name = self.name
       self._header = [ "  %s :: %s %s"%(self.type, name, build_dim_colons(self) ) ]
-      if self.dim != [] and command_line.align > 0:
-       self._header += ["  !DIR$ ATTRIBUTES ALIGN: %d :: %s"%(command_line.align,name)]
+      if self.dim != [] and command_line.align != '1':
+       self._header += ["  !DIR$ ATTRIBUTES ALIGN: %s :: %s"%(command_line.align,name)]
       if self.is_main:
        self._header += [ "  logical :: %s_is_built = .False."%(name) ]
     return self._header

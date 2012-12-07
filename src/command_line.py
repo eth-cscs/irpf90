@@ -43,7 +43,7 @@ options['g'] = [ 'profile'      , 'Generate profile code', 0 ]
 options['t'] = [ 'touch'        , 'Display which entities are touched', 1 ]
 options['m'] = [ 'memory'       , 'Debug memory info', 0 ]
 options['z'] = [ 'openmp'       , 'Automatic openMP tasks (may not work)', 0 ]
-options['l'] = [ 'align'        , 'Align arrays using compiler directives', 1 ]
+options['l'] = [ 'align'        , 'Align arrays using compiler directives. Sets the $IRP_ALIGN variable', 1 ]
 options['s'] = [ 'substitute'   , 'Substitute values for loop max values', 1 ]
 options['r'] = [ 'no_directives', 'Ignore compiler directives !DEC$ and !DIR$', 0 ]
 options['n'] = [ 'inline'       , 'all|providers|builders : Force inlining of providers or builders', 1 ]
@@ -106,10 +106,10 @@ class CommandLine(object):
 
   def align(self):
     if '_align' not in self.__dict__:
-      self._align = 0
+      self._align = '1'
       for o,a in self.opts:
         if o in [ "-l", '--'+options['l'][0] ]:
-          self._align = int(a)
+          self._align = a
     return self._align
   align = property(fget=align)
 
