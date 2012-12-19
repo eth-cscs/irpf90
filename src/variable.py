@@ -465,13 +465,9 @@ class Variable(object):
           result = "    allocate(%s(%s),stat=irp_err)"
           result = result%(name,','.join(self.dim))
           if command_line.do_memory:
-            tmp = "\n   print *, %s, 'Allocating %s(%s), (',%s,')'"
+            tmp = "\n   print *, %s, 'Allocating %s(%s)'"
             d = ','.join(self.dim)
-            d2 = '*'.join(self.dim)
-            if ":" in d:
-              result += tmp%('-1',name,d,"''")
-            else:
-              result += tmp%(d2,name,d,d)
+            result += tmp%('size('+name+')',name,d)
           return result
 
         result = [ " if (allocated (%s) ) then"%(name) ]

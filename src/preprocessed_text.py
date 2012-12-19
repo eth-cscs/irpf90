@@ -858,7 +858,7 @@ preprocessed_text = parallel_loop( lambda x,y: create_preprocessed_text(x), \
 ######################################################################
 def debug():
   for filename, txt in preprocessed_text:
-   if filename == 'jastrow_large.irp.f':
+   if filename == 'invert.irp.f':
     print "=== "+filename+" ==="
     for line in txt:
       print line
