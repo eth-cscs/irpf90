@@ -103,12 +103,21 @@ def run():
     print >>file, "ALL_OBJ1 = $(patsubst %%, %s%%,$(notdir $(ALL_OBJ)))"%(irpdir)
     print >>file, "all:$(ALL)"
     print >>file, "\t@$(MAKE) -s move"
+    print >>file, "ifdef USE_IRPF90_A"
+    for m in mod:
+      if m.is_main:
+        exe = m.name[:-4]
+        print >>file, "%s: %s%s.irp.o %s%s.irp.module.o irpf90.a"%(exe,irpdir,exe,irpdir,exe)
+        print >>file, "\t$(FC) -o $@ %s$@.irp.o %s$@.irp.module.o irpf90.a $(LIB)"%(irpdir,irpdir)
+        print >>file, "\t@$(MAKE) -s move"
+    print >>file, "else"
     for m in mod:
       if m.is_main:
         exe = m.name[:-4]
         print >>file, "%s: %s%s.irp.o %s%s.irp.module.o $(OBJ1)"%(exe,irpdir,exe,irpdir,exe)
         print >>file, "\t$(FC) -o $@ %s$@.irp.o %s$@.irp.module.o $(OBJ1) $(LIB)"%(irpdir,irpdir)
         print >>file, "\t@$(MAKE) -s move"
+    print >>file, "endif"
 
     buffer = ""
     for m in mod:
@@ -169,7 +178,8 @@ def run():
     print >>file, irpdir+"%.o: %.F\n\t$(FC) $(FCFLAGS) -c $*.F -o "+irpdir+"$*.o"
     print >>file, irpdir+"%.irp.F90: irpf90.make\n"
     print >>file, "move:\n\t@mv -f *.mod IRPF90_temp/ 2> /dev/null | DO_NOTHING=\n"
-    print >>file, "clean:\n\trm -rf $(EXE) $(OBJ1) $(ALL_OBJ1) $(ALL)\n"
+    print >>file, "irpf90.a: $(OBJ1)\n\t$(AR) crf irpf90.a $(OBJ1)\n"
+    print >>file, "clean:\n\trm -rf $(EXE) $(OBJ1) irpf90.a $(ALL_OBJ1) $(ALL)\n"
     print >>file, "veryclean:\n\t- $(MAKE) clean\n"
     print >>file, "\t- rm -rf "+irpdir+" "+mandir+" irpf90.make irpf90_variables dist\n"
 
