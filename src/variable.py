@@ -618,6 +618,8 @@ class Variable(object):
         from variables import variables
         if '_needed_by' not in self.__dict__:
           import parsed_text
+        if command_line.do_unused and self.needed_by == []:
+          error.warn(None, "Provider %s is not used"%self.name)
         result = []
         for x in self.needed_by:
           result.append(x)

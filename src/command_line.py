@@ -47,6 +47,7 @@ options['l'] = [ 'align'        , 'Align arrays using compiler directives. Sets 
 options['s'] = [ 'substitute'   , 'Substitute values for loop max values', 1 ]
 options['r'] = [ 'no_directives', 'Ignore compiler directives !DEC$ and !DIR$', 0 ]
 options['n'] = [ 'inline'       , 'all|providers|builders : Force inlining of providers or builders', 1 ]
+options['u'] = [ 'unused'       , 'Print unused providers', 0 ]
 
 class CommandLine(object):
 
