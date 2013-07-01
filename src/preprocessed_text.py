@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #   IRPF90 is a Fortran90 preprocessor written in Python for programming using
 #   the Implicit Reference to Parameters (IRP) method.
-#   Copyright (C) 2009 Anthony SCEMAMA 
+#   Copyright (C) 2009 Anthony SCEMAMA
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -20,8 +20,8 @@
 #   Anthony Scemama
 #   LCPQ - IRSAMC - CNRS
 #   Universite Paul Sabatier
-#   118, route de Narbonne      
-#   31062 Toulouse Cedex 4      
+#   118, route de Narbonne
+#   31062 Toulouse Cedex 4
 #   scemama@irsamc.ups-tlse.fr
 
 from irpf90_t import *
@@ -133,7 +133,7 @@ def get_type (i, filename, line, is_doc):
 
   if firstword in simple_dict:
     return [ simple_dict[firstword](i,line,filename) ], is_doc
-  
+
   if firstword in [ "select", "selectcase" ]:
     return [ Select(i,line,filename) ] , is_doc
 
@@ -141,7 +141,7 @@ def get_type (i, filename, line, is_doc):
 
     if firstword[0] == '#':
       result = [ Simple_line(i,line,filename) ]
-      error.warn ( result[0] , 
+      error.warn ( result[0] ,
 """irpf90 may not work with preprocessor directives. You can use
  Irp_if ... Irp_else ... Irp_endif
 instead of
@@ -167,7 +167,7 @@ instead of
     # Detect errors
     if firstword == "dowhile":
       error.fail( Do(i,line,filename) , "'do while' should be in 2 words." )
-  
+
   return [ Simple_line(i,line,filename) ], is_doc
 
 
@@ -343,7 +343,7 @@ def form(text):
             return Free_form
           if line.text.rstrip()[-1] == '&':
             return Free_form
-  return Fixed_form 
+  return Fixed_form
 
 ######################################################################
 def add_operators(text):
@@ -355,7 +355,11 @@ def add_operators(text):
   for line in text:
     buffer = line.text
     if "+=" in buffer:
-      line.text = re.sub(re_incr,r'\1\2=\2+(\4)', buffer)
+        if "if" in buffer:
+            re_incr = re.compile(r"(.*)(\))(\s*)(.*)(\+=)(.*$)",re.S)
+            line.text = re.sub(re_incr,r'\1\2\4=\4+(\6)', buffer)
+        else:
+            line.text = re.sub(re_incr,r'\1\2=\2+(\4)', buffer)
     elif "-=" in buffer:
       line.text = re.sub(re_decr,r'\1\2=\2-(\4)', buffer)
     elif "*=" in buffer:
@@ -374,7 +378,7 @@ def remove_comments(text,form):
       return line
     else:
       return re_comment.split(line)[1].rstrip()
-      
+
   if form == Free_form:
     for line in text:
       if type(line) in [ Openmp, Doc, Directive] :
@@ -445,7 +449,7 @@ def remove_continuation(text,form):
          buffer = ""
   return result
 
-      
+
 ######################################################################
 def irp_simple_statements(text):
   '''Processes simple statements'''
@@ -472,7 +476,7 @@ def irp_simple_statements(text):
        Empty_line(line.i,"!",f),
     ]
     return result
-    
+
   def process_irp_read (line):
     assert type(line) == Irp_read
     return process_irp_rw(line,'read' ,Irp_read )
@@ -502,7 +506,7 @@ def irp_simple_statements(text):
           result.append ( Simple_line (line.i, " print *, '%s = ', %s"%(m,m), line.filename) )
       result.append ( Simple_line (line.i, " print *, ''", line.filename) )
     return result
-   
+
   def process_assert(line):
     assert type(line) == Assert
     if command_line.do_assert:
@@ -608,7 +612,7 @@ def irp_simple_statements(text):
   def process_program(line):
     assert type(line) == Program
     program_name = line.lower.split()[1]
-    temp = [ Program(0,"program irp_program",program_name) ] 
+    temp = [ Program(0,"program irp_program",program_name) ]
     if command_line.do_profile:
       temp += [ Simple_line(0,"call irp_init_timer()",line.filename) ]
     if command_line.do_openmp:
@@ -648,8 +652,8 @@ def irp_simple_statements(text):
         break
     result += buffer
   return result
-    
-      
+
+
 ######################################################################
 def change_includes(text):
   '''Deals with include files'''
@@ -686,7 +690,7 @@ def process_old_style_do(text):
           text[i] = Enddo(line.i,"  enddo",line.filename)
           return
     error.fail(text[begin],"Old-style do loops should end with 'continue' or 'end do'")
-      
+
   result = []
   for i in range(len(text)):
     line = text[i]
@@ -705,7 +709,7 @@ def process_old_style_do(text):
 ######################################################################
 def change_single_line_ifs(text):
   '''Changes:
-if (test) result 
+if (test) result
 
 to
 
@@ -788,7 +792,7 @@ def check_begin_end(text):
         error.fail(text[begin],type(line).str+" is not closed")
     error.fail(text[begin],type(line).str + " is not closed")
 
-  
+
   level = 0
   for i,line in enumerate(text):
     if type(line) == Begin_doc:
@@ -864,6 +868,6 @@ def debug():
       print line
   print irpf90_files
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
   debug()
 
