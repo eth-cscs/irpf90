@@ -355,7 +355,7 @@ def add_operators(text):
   for line in text:
     buffer = line.text
     if "+=" in buffer:
-        if "if" in buffer:
+        if " if " in buffer:
             re_incr = re.compile(r"(.*)(\))(\s*)(.*)(\+=)(.*$)",re.S)
             line.text = re.sub(re_incr,r'\1\2\4=\4+(\6)', buffer)
         else:
