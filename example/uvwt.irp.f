@@ -12,22 +12,14 @@ END_PROVIDER
 
 BEGIN_PROVIDER [ integer, u1 ]
   integer :: fu
-  u1 = fu(d1,d2)
-  integer :: n, m
-  n=3
-  do i=1,n
-    print *,  i
-  enddo
-  m=2
-  do i=1,m
-    print *,  i
-  enddo
-! PROVIDE u2
+! u1 = fu(d1,d2)
+  u1 = d1+d2+1
 END_PROVIDER
 
 BEGIN_PROVIDER [ integer, u2 ]
   integer :: fu
-  u2 = fu(d3,d4)
+! u2 = fu(d3,d4)
+  u2 = d3+d4+1
 END_PROVIDER
 
 integer function fu(x,y)

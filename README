@@ -1,35 +1,47 @@
-+==============================================================================+
-|                                  IRPF90                                      |
-+==============================================================================+
+======
+IRPF90
+======
 
-Dependencies:
--------------
+Dependencies
+------------
 
-- GNU make (3.81 recommended)
+- GNU make (>= 3.81 recommended)
 - Python > 2.3
-- Any Fortran 90 compiler (gfortran, for example)
+- Any Fortran 90 compiler (Intel recommended, for example)
 
-Installing IRPF90:
-------------------
+Installing IRPF90
+-----------------
 
-- As the super-user, run
-./irpf90.install
+${IRPF90_HOME} is the location of your irpf90 directory::
+
+  cd ${IRPF90_HOME}
+  make
+  cat << EOF >> ${HOME}/.bash_profile
+  export PYTHONPATH=${IRPF90_HOME}/src:${PYTHONPATH}
+  export PATH=${IRPF90_HOME}/bin:${PATH}
+  EOF
 
 
-Using IRPF90:
--------------
+Using IRPF90
+------------
 
-In an empty directory, run:
-irpf90 -init
+In an empty directory, run::
+
+  irpf90 --init
+
 This command creates a new Makefile suitable for most irpf90 projects.
 Now you can start to program using irpf90.
 
 
-Web Site:
+Web Site
+--------
+
 http://irpf90.ups-tlse.fr
 
-Author:
-Anthony Scemama, LCPQ-IRSAMC, CNRS-Universite Paul Sabatier
-scemama@irsamc.ups-tlse.fr
-http://irpf90.ups-tlse.fr/index.php?title=Anthony_Scemama
+Author
+------
+
+| Anthony Scemama, LCPQ-IRSAMC, CNRS-Universite Paul Sabatier
+| scemama@irsamc.ups-tlse.fr
+| http://scemama.mooo.com
 

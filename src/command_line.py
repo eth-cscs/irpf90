@@ -31,21 +31,21 @@ import re
 
 description = "IRPF90 Fortran preprocessor."
 options = {}
-options['d'] = [ 'debug'        , 'Activate debug', 0 ]
-options['v'] = [ 'version'      , 'Print version of irpf90', 0 ]
-options['a'] = [ 'assert'       , 'Activate assertions', 0 ]
+options['d'] = [ 'debug'        , 'Activates debug. The name of the current subroutine/function/provider will be printed on the standard output when entering or exiting a routine, as well as the CPU time passed inside the routine.', 0 ]
+options['v'] = [ 'version'      , 'Prints version of irpf90', 0 ]
+options['a'] = [ 'assert'       , 'Activates ASSERT statements. If absent, remove ASSERT statements.', 0 ]
 options['h'] = [ 'help'         , 'Print this help', 0 ]
-options['i'] = [ 'init'         , 'Initialize current directory', 0 ]
-options['D'] = [ 'define'       , 'Define variable', 1 ]
-options['o'] = [ 'checkopt'     , 'Show where optimization may be required', 0 ]
-options['p'] = [ 'preprocess'   , 'Preprocess file', 1 ]
-options['g'] = [ 'profile'      , 'Generate profile code', 0 ]
-options['t'] = [ 'touch'        , 'Display which entities are touched', 1 ]
-options['m'] = [ 'memory'       , 'Debug memory info', 0 ]
-options['z'] = [ 'openmp'       , 'Automatic openMP tasks (may not work)', 0 ]
-options['l'] = [ 'align'        , 'Align arrays using compiler directives. Sets the $IRP_ALIGN variable', 1 ]
-options['s'] = [ 'substitute'   , 'Substitute values for loop max values', 1 ]
-options['r'] = [ 'no_directives', 'Ignore compiler directives !DEC$ and !DIR$', 0 ]
+options['i'] = [ 'init'         , 'Initialize current directory. Creates a default Makefile and the temporary working directories.', 0 ]
+options['D'] = [ 'define'       , 'Defines a variable identified by the IRP_IF statements.', 1 ]
+options['o'] = [ 'checkopt'     , 'Shows where optimization may be required', 0 ]
+options['p'] = [ 'preprocess'   , 'Prints a preprocessed file to standard output. Useful for  debugging files containing shell scripts.', 1 ]
+options['g'] = [ 'profile'      , 'Activates profiling of the code.', 0 ]
+options['t'] = [ 'touch'        , 'Display which entities are touched when touching the variable given as an argument.', 1 ]
+options['m'] = [ 'memory'       , 'Print memory allocations/deallocations.', 0 ]
+#options['z'] = [ 'openmp'       , 'Automatic openMP tasks (may not work)', 0 ]
+options['l'] = [ 'align'        , 'Align arrays using compiler directives and sets the $IRP_ALIGN variable. For example, --align=32 aligns all arrays on a 32 byte boundary.', 1 ]
+options['s'] = [ 'substitute'   , 'Substitute values in do loops for generating specific optimized code.', 1 ]
+options['r'] = [ 'no_directives', 'Ignore all compiler directives !DEC$ and !DIR$', 0 ]
 options['n'] = [ 'inline'       , 'all|providers|builders : Force inlining of providers or builders', 1 ]
 options['u'] = [ 'unused'       , 'Print unused providers', 0 ]
 
@@ -135,12 +135,7 @@ Options:
     t = t.replace("$EXE",self.executable_name)
     t = t.replace("$DESCR",description)
     print t
-    sorted = options.keys()
-    sorted.sort()
-    for o in sorted:
-     print "  -%s , --%15s : %s"%(o,options[o][0].ljust(15),options[o][1])
-     if options[o][2] == 1:
-       print "                           Requires an argument"
+    print_options()
     print ""
     print "Version : ", version
     print ""
@@ -195,3 +190,17 @@ do_$LONG = property(fget=do_$LONG)
 
 
 command_line = CommandLine()
+
+def print_options():
+  keys = options.keys()
+  keys.sort()
+  import subprocess, threading
+  for k in keys:
+    description = options[k][1]
+    p1 = subprocess.Popen(["fold", "-s", "-w", "40"],stdout=subprocess.PIPE,stdin=subprocess.PIPE)
+    description = p1.communicate(description)[0]
+    description = description.replace('\n','\n'.ljust(27))
+    print ("-%s, --%s"%(k,options[k][0])).ljust(25), description+'\n'
+
+if __name__ == '__main__':
+  print_options()
