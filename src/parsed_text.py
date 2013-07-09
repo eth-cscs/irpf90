@@ -81,9 +81,9 @@ def check_touch(line,vars,main_vars):
     return [main_var]+x.others
   all_others = make_single(flatten( map(fun,main_vars) ))
   all_others.sort()
-  if len(all_others) == len(vars):
-    vars.sort()
-    for x,y in zip(vars,all_others):
+  vars.sort()
+  print vars
+  for x,y in zip(vars,all_others):
       if x != y:
         message = "The following entities should be touched:\n"
         message = "\n".join([message]+map(lambda x: "- %s"%(x,),all_others))
