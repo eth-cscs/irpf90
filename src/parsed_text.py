@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #   IRPF90 is a Fortran90 preprocessor written in Python for programming using
 #   the Implicit Reference to Parameters (IRP) method.
-#   Copyright (C) 2009 Anthony SCEMAMA 
+#   Copyright (C) 2009 Anthony SCEMAMA
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -20,8 +20,8 @@
 #   Anthony Scemama
 #   LCPQ - IRSAMC - CNRS
 #   Universite Paul Sabatier
-#   118, route de Narbonne      
-#   31062 Toulouse Cedex 4      
+#   118, route de Narbonne
+#   31062 Toulouse Cedex 4
 #   scemama@irsamc.ups-tlse.fr
 
 
@@ -82,7 +82,6 @@ def check_touch(line,vars,main_vars):
   all_others = make_single(flatten( map(fun,main_vars) ))
   all_others.sort()
   vars.sort()
-  print vars
   for x,y in zip(vars,all_others):
       if x != y:
         message = "The following entities should be touched:\n"
@@ -118,7 +117,7 @@ def update_variables():
         variables[line.filename]._is_written = True
 
 ################################################################################
-  
+
 def get_parsed_text():
   def func(filename, text):
     varlist = []
@@ -144,7 +143,7 @@ def get_parsed_text():
         Subroutine,
         Function,
         End,
-      ]: 
+      ]:
         append( ([],line) )
       elif type(line) in [ Begin_provider, Cont_provider ]:
         if type(line) == Begin_provider:
@@ -243,7 +242,7 @@ def get_parsed_text():
  #  main_result.append( (filename, func(filename,text)) )
  #return main_result
   return parallel_loop(func,preprocessed_text)
-  
+
 update_variables()
 parsed_text = get_parsed_text()
 
@@ -321,7 +320,7 @@ def add_subroutine_needs():
       append( (vars,line) )
     main_result.append( (filename, result) )
   return main_result
-  
+
 parsed_text = add_subroutine_needs()
 
 ######################################################################
@@ -386,7 +385,7 @@ def move_variables():
       error.fail(line,"Unable to parse file")
 
     result.reverse()
-  
+
     # 2nd pass
     text = result
     result = []
@@ -458,12 +457,12 @@ def build_needs():
           Simple_line,  Assert,
           Do         ,  If,
           Elseif     ,  Select,
-        ]: 
+        ]:
           funcs = find_funcs_in_line(line)
           for f in funcs:
-            var.needs += subroutines[f].needs 
+            var.needs += subroutines[f].needs
   for v in variables:
-    main = variables[v].same_as 
+    main = variables[v].same_as
     if main != v:
       variables[v].needs = variables[main].needs
       variables[v].to_provide = variables[main].to_provide
@@ -472,7 +471,7 @@ def build_needs():
   for v in variables:
     variables[v].needed_by = []
   for v in variables:
-    main = variables[v].same_as 
+    main = variables[v].same_as
     if main != v:
       variables[v].needed_by = variables[main].needed_by
   for v in variables:
@@ -534,7 +533,7 @@ def perform_loop_substitutions():
       append( (vars,line) )
     main_result.append( (filename, result) )
   return main_result
-  
+
 parsed_text = perform_loop_substitutions()
 
 ######################################################################
