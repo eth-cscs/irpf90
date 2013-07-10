@@ -671,7 +671,6 @@ def change_includes(text):
     if type(line) == Include:
      txt = line.text.replace('"',"'").split("'")
      if len(txt) != 3:
-       print txt
        error.fail(line,"Error in include statement")
      filename = txt[1].strip()
      try:

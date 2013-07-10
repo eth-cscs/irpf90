@@ -51,6 +51,7 @@ options['u'] = [ 'unused'       , 'Print unused providers', 0 ]
 
 class CommandLine(object):
 
+  do_openmp = False
   def __init__(self):
     global options
     self._opts = None
