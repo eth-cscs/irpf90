@@ -1,6 +1,6 @@
 PYTHON=python
 PYVERSION=$(shell $(PYTHON) -c "import sys; print(sys.version[:3])")
-HAS_CYTHON=$(shell which cython &> /dev/null && echo 1 || echo 0)
+HAS_CYTHON=$(shell bash -c "which cython &> /dev/null && echo 1 || echo 0")
 ifneq ($(HAS_CYTHON),0)
 
 ../bin/irpf90: irpf90.exe
