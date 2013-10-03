@@ -355,15 +355,24 @@ def add_operators(text):
   for line in text:
     buffer = line.text
     if "+=" in buffer:
-        if buffer.lstrip().startswith("if "):
+        if "if" in buffer:
             re_incr = re.compile(r"(.*)(\))(\s*)(.*)(\+=)(.*$)",re.S)
             line.text = re.sub(re_incr,r'\1\2\4=\4+(\6)', buffer)
         else:
             line.text = re.sub(re_incr,r'\1\2=\2+(\4)', buffer)
     elif "-=" in buffer:
-      line.text = re.sub(re_decr,r'\1\2=\2-(\4)', buffer)
+        if "if" in buffer:
+            re_decr = re.compile(r"(.*)(\))(\s*)(.*)(\-=)(.*$)",re.S)
+            line.text = re.sub(re_decr,r'\1\2\4=\4-(\6)', buffer)
+        else:
+            line.text = re.sub(re_decr,r'\1\2=\2-(\4)', buffer)
+#     line.text = re.sub(re_decr,r'\1\2=\2-(\4)', buffer)
     elif "*=" in buffer:
-      line.text = re.sub(re_mult,r'\1\2=\2*(\4)', buffer)
+        if "if" in buffer:
+            re_mult = re.compile(r"(.*)(\))(\s*)(.*)(\*=)(.*$)",re.S)
+            line.text = re.sub(re_mult,r'\1\2\4=\4*(\6)', buffer)
+        else:
+            line.text = re.sub(re_mult,r'\1\2=\2*(\4)', buffer)
     result.append(line)
   return result
 
@@ -662,7 +671,6 @@ def change_includes(text):
     if type(line) == Include:
      txt = line.text.replace('"',"'").split("'")
      if len(txt) != 3:
-       print txt
        error.fail(line,"Error in include statement")
      filename = txt[1].strip()
      try:
