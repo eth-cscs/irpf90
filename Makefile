@@ -6,5 +6,5 @@ src:
 	$(MAKE) -C $@
 
 man:
-	$(MAKE) -C $@
+	- $(MAKE) -C $@
 
