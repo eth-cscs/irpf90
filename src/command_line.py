@@ -48,6 +48,7 @@ options['s'] = [ 'substitute'   , 'Substitute values in do loops for generating 
 options['r'] = [ 'no_directives', 'Ignore all compiler directives !DEC$ and !DIR$', 0 ]
 options['n'] = [ 'inline'       , 'all|providers|builders : Force inlining of providers or builders', 1 ]
 options['u'] = [ 'unused'       , 'Print unused providers', 0 ]
+options['I'] = [ 'include'      , 'Include directory', 1 ]
 
 class CommandLine(object):
 
@@ -66,6 +67,15 @@ class CommandLine(object):
           self._defined.append(a)
     return self._defined
   defined = property(fget=defined)
+
+  def include_dir(self):
+    if '_include_dir' not in self.__dict__:
+      self._include_dir = []
+      for o,a in self.opts:
+        if o in [ "-I", '--'+options['I'][0] ]:
+          self._include_dir.append(a)
+    return self._include_dir
+  include_dir = property(fget=include_dir)
 
   def inline(self):
     if '_inline' not in self.__dict__:
