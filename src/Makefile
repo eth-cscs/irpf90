@@ -3,11 +3,8 @@ PYVERSION=$(shell $(PYTHON) -c "import sys; print(sys.version[:3])")
 HAS_CYTHON=$(shell bash -c "which cython &> /dev/null && echo 1 || echo 0")
 ifneq ($(HAS_CYTHON),0)
 
-../bin/irpf90: irpf90.exe
-	rm ../bin/irpf90 ; cd ../bin ; ln -s ../src/irpf90.exe irpf90
-
-irpf90.exe: irpf90.so
-	gcc build/*/irpf90.o -L/usr/lib64 -lpython$(PYVERSION) -o irpf90.exe
+../bin/irpf90: irpf90.so
+	rm ../bin/irpf90 ; cd ../bin ; ln -s ../src/irpf90_python.exe irpf90
 
 irpf90.so : $(wildcard *.py) irpf90.c
 	./cython_setup.py build_ext --inplace
