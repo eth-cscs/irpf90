@@ -200,7 +200,7 @@ class Variable(object):
   ############################################################
   def fmodule(self):
     if '_fmodule' not in self.__dict__:
-      self._fmodule = self.line.filename[0].split('.irp.f')[0]+'_mod'
+      self._fmodule = self.line.filename[0].replace('/','__').split('.irp.f')[0]+'_mod'
     return self._fmodule
   fmodule = property(fmodule)
 

@@ -350,10 +350,9 @@ def create_irpf90_files():
     return filename.endswith(".irp.f") and not filename.startswith('.')
   result = filter ( is_irpf90_file, os.listdir(os.getcwd()) )
   for dir in command_line.include_dir:
-    result += map(lambda x: dir+'/'+x, filter ( is_irpf90_file, os.listdir(dir) ) )
+    result += map(lambda x: dir+x, filter ( is_irpf90_file, os.listdir(dir) ) )
   return result
 irpf90_files = create_irpf90_files()
-print irpf90_files
 
 
 

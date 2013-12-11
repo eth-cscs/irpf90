@@ -42,7 +42,7 @@ modules = create_modules()
 ######################################################################
 def write_module(m):
   # Module data
-  filename = irpdir+m.name[0:-4]+".irp.module.F90"
+  filename = irpdir+m.filename+".irp.module.F90"
   text = m.header + m.head 
   text = map(lambda x: "%s\n"%(x),text)
   if not same_file(filename,text):
@@ -52,7 +52,7 @@ def write_module(m):
     file.close()
 
   # Subroutines
-  filename = irpdir+m.name[0:-4]+".irp.F90"
+  filename = irpdir+m.filename+".irp.F90"
   text = m.header + m.generated_text + m.residual_text
   text = map(lambda x: "%s\n"%(x),text)
   if not same_file(filename,text):

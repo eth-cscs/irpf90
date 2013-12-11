@@ -73,6 +73,8 @@ class CommandLine(object):
       self._include_dir = []
       for o,a in self.opts:
         if o in [ "-I", '--'+options['I'][0] ]:
+          if a[-1] != '/':
+            a = a+'/'
           self._include_dir.append(a)
     return self._include_dir
   include_dir = property(fget=include_dir)

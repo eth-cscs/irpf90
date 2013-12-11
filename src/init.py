@@ -30,6 +30,7 @@ import os
 import util
 import makefile
 import irpf90_t
+from command_line import command_line
 
 initialized = False
 
@@ -49,26 +50,34 @@ def init():
     except OSError:
       os.mkdir(dir)
 
+  for dir in command_line.include_dir:
+    dir = irpf90_t.irpdir+dir
+    try:
+      wd = os.getcwd()
+      os.chdir(dir)
+      os.chdir(wd)
+    except OSError:
+      os.mkdir(dir)
+
   # Create makefile
   makefile.create()
   
   # Copy current files in the irpdir
-  for filename in os.listdir(os.getcwd()):
-    if not filename[0].startswith(".") and not os.path.isdir(filename):
-      try:
-        file  = open(filename,"r")
-      except IOError:
-        print "Warning : Unable to read file %s."%(filename)
-      else:
-        buffer = file.readlines()
-        file.close()
-        if not util.same_file(irpf90_t.irpdir+filename,buffer):
+  for dir in ['./']+command_line.include_dir:
+    for filename in os.listdir(dir):
+      filename = dir+filename
+      if not filename[0].startswith(".") and not os.path.isdir(filename):
+        try:
           file  = open(filename,"r")
+        except IOError:
+          print "Warning : Unable to read file %s."%(filename)
+        else:
           buffer = file.read()
           file.close()
-          file = open(irpf90_t.irpdir+filename,"w")
-          file.write(buffer)
-          file.close()
+          if not util.same_file(irpf90_t.irpdir+filename,buffer):
+            file = open(irpf90_t.irpdir+filename,"w")
+            file.write(buffer)
+            file.close()
 
   initialized = True
 

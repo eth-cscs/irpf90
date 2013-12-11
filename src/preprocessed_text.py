@@ -664,7 +664,11 @@ def change_includes(text):
      if len(txt) != 3:
        print txt
        error.fail(line,"Error in include statement")
-     filename = txt[1].strip()
+     directory = (("./"+line.filename).rsplit('/',1)[0]+'/')[2:]
+     if directory == "":
+        filename = txt[1].strip()
+     else:
+        filename = directory+txt[1].strip()
      try:
        file = open(filename,'r')
        file.close()

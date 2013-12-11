@@ -1,4 +1,4 @@
-IRPF90 = ~/irpf90/bin/irpf90  -a -d
+IRPF90 = python ../src/irpf90.py -I input -a -d
 FC     = gfortran
 FCFLAGS= -O2
 
