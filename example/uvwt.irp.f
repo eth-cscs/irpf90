@@ -20,6 +20,7 @@ BEGIN_PROVIDER [ integer, u2 ]
   integer :: fu
 ! u2 = fu(d3,d4)
   u2 = d3+d4+1
+  ASSERT (u2 > d3)
 END_PROVIDER
 
 integer function fu(x,y)
