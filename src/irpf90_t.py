@@ -351,6 +351,8 @@ def create_irpf90_files():
   result = filter ( is_irpf90_file, os.listdir(os.getcwd()) )
   for dir in command_line.include_dir:
     result += map(lambda x: dir+x, filter ( is_irpf90_file, os.listdir(dir) ) )
+  if command_line.do_codelet:
+    result += [command_line.codelet[3]]
   return result
 irpf90_files = create_irpf90_files()
 

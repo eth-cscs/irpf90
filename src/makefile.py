@@ -61,8 +61,7 @@ irpf90.make: $(wildcard *.irp.f)
 
 ######################################################################
 def run():
-  from modules import modules
-  if os.fork() == 0:
+    from modules import modules
     mod = []
     for m in modules.values():
       mod.append(m)
@@ -94,6 +93,8 @@ def run():
     print >>file, "OBJ1 = $(OBJ) %sirp_touches.irp.o"%(irpdir),
     if command_line.do_profile:
       print >>file, " %sirp_profile.irp.o"%(irpdir), " irp_rdtsc.o",
+    if command_line.do_codelet:
+      print >>file, " irp_rdtsc.o",
     if command_line.do_openmp:
       print >>file, " %sirp_locks.irp.o"%(irpdir),
     else:
@@ -191,4 +192,3 @@ def run():
     print >>file, "\t- rm -rf "+irpdir+" "+mandir+" irpf90.make irpf90_variables dist\n"
 
     file.close()
-    sys.exit(0)
