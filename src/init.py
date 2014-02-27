@@ -63,10 +63,17 @@ def init():
   makefile.create()
   
   # Copy current files in the irpdir
+  ls = os.listdir(os.getcwd())
+  print ls
   for dir in ['./']+command_line.include_dir:
+    try:
+      os.stat(dir)
+    except:
+      print dir,'not in dir'
+      continue
     for filename in os.listdir(dir):
       filename = dir+filename
-      if not filename[0].startswith(".") and not os.path.isdir(filename):
+      if not filename.startswith(".") and not os.path.isdir(filename):
         try:
           file  = open(filename,"r")
         except IOError:

@@ -74,6 +74,8 @@ class CommandLine(object):
       self._include_dir = []
       for o,a in self.opts:
         if o in [ "-I", '--'+options['I'][0] ]:
+          if len(a) < 1: 
+            print "Error: -I option needs a directory"
           if a[-1] != '/':
             a = a+'/'
           self._include_dir.append(a)
