@@ -63,8 +63,6 @@ def init():
   makefile.create()
   
   # Copy current files in the irpdir
-  ls = os.listdir(os.getcwd())
-  print ls
   for dir in ['./']+command_line.include_dir:
     try:
       os.stat(dir)
