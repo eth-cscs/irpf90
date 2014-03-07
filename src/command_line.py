@@ -49,6 +49,7 @@ options['r'] = [ 'no_directives', 'Ignore all compiler directives !DEC$ and !DIR
 options['n'] = [ 'inline'       , 'all|providers|builders : Force inlining of providers or builders', 1 ]
 options['u'] = [ 'unused'       , 'Print unused providers', 0 ]
 options['I'] = [ 'include'      , 'Include directory', 1 ]
+options['c'] = [ 'codelet'      , 'entity:NMAX or entity:precondition:NMAX  : Generate a codelet to profile a provider running NMAX times', 1 ]
 
 class CommandLine(object):
 
@@ -73,6 +74,8 @@ class CommandLine(object):
       self._include_dir = []
       for o,a in self.opts:
         if o in [ "-I", '--'+options['I'][0] ]:
+          if len(a) < 1: 
+            print "Error: -I option needs a directory"
           if a[-1] != '/':
             a = a+'/'
           self._include_dir.append(a)
@@ -99,6 +102,28 @@ class CommandLine(object):
           self._substituted[k] = [v, v_re]
     return self._substituted
   substituted = property(fget=substituted)
+
+  def codelet(self):
+    if '_codelet' not in self.__dict__:
+      self._codelet = []
+      for o,a in self.opts:
+        if o in [ "-c", '--'+options['c'][0] ]:
+          buffer = a.split(':')
+          filename = 'codelet_'+buffer[0]+'.irp.f'
+          if len(buffer) == 2:
+            self._codelet = [buffer[0], int(buffer[1]), None, filename]
+          elif len(buffer) == 3:
+            self._codelet = [buffer[0], int(buffer[2]), buffer[1], filename]
+          else:
+            print """
+Error in codelet definition. Use:
+--codelet=provider:NMAX
+or
+--codelet=provider:precondition:NMAX
+"""
+            sys.exit(1)
+    return self._codelet
+  codelet = property(fget=codelet)
 
   def preprocessed(self):
     if '_preprocessed' not in self.__dict__:

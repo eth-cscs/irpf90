@@ -47,7 +47,7 @@ class Fmodule(object):
   def __init__(self,text,filename):
     self.text = put_info(text,filename)
     self.filename = filename[:-6]
-    self.name = "%s_mod"%(self.filename).replace('/','__')
+    self.name = "%s_mod"%(self.filename).replace('/','__').replace('.','Dot')
 
   def is_main(self):
     if '_is_main' not in self.__dict__:

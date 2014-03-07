@@ -788,6 +788,7 @@ def check_begin_end(text):
     error.fail(text[begin],"Missing 'end%s'"%(x,))
 
   def find_matching_end_subfunpro(begin,x):
+    line = text[begin]
     for i in range(begin+1,len(text)):
       line = text[i]
       if type(line) == x:
