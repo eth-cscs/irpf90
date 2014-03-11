@@ -27,6 +27,7 @@
 
 from variable  import Variable
 from variables import variables
+from subroutines import subroutines
 from irpf90_t  import *
 from util import *
 
@@ -103,11 +104,23 @@ def run():
     sys.exit(0)
 
   if os.fork() == 0:
+    tags = []
     l = variables.keys()
     file = open("irpf90_entities","w")
     l.sort()
     for v in l:
       do_print_short(file,variables[v])
+      line = variables[v].line
+      tags.append( '%s\t%s\t/%s/;"\n'%(v,line.filename[0],line.text.split('!')[0].strip()) )
+    file.close()
+    l = subroutines.keys()
+    for v in l:
+      line = subroutines[v].line
+      tags.append('%s\t%s\t/%s/;"\n'%(v,line.filename,line.text.split('!')[0].strip()))
+    tags.sort()
+    file = open("tags","w")
+    for line in tags:
+      file.write(line)
     file.close()
     sys.exit(0)
 
