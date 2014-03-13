@@ -27,6 +27,7 @@
 
 from variable  import Variable
 from variables import variables
+from subroutine  import Sub
 from subroutines import subroutines
 from irpf90_t  import *
 from util import *
@@ -95,12 +96,54 @@ def do_print(var):
   file.close()
 
 ######################################################################
+def process_declaration_subroutine(file, sub):
+  print >>file, sub.line.text.split('!')[0].strip()
+
+# for line in sub.text:
+######################################################################
+def do_print_subroutines(sub):
+  assert type(sub) == Sub
+  filename = sub.line.filename
+  name = sub.name
+  file = open("%s%s.l"%(mandir,sub.name), "w")
+  print >>file, '.TH "IRPF90 entities" l %s "IRPF90 entities" %s'%(name,name)
+  print >>file, ".SH Declaration"
+  print >>file, ".nf"
+  process_declaration_subroutine(file,sub)
+  print >>file, ".ni"
+  if sub.doc != []:
+   print >>file, ".SH Description"
+   for l in sub.doc:
+     process_doc(file,l)
+  print >>file, ".SH File\n.P"
+  print >>file, filename
+  if sub.needs != []:
+    sub.needs.sort()
+    print >>file, ".SH Needs"
+    process_deps(file,sub.needs)
+  if sub.called_by != []:
+    sub.called_by.sort()
+    print >>file, ".SH Called by"
+    process_deps(file,sub.called_by)
+  if sub.calls != []:
+    sub.calls.sort()
+    print >>file, ".SH Calls"
+    process_deps(file,sub.calls)
+  if sub.touches != []:
+    sub.touches.sort()
+    print >>file, ".SH Touches"
+    process_deps(file,sub.touches)
+  file.close()
+
+######################################################################
 def run():
   import parsed_text
   import os,sys
   if os.fork() == 0:
     for v in variables.values():
       do_print(v)
+    for s in subroutines.values():
+      do_print_subroutines(s)
     sys.exit(0)
 
   if os.fork() == 0:

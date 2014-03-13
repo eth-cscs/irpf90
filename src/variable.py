@@ -131,6 +131,18 @@ class Variable(object):
   includes = property(includes)
 
   ############################################################
+  def calls(self):
+    if '_calls' not in self.__dict__:
+      self._calls = []
+      text = self.text
+      for line in filter(lambda x: type(x) == Call,text):
+        sub = line.text.split('(',1)[0].split()[1].lower()
+        self._calls.append(sub)
+      make_single(self._calls)
+    return self._calls
+  calls=property(fget=calls)
+
+  ############################################################
   def others(self):
     if '_others' not in self.__dict__:
       result = []

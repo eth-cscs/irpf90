@@ -33,14 +33,14 @@ case "$0" in
      local cur
      COMPREPLY=()
      cur=${COMP_WORDS[COMP_CWORD]}
-     COMPREPLY=( $(compgen -W "`cat irpf90_entities | cut -d':' -f 4 | cut -d ' ' -f 2`" -- "$cur" ) )
+     COMPREPLY=( $(compgen -W "`cat tags | cut -d' ' -f 1`" -- "$cur" ) )
    } && complete -F _irpman_complete irpman
    ;;
 
   *)
    if [[ -z $1 ]] ; then
        echo "To activate auto-completion in bash:"
-       echo "source $(which irpman)"
+       echo "source " $0
    else
      python $(dirname $0)/../src/irpman.py $1
    fi

@@ -53,9 +53,9 @@ LIB=
 
 include irpf90.make
 
-irpf90.make: $(wildcard *.irp.f)
+irpf90.make: $(filter-out %s%%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard *.inc.f) Makefile 
 \t$(IRPF90)
-"""
+"""%(irpdir)
   file.write(t)
   file.close()
 
