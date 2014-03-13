@@ -17,7 +17,7 @@ class Grep(object):
   def end_program(self,string):
     return re.match(self.re_end_program,string) is not None
 
-  re_begin_subroutine = re.compile(r"^\s*subroutine\s",flags=re.I)
+  re_begin_subroutine = re.compile(r"^\s*(recursive)?\s*subroutine\s",flags=re.I)
   def begin_subroutine(self,string):
     return re.match(self.re_begin_subroutine,string) is not None
 

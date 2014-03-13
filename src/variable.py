@@ -106,7 +106,7 @@ class Variable(object):
     if '_doc' not in self.__dict__:
       text = self.text
       buffer = filter(lambda l:type(l) == Doc, text)
-      self._doc = map(lambda l: l.text[1:], buffer)
+      self._doc = map(lambda l: l.text.lstrip()[1:], buffer)
       if buffer == []:
         error.warn(None,"Variable %s is not documented"%(self.name))
     return self._doc
