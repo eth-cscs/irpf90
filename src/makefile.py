@@ -133,7 +133,7 @@ def run():
       print >>file, filename," ".join(mds)," ".join(m.includes)
       if not m.is_main:
         buffer += "\t - @echo '"+filename+" ".join(mds)+"' >> %sdist_Makefile\n"%(irpdir)
-    print >>file, "%sirp_touches.irp.o:"%(irpdir),
+    print >>file, "%sirp_touches.irp.o: $(OBJ) "%(irpdir),
     mds = filter(lambda x: not x.is_main,mod)
     mds = map(lambda x: " %s%s.irp.o %s%s.irp.o"%(irpdir,x.filename,irpdir,x.filename),mds)
     print >>file," ".join(mds)
@@ -173,11 +173,11 @@ def run():
 #   print >>file, "\t- cd dist ; tar -zcvf ../$*.tar.gz $*\n"
 
     for dir in [ irpdir ] + map(lambda x: irpdir+x, command_line.include_dir):
-      print >>file, dir+"%.irp.module.o: "+dir+"%.irp.module.F90"
+      print >>file, dir+"%.irp.module.o: $(OBJ) "+dir+"%.irp.module.F90"
       print >>file, "\t$(FC) $(FCFLAGS) -c "+dir+"$*.irp.module.F90 -o "+dir+"$*.irp.module.o"
-      print >>file, dir+"%.irp.o: "+dir+"%.irp.module.o "+dir+"%.irp.F90"
+      print >>file, dir+"%.irp.o: $(OBJ) "+dir+"%.irp.module.o "+dir+"%.irp.F90"
       print >>file, "\t$(FC) $(FCFLAGS) -c "+dir+"$*.irp.F90 -o "+dir+"$*.irp.o"
-      print >>file, dir+"%.irp.o: "+dir+"%.irp.F90"
+      print >>file, dir+"%.irp.o: $(OBJ) "+dir+"%.irp.F90"
       print >>file, "\t$(FC) $(FCFLAGS) -c "+dir+"$*.irp.F90 -o "+dir+"$*.irp.o"
       print >>file, dir+"%.o: %.F90"
       print >>file, "\t$(FC) $(FCFLAGS) -c $*.F90 -o "+dir+"$*.o"
