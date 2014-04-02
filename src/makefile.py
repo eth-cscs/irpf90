@@ -32,6 +32,8 @@ irpdir = irpf90_t.irpdir
 mandir = irpf90_t.mandir
 
 FILENAME = "Makefile"
+FILENAME_GITIGNORE = ".gitignore"
+IRPF90_MAKE = 'irpf90.make'
 
 ######################################################################
 def create():
@@ -51,11 +53,26 @@ SRC=
 OBJ=
 LIB=
 
-include irpf90.make
+include %s
 
-irpf90.make: $(filter-out %s%%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard *.inc.f) Makefile 
+%s: $(filter-out %s%%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard *.inc.f) Makefile 
 \t$(IRPF90)
-"""%(irpdir)
+"""%(IRPF90_MAKE,IRPF90_MAKE,irpdir)
+  file.write(t)
+  file.close()
+  create_gitignore()
+
+######################################################################
+def create_gitignore():
+  has_makefile = True
+  try:
+    file = open(FILENAME_GITIGNORE,"r")
+  except IOError:
+    has_makefile = False
+  if has_makefile:
+    return
+  file = open(FILENAME_GITIGNORE,"w")
+  t = "\n".join([ irpdir, mandir, IRPF90_MAKE, 'irpf90_entities' ])
   file.write(t)
   file.close()
 
@@ -66,7 +83,7 @@ def run():
     for m in modules.values():
       mod.append(m)
 
-    file = open('irpf90.make','w')
+    file = open(IRPF90_MAKE,'w')
     result = ""
     result += "FC+=-I %s "%(irpdir)
     for i in command_line.include_dir:
@@ -184,11 +201,11 @@ def run():
       print >>file, dir+"%.o: %.f90\n\t$(FC) $(FCFLAGS) -c $*.f90 -o "+dir+"$*.o"
       print >>file, dir+"%.o: %.f\n\t$(FC) $(FCFLAGS) -c $*.f -o "+dir+"$*.o"
       print >>file, dir+"%.o: %.F\n\t$(FC) $(FCFLAGS) -c $*.F -o "+dir+"$*.o"
-      print >>file, dir+"%.irp.F90: irpf90.make\n"
+      print >>file, dir+"%.irp.F90: %s\n"%(IRPF90_MAKE)
     print >>file, "move:\n\t@mv -f *.mod IRPF90_temp/ 2> /dev/null | DO_NOTHING=\n"
     print >>file, "irpf90.a: $(OBJ) $(OBJ1)\n\t$(AR) crf irpf90.a $(OBJ1)\n"
     print >>file, "clean:\n\trm -rf $(EXE) $(OBJ1) irpf90.a $(ALL_OBJ1) $(ALL)\n"
     print >>file, "veryclean:\n\t- $(MAKE) clean\n"
-    print >>file, "\t- rm -rf "+irpdir+" "+mandir+" irpf90.make irpf90_variables dist\n"
+    print >>file, "\t- rm -rf "+irpdir+" "+mandir+" "+IRPF90_MAKE+" irpf90_entities dist\n"
 
     file.close()
