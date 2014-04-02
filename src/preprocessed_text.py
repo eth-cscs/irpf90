@@ -37,11 +37,11 @@ re_enddo  = re.compile("end\s+do")
 re_endtype= re.compile("end\s+type")
 re_endmodule = re.compile("end\s+module")
 re_endselect  = re.compile("end\s+select")
+re_endinterface  = re.compile("end\s+interface")
 
 # Local variables
 Free_form = 0
 Fixed_form = 1
-
 
 ######################################################################
 # Dictionary of simple statements
@@ -95,6 +95,9 @@ def get_type (i, filename, line, is_doc):
   assert type(line) == str
   assert type(is_doc) == bool
 
+  # add support for interface block
+  has_interface = False
+
   line = line.rstrip()
   line = line.replace("$IRP_ALIGN",command_line.align)
   lower_line0 = line.lstrip().lower()
@@ -107,6 +110,7 @@ def get_type (i, filename, line, is_doc):
   lower_line = re_endmodule.sub("endmodule",lower_line)
   lower_line = re_endif.sub("endif",lower_line)
   lower_line = re_endselect.sub("endselect",lower_line)
+  lower_line = re_endinterface.sub("endinterface",lower_line)
 
   for c in """()'"[]""":
     lower_line = lower_line.replace(c," "+c+" ")
@@ -122,6 +126,14 @@ def get_type (i, filename, line, is_doc):
     firstword = buffer[0]
 
   # Identify line
+  if firstword == "endinterface":
+    has_interface = False
+    return [ Simple_line   (i,line,filename) ], False
+
+  if firstword == "interface" or has_interface:
+    has_interface = True
+    return [ Simple_line   (i,line,filename) ], False
+
   if firstword == "end_doc":
     return [ End_doc       (i,line,filename) ], False
 
