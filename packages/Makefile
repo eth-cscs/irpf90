@@ -1,5 +1,5 @@
 include version
-default:
+default: version
 	set -x
 	NAME=irpf90-$(VERSION)-noarch-src.tar.gz ;\
 	cd ..;\

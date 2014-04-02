@@ -35,8 +35,9 @@ except:
   pass
 sys.setcheckinterval(1000)
 
+from command_line import command_line
+
 def main():
-  from command_line import command_line
 
   vim.install()
 
@@ -72,9 +73,14 @@ def main():
         for x in parents:
           print "- %s"%(x,)
 
-  if not command_line.do_run:
-    return
+  if command_line.do_codelet:
+     import profile
+     profile.build_rdtsc()
+     import codelet
+     codelet.run()
 
+  if not command_line.do_run:
+     return
 
   init()
 
@@ -102,3 +108,4 @@ def main():
 
 if __name__ == '__main__':
   main()
+

@@ -355,24 +355,15 @@ def add_operators(text):
   for line in text:
     buffer = line.text
     if "+=" in buffer:
-        if "if" in buffer:
+        if buffer.lstrip().startswith("if "):
             re_incr = re.compile(r"(.*)(\))(\s*)(.*)(\+=)(.*$)",re.S)
             line.text = re.sub(re_incr,r'\1\2\4=\4+(\6)', buffer)
         else:
             line.text = re.sub(re_incr,r'\1\2=\2+(\4)', buffer)
     elif "-=" in buffer:
-        if "if" in buffer:
-            re_decr = re.compile(r"(.*)(\))(\s*)(.*)(\-=)(.*$)",re.S)
-            line.text = re.sub(re_decr,r'\1\2\4=\4-(\6)', buffer)
-        else:
-            line.text = re.sub(re_decr,r'\1\2=\2-(\4)', buffer)
-#     line.text = re.sub(re_decr,r'\1\2=\2-(\4)', buffer)
+      line.text = re.sub(re_decr,r'\1\2=\2-(\4)', buffer)
     elif "*=" in buffer:
-        if "if" in buffer:
-            re_mult = re.compile(r"(.*)(\))(\s*)(.*)(\*=)(.*$)",re.S)
-            line.text = re.sub(re_mult,r'\1\2\4=\4*(\6)', buffer)
-        else:
-            line.text = re.sub(re_mult,r'\1\2=\2*(\4)', buffer)
+      line.text = re.sub(re_mult,r'\1\2=\2*(\4)', buffer)
     result.append(line)
   return result
 
@@ -673,7 +664,11 @@ def change_includes(text):
      if len(txt) != 3:
        print txt
        error.fail(line,"Error in include statement")
-     filename = txt[1].strip()
+     directory = (("./"+line.filename).rsplit('/',1)[0]+'/')[2:]
+     if directory == "":
+        filename = txt[1].strip()
+     else:
+        filename = directory+txt[1].strip()
      try:
        file = open(filename,'r')
        file.close()
@@ -793,6 +788,7 @@ def check_begin_end(text):
     error.fail(text[begin],"Missing 'end%s'"%(x,))
 
   def find_matching_end_subfunpro(begin,x):
+    line = text[begin]
     for i in range(begin+1,len(text)):
       line = text[i]
       if type(line) == x:

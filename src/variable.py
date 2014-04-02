@@ -106,7 +106,7 @@ class Variable(object):
     if '_doc' not in self.__dict__:
       text = self.text
       buffer = filter(lambda l:type(l) == Doc, text)
-      self._doc = map(lambda l: l.text[1:], buffer)
+      self._doc = map(lambda l: l.text.lstrip()[1:], buffer)
       if buffer == []:
         error.warn(None,"Variable %s is not documented"%(self.name))
     return self._doc
@@ -129,6 +129,18 @@ class Variable(object):
       make_single(self._includes)
     return self._includes
   includes = property(includes)
+
+  ############################################################
+  def calls(self):
+    if '_calls' not in self.__dict__:
+      self._calls = []
+      text = self.text
+      for line in filter(lambda x: type(x) == Call,text):
+        sub = line.text.split('(',1)[0].split()[1].lower()
+        self._calls.append(sub)
+      make_single(self._calls)
+    return self._calls
+  calls=property(fget=calls)
 
   ############################################################
   def others(self):
@@ -200,7 +212,7 @@ class Variable(object):
   ############################################################
   def fmodule(self):
     if '_fmodule' not in self.__dict__:
-      self._fmodule = self.line.filename[0].split('.irp.f')[0]+'_mod'
+      self._fmodule = self.line.filename[0].replace('/','__').split('.irp.f')[0]+'_mod'
     return self._fmodule
   fmodule = property(fmodule)
 

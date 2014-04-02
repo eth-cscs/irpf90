@@ -35,7 +35,10 @@ def lower(x):
 
 def same_file(filename,txt):
   assert isinstance(filename,str)
-  assert type(txt) == list
+  if (type(txt) == list):
+    buffer = ''.join(txt)
+  else:
+    buffer = txt
 
   try:
     file = open(filename,"r")
@@ -44,12 +47,10 @@ def same_file(filename,txt):
   stream = file.read()
   file.close()
 
-  buffer = ''.join(txt)
- 
   if len(stream) != len(buffer):
     return False
   if stream != buffer:
-      return False
+    return False
   return True
 
 def build_dim(dim):

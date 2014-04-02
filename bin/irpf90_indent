@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/python
 #   IRPF90 is a Fortran90 preprocessor written in Python for programming using
 #   the Implicit Reference to Parameters (IRP) method.
 #   Copyright (C) 2009 Anthony SCEMAMA 
@@ -24,25 +24,17 @@
 #   31062 Toulouse Cedex 4      
 #   scemama@irsamc.ups-tlse.fr
 
-# Define auto-completion for bash
 
-case "$0" in
-  *bash*)
-   _irpman_complete()
-   {
-     local cur
-     COMPREPLY=()
-     cur=${COMP_WORDS[COMP_CWORD]}
-     COMPREPLY=( $(compgen -W "`cat tags | cut -d' ' -f 1`" -- "$cur" ) )
-   } && complete -F _irpman_complete irpman
-   ;;
+import os
+import sys
 
-  *)
-   if [[ -z $1 ]] ; then
-       echo "To activate auto-completion in bash:"
-       echo "source " $0
-   else
-     python $(dirname $0)/../src/irpman.py $1
-   fi
-   ;;
-esac
+wd = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0,(wd+"/../src/"))
+sys.path.insert(0,(wd+"/../share/irpf90/src/"))
+
+def main():
+  import irpf90_indent
+  irpf90_indent.main()
+
+main()
+

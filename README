@@ -7,7 +7,7 @@ Dependencies
 
 - GNU make (>= 3.81 recommended)
 - Python > 2.3
-- Any Fortran 90 compiler (Intel recommended, for example)
+- Any Fortran 90 compiler (Intel recommended)
 
 Installing IRPF90
 -----------------
@@ -19,7 +19,9 @@ ${IRPF90_HOME} is the location of your irpf90 directory::
   cat << EOF >> ${HOME}/.bash_profile
   export PYTHONPATH=${IRPF90_HOME}/src:${PYTHONPATH}
   export PATH=${IRPF90_HOME}/bin:${PATH}
+  export MANPATH=${IRPF90_HOME}/man:${MANPATH}
   EOF
+  . ${HOME}/.bash_profile
 
 
 Using IRPF90
@@ -42,6 +44,6 @@ Author
 ------
 
 | Anthony Scemama, LCPQ-IRSAMC, CNRS-Universite Paul Sabatier
-| scemama@irsamc.ups-tlse.fr
+| <scemama@irsamc.ups-tlse.fr>
 | http://scemama.mooo.com
 

@@ -37,6 +37,7 @@ class Sub(object):
     assert len(text) > 0
     assert type(text[0]) in [Subroutine, Function]
     self.text = text
+    self.called_by = []
 
   ############################################################
   def name(self):
@@ -58,7 +59,7 @@ class Sub(object):
     if '_doc' not in self.__dict__:
       def f(l): return 
       buffer = filter(lambda l:type(l) == Doc, self.text)
-      self._doc = map(lambda l: l.text[1:], buffer)
+      self._doc = map(lambda l: l.text.lstrip()[1:], buffer)
       if buffer == []:
         error.warn(None,"Subroutine %s is not documented"%(self.name))
     return self._doc
@@ -114,7 +115,7 @@ class Sub(object):
       buffer = filter(lambda x: type(x) == Call,self.text)
       self._calls = []
       for line in buffer:
-        sub = line.text.split('(',1)[0].split()[1]
+        sub = line.text.split('(',1)[0].split()[1].lower()
         self._calls.append(sub)
       self._calls = make_single(self._calls)
     return self._calls

@@ -20,7 +20,6 @@ import subprocess
 import tempfile
 import os
 import threading
-from variables import variables
 
 def build_rdtsc():
   file,filename = tempfile.mkstemp()
@@ -36,6 +35,7 @@ def build_rdtsc():
   threading.Thread(target=t).start()
 
 def build_module():
+  from variables import variables
   data = """
 module irp_timer
  double precision :: irp_profile(3,%(n)d) 
