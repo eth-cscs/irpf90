@@ -33,7 +33,7 @@ mandir = irpf90_t.mandir
 
 FILENAME = "Makefile"
 FILENAME_GITIGNORE = ".gitignore"
-IRPF90_MAKE = 'irpf90.make'
+IRPF90_MAKE = "irpf90.make"
 
 ######################################################################
 def create():
@@ -72,7 +72,7 @@ def create_gitignore():
   if has_makefile:
     return
   file = open(FILENAME_GITIGNORE,"w")
-  t = "\n".join([ irpdir, mandir, IRPF90_MAKE, 'irpf90_entities' ])
+  t = "\n".join([ irpdir, mandir, IRPF90_MAKE, 'irpf90_entities', 'tags' ])
   file.write(t)
   file.close()
 
@@ -201,7 +201,7 @@ def run():
       print >>file, dir+"%.o: %.f90\n\t$(FC) $(FCFLAGS) -c $*.f90 -o "+dir+"$*.o"
       print >>file, dir+"%.o: %.f\n\t$(FC) $(FCFLAGS) -c $*.f -o "+dir+"$*.o"
       print >>file, dir+"%.o: %.F\n\t$(FC) $(FCFLAGS) -c $*.F -o "+dir+"$*.o"
-      print >>file, dir+"%.irp.F90: %s\n"%(IRPF90_MAKE)
+      print >>file, dir+"%.irp.F90: "+IRPF90_MAKE+"\n"
     print >>file, "move:\n\t@mv -f *.mod IRPF90_temp/ 2> /dev/null | DO_NOTHING=\n"
     print >>file, "irpf90.a: $(OBJ) $(OBJ1)\n\t$(AR) crf irpf90.a $(OBJ1)\n"
     print >>file, "clean:\n\trm -rf $(EXE) $(OBJ1) irpf90.a $(ALL_OBJ1) $(ALL)\n"
