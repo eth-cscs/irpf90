@@ -206,6 +206,6 @@ def run():
     print >>file, "irpf90.a: $(OBJ) $(OBJ1)\n\t$(AR) crf irpf90.a $(OBJ1)\n"
     print >>file, "clean:\n\trm -rf $(EXE) $(OBJ1) irpf90.a $(ALL_OBJ1) $(ALL)\n"
     print >>file, "veryclean:\n\t- $(MAKE) clean\n"
-    print >>file, "\t- rm -rf "+irpdir+" "+mandir+" "+IRPF90_MAKE+" irpf90_entities dist\n"
+    print >>file, "\t- rm -rf "+irpdir+" "+mandir+" "+IRPF90_MAKE+" irpf90_entities dist tags\n"
 
     file.close()

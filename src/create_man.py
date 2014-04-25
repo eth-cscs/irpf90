@@ -154,12 +154,14 @@ def run():
     for v in l:
       do_print_short(file,variables[v])
       line = variables[v].line
-      tags.append( '%s\t%s\t/%s/;"\n'%(v,line.filename[0],line.text.split('!')[0].strip()) )
+#     tags.append( '%s\t%s\t/%s/;"\n'%(v,line.filename[0],line.text.split('!')[0].strip()) )
+      tags.append( '%s\t%s\t%d\n'%(v,line.filename[0],line.i) )
     file.close()
     l = subroutines.keys()
     for v in l:
       line = subroutines[v].line
-      tags.append('%s\t%s\t/%s/;"\n'%(v,line.filename,line.text.split('!')[0].strip()))
+#     tags.append('%s\t%s\t/%s/;"\n'%(v,line.filename,line.text.split('!')[0].strip()))
+      tags.append('%s\t%s\t%d\n'%(v,line.filename,line.i))
     tags.sort()
     file = open("tags","w")
     for line in tags:
