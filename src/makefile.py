@@ -100,7 +100,7 @@ def run():
       result += " %s%s.irp.module.F90"%(irpdir,m.filename)
     print >>file, result
 
-    result = "OBJ_IRP = "
+    result = "OBJ_IRP = %sirp_stack.irp.o "%(irpdir)
     for m in mod:
       if not m.is_main:
         result += " %s%s.irp.o"%(irpdir,m.filename)
