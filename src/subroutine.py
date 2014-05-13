@@ -90,6 +90,7 @@ class Sub(object):
   def needs(self):
     if '_needs' not in self.__dict__:
       import parsed_text
+    self._needs = make_single(self._needs)
     return self._needs
   needs = property(needs)
 
