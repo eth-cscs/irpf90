@@ -853,6 +853,27 @@ def remove_ifdefs(text):
   return result
 
 ######################################################################
+def check_OpenMP(text):
+  assert type(text) == list
+  result = []
+  inside_openmp = False
+  for line in text:
+     if type(line) == Openmp:
+       # Detect OpenMP blocks
+       buffer = line.text.lower().split()
+       if buffer[1] == "parallel":
+         inside_openmp = True
+       if buffer[1] == "end" and buffer[2] == "parallel":
+         inside_openmp = False
+     result.append(line)
+
+     if inside_openmp:
+       if type(line) in [ Provide_all, Provide, Touch, SoftTouch ]:
+          error.fail(line,type(line).str+" is not allowed in an OpenMP block.")
+
+  return result
+
+######################################################################
 def create_preprocessed_text(filename):
   file = open(filename,"r")
   lines = file.readlines()
@@ -869,6 +890,7 @@ def create_preprocessed_text(filename):
   result = change_single_line_ifs(result)
   result = process_old_style_do(result)
   result = irp_simple_statements(result)
+  result = check_OpenMP(result)
   check_begin_end(result)
   return result
 

@@ -58,14 +58,8 @@ class Variable(object):
   ############################################################
   def has_openmp(self):
     if '_has_openmp' not in self.__dict__:
-      buffer = None
-      text = self.text
-      result = False
-      for line in text:
-        if type(line) == Openmp:
-          result = True
-          break
-      self._has_openmp = result
+      self._has_openmp = False
+      self.builder()
     return self._has_openmp
   has_openmp = property(has_openmp)
 
@@ -593,6 +587,7 @@ class Variable(object):
         text = parsed_text.move_to_top(text,Implicit)
         text = parsed_text.move_to_top(text,Use)
         text = map(lambda x: x[1], text)
+        inside_omp = False
         for line in filter(lambda x: type(x) not in [ Begin_doc, End_doc, Doc], text):
           if type(line) == Begin_provider:
             result = []
@@ -608,7 +603,19 @@ class Variable(object):
                           "  call irp_set_timer(%d,(irp_rdtsc2-irp_rdtsc1))"%self.label ]
             result.append( "end subroutine bld_%s"%(name) )
             break
+          elif type(line) == Openmp:
+            # Detect OpenMP blocks
+            buffer = line.text.lower().split()
+            if buffer[1] == "parallel":
+              inside_omp = True
+              self._has_openmp = True
+            if buffer[1] == "end" and buffer[2] == "parallel":
+              inside_omp = False
+            result.append(line.text)
           else:
+#           if inside_omp:
+#             if type(line) in [ Provide_all, Provide, Touch, SoftTouch ]:
+#               error.fail(line,str(type(line))+"is not allowed in an OpenMP block.")
             result.append(line.text)
         self._builder = result
     return self._builder
