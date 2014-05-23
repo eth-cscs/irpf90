@@ -459,6 +459,14 @@ class Variable(object):
       name = self.name
       same_as = self.same_as
 
+      def check_openmp():
+          result =  [ "!$ nthreads = omp_get_num_threads()" ,
+                      "!$ if (nthreads > 1) then" ,
+                      "!$   print *, irp_here//': Error: Provider in an openMP section'" ,
+                      "!$   stop 1",
+                      "!$ endif" ]
+          return result
+
       def build_alloc(name):
         self = variables[name]
         if self.dim == []:
@@ -528,14 +536,18 @@ class Variable(object):
         result += [ "!DEC$ ATTRIBUTES FORCEINLINE :: provide_%s"%(name) ]
       result += [ "subroutine provide_%s"%(name) ] 
       result += build_use( [same_as]+self.to_provide )
+      result += ["!$ use omp_lib"]
       result.append("  implicit none")
       length = len("provide_%s"%(name))
       result += [\
       "  character*(%d) :: irp_here = 'provide_%s'"%(length,name),
       "  integer                   :: irp_err ",
-      "  logical                   :: irp_dimensions_OK" ]
+      "  logical                   :: irp_dimensions_OK",
+      "!$ integer                  :: nthreads"]
       if command_line.do_openmp:
         result.append(" call irp_lock_%s(.True.)"%(same_as))
+      else:
+        result += check_openmp()
       if command_line.do_assert or command_line.do_debug:
         result.append("  call irp_enter(irp_here)")
       result += call_provides(self.to_provide)
