@@ -176,7 +176,7 @@ class Fmodule(object):
       result = modify_functions(result)
       use,dec,result = extract_use_dec_text(result)
       self._use = make_single(map(lambda x: " "+x[1].text, use))
-      self._dec = make_single(map(lambda x: " "+x[1].text, dec))
+      self._dec = map(lambda x: " "+x[1].text, dec)
       result = provide_variables(result)
       result = move_to_top(result,Declaration)
       result = move_to_top(result,Implicit)
