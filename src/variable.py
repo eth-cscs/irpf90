@@ -56,6 +56,20 @@ class Variable(object):
   is_touched = property(is_touched)
 
   ############################################################
+  def has_openmp(self):
+    if '_has_openmp' not in self.__dict__:
+      buffer = None
+      text = self.text
+      result = False
+      for line in text:
+        if type(line) == Openmp:
+          result = True
+          break
+      self._has_openmp = result
+    return self._has_openmp
+  has_openmp = property(has_openmp)
+
+  ############################################################
   def is_written(self):
     if '_is_written' not in self.__dict__:
       from variables import variables

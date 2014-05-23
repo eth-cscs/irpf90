@@ -602,7 +602,7 @@ def irp_simple_statements(text):
       Declaration(i,"  character*(%d) :: irp_here = '%s'"%(length,subname), f) ]
     if command_line.do_assert or command_line.do_debug:
       result += [
-        Simple_line(i,"  call irp_enter(irp_here)", f),
+        Simple_line(i,"  call irp_enter_f(irp_here)", f),
       ]
     return result
 
@@ -616,7 +616,7 @@ def irp_simple_statements(text):
       Declaration(i,"  character*(%d) :: irp_here = '%s'"%(length,subname), f) ]
     if command_line.do_assert or command_line.do_debug:
       result += [
-        Simple_line(i,"  call irp_enter(irp_here)", f),
+        Simple_line(i,"  call irp_enter_f(irp_here)", f),
       ]
     return result
 

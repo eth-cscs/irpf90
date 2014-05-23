@@ -45,27 +45,63 @@ module irp_stack_mod
   double precision,allocatable  :: irp_cpu(:,:)
   integer,allocatable           :: stack_index(:)
   logical                       :: alloc = .False.
+  integer                       :: nthread
   character*(128)               :: white = ''
 end module
 
 subroutine irp_enter(irp_where)
  use irp_stack_mod
  integer       :: ithread
- integer       :: nthread
  character*(*) :: irp_where
-$OMP_DECL
-!$OMP CRITICAL
- ithread = $OMP_GET_THREAD_NUM
- nthread = $OMP_GET_NUM_THREADS
+!$ integer, external :: omp_get_thread_num
+!$ integer, external :: omp_get_num_threads
+ ithread = 0
+!$ ithread = omp_get_thread_num()
 $1
-!$OMP END CRITICAL
+if (ithread /= 0) then
+   print *, 'Error: Provider is called by thread', ithread
+   call irp_trace
+   stop 1
+endif
 """
   if command_line.do_memory:
       txt+="""
  if (.not.alloc) then
+ nthread = 1
+ !$OMP PARALLEL
+ !$OMP SINGLE
+ !$ nthread = omp_get_num_threads()
+ !$OMP END SINGLE
+ !$OMP END PARALLEL
   print *, 'Allocating irp_stack(',STACKMAX,',',nthread,')'
   print *, 'Allocating irp_cpu(',STACKMAX,',',nthread,')'
   print *, 'Allocating stack_index(',nthread,')'
+ endif"""
+  txt +="""
+$2
+end subroutine
+
+subroutine irp_enter_f(irp_where)
+ use irp_stack_mod
+ integer       :: ithread
+ character*(*) :: irp_where
+!$ integer, external :: omp_get_thread_num
+!$ integer, external :: omp_get_num_threads
+ ithread = 0
+!$ ithread = omp_get_thread_num()
+$1
+"""
+  if command_line.do_memory:
+      txt+="""
+ if (.not.alloc) then
+ !$OMP PARALLEL
+ !$OMP SINGLE
+ !$ nthread = omp_get_num_threads()
+  print *, 'Allocating irp_stack(',STACKMAX,',',nthread,')'
+  print *, 'Allocating irp_cpu(',STACKMAX,',',nthread,')'
+  print *, 'Allocating stack_index(',nthread,')'
+ !$OMP END SINGLE
+ !$OMP END PARALLEL
  endif"""
   txt +="""
 $2
@@ -76,37 +112,32 @@ subroutine irp_leave (irp_where)
   character*(*) :: irp_where
   integer       :: ithread
   double precision :: cpu
-$OMP_DECL
-!$OMP CRITICAL
-  ithread = $OMP_GET_THREAD_NUM
+!$ integer, external :: omp_get_thread_num
+ ithread = 0
+!$ ithread = omp_get_thread_num()
 $3
 $4
-!$OMP END CRITICAL
 end subroutine
 """
-
-  # $OMP_DECL
-  if do_openmp:
-    txt = txt.replace("$OMP_DECL","""
-  integer :: omp_get_num_threads
-  integer :: omp_get_thread_num
-""")
-    txt = txt.replace("$OMP_GET_NUM_THREADS","omp_get_num_threads()")
-    txt = txt.replace("$OMP_GET_THREAD_NUM","omp_get_thread_num()")
-  else:
-    txt = txt.replace("$OMP_DECL","")
-    txt = txt.replace("$OMP_GET_NUM_THREADS","1")
-    txt = txt.replace("$OMP_GET_THREAD_NUM","0")
 
   # $1
   if do_assert or do_debug:
     txt = txt.replace("$1","""
+ if (.not.alloc) then
+ !$OMP PARALLEL
+ !$OMP SINGLE
+ !$ nthread = omp_get_num_threads()
+ !$OMP END SINGLE
+ !$OMP END PARALLEL
+ !$OMP CRITICAL
  if (.not.alloc) then
    allocate(irp_stack(STACKMAX,nthread+1))
    allocate(irp_cpu(STACKMAX,nthread+1))
    allocate(stack_index(nthread+1))
    stack_index = 0
    alloc = .True.
+ endif
+ !$OMP END CRITICAL
  endif
  stack_index(ithread+1) = stack_index(ithread+1)+1
  irp_stack(stack_index(ithread+1),ithread+1) = irp_where""")
@@ -143,13 +174,14 @@ end subroutine
   else:
     txt = txt.replace("$4","")
 
-  if do_debug or do_assert:
-    txt += """
+  txt += """
 subroutine irp_trace
  use irp_stack_mod
  integer :: ithread
  integer :: i
+!$ integer, external :: omp_get_thread_num
  ithread = 0
+!$ ithread = omp_get_thread_num()
  if (.not.alloc) return
  print *, 'Stack trace: ', ithread
  print *, '-------------------------'
