@@ -31,25 +31,26 @@ import re
 
 description = "IRPF90 Fortran preprocessor."
 options = {}
-options['d'] = [ 'debug'        , 'Activates debug. The name of the current subroutine/function/provider will be printed on the standard output when entering or exiting a routine, as well as the CPU time passed inside the routine.', 0 ]
-options['v'] = [ 'version'      , 'Prints version of irpf90', 0 ]
 options['a'] = [ 'assert'       , 'Activates ASSERT statements. If absent, remove ASSERT statements.', 0 ]
-options['h'] = [ 'help'         , 'Print this help', 0 ]
-options['i'] = [ 'init'         , 'Initialize current directory. Creates a default Makefile and the temporary working directories.', 0 ]
+options['c'] = [ 'codelet'      , 'entity:NMAX or entity:precondition:NMAX  : Generate a codelet to profile a provider running NMAX times', 1 ]
+options['C'] = [ 'coarray'      , 'All providers are coarrays', 0 ]
+options['d'] = [ 'debug'        , 'Activates debug. The name of the current subroutine/function/provider will be printed on the standard output when entering or exiting a routine, as well as the CPU time passed inside the routine.', 0 ]
 options['D'] = [ 'define'       , 'Defines a variable identified by the IRP_IF statements.', 1 ]
+options['g'] = [ 'profile'      , 'Activates profiling of the code.', 0 ]
+options['h'] = [ 'help'         , 'Print this help', 0 ]
+options['I'] = [ 'include'      , 'Include directory', 1 ]
+options['i'] = [ 'init'         , 'Initialize current directory. Creates a default Makefile and the temporary working directories.', 0 ]
+options['l'] = [ 'align'        , 'Align arrays using compiler directives and sets the $IRP_ALIGN variable. For example, --align=32 aligns all arrays on a 32 byte boundary.', 1 ]
+options['m'] = [ 'memory'       , 'Print memory allocations/deallocations.', 0 ]
+options['n'] = [ 'inline'       , 'all|providers|builders : Force inlining of providers or builders', 1 ]
 options['o'] = [ 'checkopt'     , 'Shows where optimization may be required', 0 ]
 options['p'] = [ 'preprocess'   , 'Prints a preprocessed file to standard output. Useful for  debugging files containing shell scripts.', 1 ]
-options['g'] = [ 'profile'      , 'Activates profiling of the code.', 0 ]
-options['t'] = [ 'touch'        , 'Display which entities are touched when touching the variable given as an argument.', 1 ]
-options['m'] = [ 'memory'       , 'Print memory allocations/deallocations.', 0 ]
-#options['z'] = [ 'openmp'       , 'Automatic openMP tasks (may not work)', 0 ]
-options['l'] = [ 'align'        , 'Align arrays using compiler directives and sets the $IRP_ALIGN variable. For example, --align=32 aligns all arrays on a 32 byte boundary.', 1 ]
-options['s'] = [ 'substitute'   , 'Substitute values in do loops for generating specific optimized code.', 1 ]
 options['r'] = [ 'no_directives', 'Ignore all compiler directives !DEC$ and !DIR$', 0 ]
-options['n'] = [ 'inline'       , 'all|providers|builders : Force inlining of providers or builders', 1 ]
+options['s'] = [ 'substitute'   , 'Substitute values in do loops for generating specific optimized code.', 1 ]
+options['t'] = [ 'touch'        , 'Display which entities are touched when touching the variable given as an argument.', 1 ]
 options['u'] = [ 'unused'       , 'Print unused providers', 0 ]
-options['I'] = [ 'include'      , 'Include directory', 1 ]
-options['c'] = [ 'codelet'      , 'entity:NMAX or entity:precondition:NMAX  : Generate a codelet to profile a provider running NMAX times', 1 ]
+options['v'] = [ 'version'      , 'Prints version of irpf90', 0 ]
+#options['z'] = [ 'openmp'       , 'Automatic openMP tasks (may not work)', 0 ]
 
 class CommandLine(object):
 
@@ -151,6 +152,15 @@ or
           self._align = a
     return self._align
   align = property(fget=align)
+
+  def coarray(self):
+    if '_coarray' not in self.__dict__:
+      self._coarray = False
+      for o,a in self.opts:
+        if o in [ "-C", '--'+options['C'][0] ]:
+          self._coarray = True
+    return self._coarray
+  coarray = property(fget=coarray)
 
   def directives(self):
     if '_directives' not in self.__dict__:

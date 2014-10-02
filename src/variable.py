@@ -253,6 +253,11 @@ class Variable(object):
     if '_header' not in self.__dict__:
       name = self.name
       self._header = [ "  %s :: %s %s"%(self.type, name, build_dim_colons(self) ) ]
+      if command_line.coarray:
+        if self.dim == []:
+          self._header[0] += " [*]"
+        else:
+          self._header[0] += " [:]"
       if self.dim != [] and command_line.align != '1':
        self._header += ["  !DIR$ ATTRIBUTES ALIGN: %s :: %s"%(command_line.align,name)]
       if self.is_main:
