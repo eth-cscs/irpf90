@@ -433,7 +433,7 @@ class Variable(object):
   def free(self):
     if '_free' not in self.__dict__:
       name = self.name
-      result = [ "!","! >>> FREE %s"%(self.name),
+      result = [ "!","! >>> FREE %s"%(name),
         "  %s_is_built = .False."%(self.same_as) ] 
       if self.dim != []:
         if command_line.do_memory:
@@ -495,7 +495,10 @@ class Variable(object):
           return result
 
         def do_allocate():
-          result = "    allocate(%s(%s),stat=irp_err)"
+          if command_line.coarray:
+            result = "    allocate(%s(%s)[*],stat=irp_err)"
+          else:
+            result = "    allocate(%s(%s),stat=irp_err)"
           result = result%(name,','.join(self.dim))
           if command_line.do_memory:
             tmp = "\n   print *, %s, 'Allocating %s(%s)'"

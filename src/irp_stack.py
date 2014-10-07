@@ -131,15 +131,15 @@ end subroutine
  !$OMP END PARALLEL
  !$OMP CRITICAL
  if (.not.alloc) then
-   allocate(irp_stack(STACKMAX,nthread+1))
-   allocate(irp_cpu(STACKMAX,nthread+1))
+   allocate(irp_stack(0:STACKMAX,nthread+1))
+   allocate(irp_cpu(0:STACKMAX,nthread+1))
    allocate(stack_index(nthread+1))
    stack_index = 0
    alloc = .True.
  endif
  !$OMP END CRITICAL
  endif
- stack_index(ithread+1) = stack_index(ithread+1)+1
+ stack_index(ithread+1) = mod(stack_index(ithread+1)+1,STACKMAX)
  irp_stack(stack_index(ithread+1),ithread+1) = irp_where""")
     if command_line.do_memory:
       txt+="""
