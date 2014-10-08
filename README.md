@@ -3,6 +3,8 @@ IRPF90
 
 IRPF90 is a Fortran90 preprocessor written in Python for programming using the Implicit Reference to Parameters (IRP) method. It simplifies the development of large fortran codes in the field of scientific high performance computing.
 
+![IRPF90 Logo](./irpf90.xpm)
+
 Dependencies
 ------------
 
@@ -30,9 +32,11 @@ Installing IRPF90
 Using IRPF90
 ------------
 
-In an empty directory, run::
+In an empty directory, run:
 
+``` bash
   irpf90 --init
+```
 
 This command creates a new Makefile suitable for most irpf90 projects.
 Now you can start to program using irpf90.
