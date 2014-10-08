@@ -33,7 +33,7 @@ case "$0" in
      local cur
      COMPREPLY=()
      cur=${COMP_WORDS[COMP_CWORD]}
-     COMPREPLY=( $(compgen -W "`cat tags | cut -d' ' -f 1`" -- "$cur" ) )
+     COMPREPLY=( $(compgen -W "`[[ -f tags ]] && cat tags | cut -d' ' -f 1`" -- "$cur" ) )
    } && complete -F _irpman_complete irpman
    ;;
 

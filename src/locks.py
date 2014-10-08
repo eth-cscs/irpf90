@@ -40,6 +40,13 @@ def create():
     var = variables[v]
     out += var.locker
 
+  out += [
+"subroutine irp_init_locks_%s()"%(irp_id),
+" implicit none" ]
+  for v in l:
+    out += [ "  call irp_lock_%s(.True.)"%v ]
+    out += [ "  call irp_lock_%s(.False.)"%v ]
+  out += [ "end subroutine" ]
   out = map(lambda x: "%s\n"%(x),out)
   if not same_file(FILENAME,out):
     file = open(FILENAME,'w')

@@ -465,7 +465,7 @@ class Variable(object):
       same_as = self.same_as
 
       def check_openmp():
-        if not do_openmp:
+        if not command_line.do_openmp:
           result =  [ "!$ nthreads = omp_get_num_threads()" ,
                       "!$ if (nthreads > 1) then" ,
                       "!$   print *, irp_here//': Error: Provider in an openMP section'" ,
@@ -610,7 +610,7 @@ class Variable(object):
         text = parsed_text.move_to_top(text,Implicit)
         text = parsed_text.move_to_top(text,Use)
         text = map(lambda x: x[1], text)
-        inside_omp = False
+#        inside_omp = False
         for line in filter(lambda x: type(x) not in [ Begin_doc, End_doc, Doc], text):
           if type(line) == Begin_provider:
             result = []
@@ -630,10 +630,10 @@ class Variable(object):
             # Detect OpenMP blocks
             buffer = line.text.lower().split()
             if buffer[1] == "parallel":
-              inside_omp = True
+#              inside_omp = True
               self._has_openmp = True
-            if buffer[1] == "end" and buffer[2] == "parallel":
-              inside_omp = False
+#            if buffer[1] == "end" and buffer[2] == "parallel":
+#              inside_omp = False
             result.append(line.text)
           else:
 #           if inside_omp:
