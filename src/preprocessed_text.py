@@ -627,13 +627,7 @@ def irp_simple_statements(text):
     temp = [ Program(0,"program irp_program",program_name) ]
     if command_line.do_profile:
       temp += [ Simple_line(0,"call irp_init_timer()",line.filename) ]
-    if command_line.do_openmp:
-      temp += [ Openmp(0,"!$OMP PARALLEL",line.filename) ]
-      temp += [ Openmp(0,"!$OMP MASTER",line.filename) ]
     temp += [ Call(0," call %s"%(program_name),line.filename) ]
-    if command_line.do_openmp:
-     temp += [ Openmp(0,"!$OMP END MASTER",line.filename) ]
-     temp += [ Openmp(0,"!$OMP END PARALLEL",line.filename) ]
     if command_line.do_profile:
       temp += [ Simple_line(0,"call irp_print_timer()",line.filename) ]
     temp += [ Simple_line(0," call irp_finalize_%s()"%(irp_id),line.filename) ]

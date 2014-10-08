@@ -113,7 +113,7 @@ def run():
     if command_line.do_codelet:
       print >>file, " irp_rdtsc.o",
     if command_line.do_openmp:
-      print >>file, " %sirp_locks.irp.o"%(irpdir),
+      print >>file, " %sirp_locks.irp.o"%(irpdir)
     else:
       print >>file, ""
 

@@ -50,11 +50,10 @@ options['s'] = [ 'substitute'   , 'Substitute values in do loops for generating 
 options['t'] = [ 'touch'        , 'Display which entities are touched when touching the variable given as an argument.', 1 ]
 options['u'] = [ 'unused'       , 'Print unused providers', 0 ]
 options['v'] = [ 'version'      , 'Prints version of irpf90', 0 ]
-#options['z'] = [ 'openmp'       , 'Automatic openMP tasks (may not work)', 0 ]
+options['z'] = [ 'openmp'       , 'Activate for OpenMP code', 0 ]
 
 class CommandLine(object):
 
-  do_openmp = False
   def __init__(self):
     global options
     self._opts = None
@@ -161,6 +160,15 @@ or
           self._coarray = True
     return self._coarray
   coarray = property(fget=coarray)
+
+  def openmp(self):
+    if '_openmp' not in self.__dict__:
+      self._openmp = False
+      for o,a in self.opts:
+        if o in [ "-z", '--'+options['z'][0] ]:
+          self._openmp = True
+    return self._openmp
+  do_openmp = property(fget=openmp)
 
   def directives(self):
     if '_directives' not in self.__dict__:

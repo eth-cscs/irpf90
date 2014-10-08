@@ -470,6 +470,7 @@ class Variable(object):
                       "!$   print *, irp_here//': Error: Provider in an openMP section'" ,
                       "!$   stop 1",
                       "!$ endif" ]
+          result = []
           return result
 
       def build_alloc(name):

@@ -106,6 +106,10 @@ def main():
     import profile
     profile.run()
 
+  if command_line.do_openmp:
+    import locks
+    locks.create()
+
 if __name__ == '__main__':
   main()
 

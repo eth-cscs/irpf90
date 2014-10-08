@@ -69,26 +69,15 @@ def call_provides(vars,opt=False):
     vars = filter(lambda x: x not in all_children,vars)
   def fun(x):
     result = []
-    if command_line.do_openmp:
-      result  += [ "!$OMP TASK" ]
     result += [ \
     "  if (.not.%s_is_built) then"%(x) ]
     result += [ \
     "    call provide_%s"%(x) ]
     result += [ \
     "  endif" ]
-    if command_line.do_openmp:
-      result += [ "!$OMP END TASK" ]
     return result
 
   result = flatten ( map (fun, vars) )
-  if command_line.do_openmp and result != []:
-   result.reverse()
-   result.remove("!$OMP TASK")
-   result.remove("!$OMP END TASK")
-   result.reverse()
-   if "!$OMP TASK" in result:
-     result += [ "!$OMP TASKWAIT" ]
   return result
 
 ######################################################################
