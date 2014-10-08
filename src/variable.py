@@ -465,13 +465,15 @@ class Variable(object):
       same_as = self.same_as
 
       def check_openmp():
+        if not do_openmp:
           result =  [ "!$ nthreads = omp_get_num_threads()" ,
                       "!$ if (nthreads > 1) then" ,
                       "!$   print *, irp_here//': Error: Provider in an openMP section'" ,
                       "!$   stop 1",
                       "!$ endif" ]
+        else:
           result = []
-          return result
+        return result
 
       def build_alloc(name):
         self = variables[name]
