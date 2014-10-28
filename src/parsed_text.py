@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #   IRPF90 is a Fortran90 preprocessor written in Python for programming using
 #   the Implicit Reference to Parameters (IRP) method.
 #   Copyright (C) 2009 Anthony SCEMAMA

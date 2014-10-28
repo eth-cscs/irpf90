@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 from command_line import command_line
 import irpf90_t
 
